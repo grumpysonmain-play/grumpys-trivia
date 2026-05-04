@@ -30,6 +30,7 @@ let currentQuestionIndex = 0;
 let correctAnswerIndex = 0;
 let roundId = Date.now().toString();
 let currentQuestionStartedAt = null;
+let tvPointsInterval = null;
 
 function setPhase(phase) {
   screenEl.classList.remove("phase-join", "phase-question", "phase-reveal", "phase-final");
@@ -91,6 +92,90 @@ function startCountdown(seconds) {
       }
     }, 1000);
   });
+}
+
+function ensureTvPointsBar() {
+  let pointsBox = document.getElementById("tvPointsBox");
+
+  if (!pointsBox) {
+    pointsBox = document.createElement("div");
+    pointsBox.id = "tvPointsBox";
+    pointsBox.className = "tv-points-box hidden";
+    pointsBox.innerHTML = `
+      <div class="tv-points-top">
+        <span>Points Available</span>
+        <strong id="tvPointsText">1000</strong>
+      </div>
+      <div class="tv-points-bar">
+        <div id="tvPointsFill" class="tv-points-fill"></div>
+      </div>
+    `;
+
+    messageEl.insertAdjacentElement("beforebegin", pointsBox);
+  }
+
+  return pointsBox;
+}
+
+function calculateLivePoints(startedAt = currentQuestionStartedAt) {
+  if (!startedAt) return 0;
+
+  const elapsedMs = Date.now() - startedAt;
+  const totalMs = QUESTION_SECONDS * 1000;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedMs / totalMs));
+
+  return Math.ceil(MAX_POINTS * remainingRatio);
+}
+
+function updateTvPointsBar(points) {
+  const pointsBox = ensureTvPointsBar();
+  const pointsText = document.getElementById("tvPointsText");
+  const pointsFill = document.getElementById("tvPointsFill");
+
+  const safePoints = Math.max(0, Math.min(MAX_POINTS, Math.round(points || 0)));
+  const percent = (safePoints / MAX_POINTS) * 100;
+
+  pointsText.textContent = safePoints.toLocaleString();
+  pointsFill.style.width = `${percent}%`;
+
+  pointsBox.classList.remove("hidden", "tv-points-low");
+
+  if (safePoints <= MAX_POINTS * 0.25) {
+    pointsBox.classList.add("tv-points-low");
+  }
+}
+
+function startTvPointsBar() {
+  stopTvPointsBar();
+
+  updateTvPointsBar(MAX_POINTS);
+
+  tvPointsInterval = setInterval(() => {
+    updateTvPointsBar(calculateLivePoints());
+  }, 50);
+}
+
+function stopTvPointsBar() {
+  if (tvPointsInterval) {
+    clearInterval(tvPointsInterval);
+    tvPointsInterval = null;
+  }
+}
+
+function hideTvPointsBar() {
+  stopTvPointsBar();
+  const pointsBox = ensureTvPointsBar();
+  pointsBox.classList.add("hidden");
+}
+
+function getPointsFromAnswer(answer) {
+  if (!answer || !answer.answeredAt || !currentQuestionStartedAt) return 0;
+
+  const elapsedMs = answer.answeredAt - currentQuestionStartedAt;
+  const totalMs = QUESTION_SECONDS * 1000;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedMs / totalMs));
+
+  return Math.ceil(MAX_POINTS * remainingRatio);
 }
 
 function getSortedPlayers(playersObj = {}) {
@@ -193,7 +278,7 @@ async function scoreQuestion() {
     const answer = player.answers?.[currentQuestionIndex];
 
     if (answer && answer.choiceIndex === correctAnswerIndex && !answer.scored) {
-      const pointsEarned = Math.max(0, Math.min(MAX_POINTS, Math.round(answer.pointsPossible || 0)));
+      const pointsEarned = getPointsFromAnswer(answer);
 
       updates[`players/${playerId}/score`] = (player.score || 0) + pointsEarned;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/scored`] = true;
@@ -216,6 +301,7 @@ async function scoreQuestion() {
 
 function showJoinScreen() {
   setPhase("join");
+  hideTvPointsBar();
 
   phaseLabel.textContent = "Join Now";
   categoryEl.textContent = "Grumpy's Trivia";
@@ -270,10 +356,14 @@ async function showQuestion(questionData, index) {
     maxPoints: MAX_POINTS,
     finalSaved: false
   });
+
+  startTvPointsBar();
 }
 
 async function showAnswerReveal(index) {
   setPhase("reveal");
+  stopTvPointsBar();
+  updateTvPointsBar(0);
 
   phaseLabel.textContent = "Answer";
   messageEl.textContent = "Correct answer revealed • Current Top 5 updated";
@@ -299,6 +389,7 @@ async function showAnswerReveal(index) {
 
 async function showFinalScreen() {
   setPhase("final");
+  hideTvPointsBar();
 
   const snap = await gameRef.child("players").once("value");
   const roundLeaders = getSortedPlayers(snap.val() || {}).slice(0, 5);
@@ -424,6 +515,7 @@ gameRef.child("players").on("value", snap => {
 });
 
 async function init() {
+  ensureTvPointsBar();
   setQrCode();
   await loadQuestions();
   runRound();
