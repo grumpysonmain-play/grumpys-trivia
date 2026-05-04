@@ -20,8 +20,11 @@ let playerId = localStorage.getItem("grumpysTriviaPlayerId");
 let playerName = localStorage.getItem("grumpysTriviaPlayerName");
 let playerNameKey = localStorage.getItem("grumpysTriviaNameKey");
 let savedPin = localStorage.getItem("grumpysTriviaPin");
+
 let currentGame = null;
 let currentPlayer = null;
+let lastSeenRoundId = localStorage.getItem("grumpysTriviaLastRoundId");
+let isAutoJoining = false;
 
 const BLOCKED_WORDS = [
   "fuck", "shit", "bitch", "asshole", "dick", "pussy", "cunt",
@@ -59,6 +62,55 @@ function isPinValid(pin) {
 function setJoinError(message) {
   joinError.textContent = message;
   joinError.style.color = message ? "#ffb3b3" : "#bbb";
+}
+
+function showGameView() {
+  joinView.classList.add("hidden");
+  gameView.classList.remove("hidden");
+}
+
+function showJoinView() {
+  joinView.classList.remove("hidden");
+  gameView.classList.add("hidden");
+}
+
+async function addPlayerToCurrentRound(game) {
+  if (!playerId || !playerName || !playerNameKey) return;
+  if (!game || !game.roundId) return;
+  if (isAutoJoining) return;
+
+  isAutoJoining = true;
+
+  try {
+    const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
+    const existingRoundPlayer = playerSnap.val();
+
+    // If already joined to this exact round, do nothing.
+    if (existingRoundPlayer && existingRoundPlayer.joinedRoundId === game.roundId) {
+      isAutoJoining = false;
+      return;
+    }
+
+    // New round or player was wiped when TV slide restarted.
+    // Add them back with a fresh round score.
+    await gameRef.child(`players/${playerId}`).set({
+      id: playerId,
+      name: playerName,
+      nameKey: playerNameKey,
+      score: 0,
+      joinedAt: Date.now(),
+      joinedRoundId: game.roundId,
+      joinedPhase: game.phase || "unknown",
+      answers: {}
+    });
+
+    lastSeenRoundId = game.roundId;
+    localStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
+  } catch (error) {
+    console.error("Auto-join failed:", error);
+  }
+
+  isAutoJoining = false;
 }
 
 async function joinGame() {
@@ -117,27 +169,17 @@ async function joinGame() {
   localStorage.setItem("grumpysTriviaNameKey", playerNameKey);
   localStorage.setItem("grumpysTriviaPin", savedPin);
 
-  const gameSnap = await gameRef.once("value");
-  const game = gameSnap.val() || {};
-
-  await gameRef.child(`players/${playerId}`).set({
-    id: playerId,
-    name: playerName,
-    nameKey: playerNameKey,
-    score: 0,
-    joinedAt: Date.now(),
-    joinedRoundId: game.roundId || null,
-    joinedPhase: game.phase || "unknown",
-    answers: {}
-  });
-
   await claimedNamesRef.child(nameKey).update({
     displayName: cleanedName,
     lastPlayed: Date.now()
   });
 
-  joinView.classList.add("hidden");
-  gameView.classList.remove("hidden");
+  const gameSnap = await gameRef.once("value");
+  const game = gameSnap.val() || {};
+
+  await addPlayerToCurrentRound(game);
+
+  showGameView();
 }
 
 async function submitAnswer(choiceIndex) {
@@ -205,7 +247,7 @@ function renderChoices(game) {
 
 function getJoinStatusMessage(game, player) {
   if (!game || !game.phase) {
-    return "Waiting for the TV screen to start the game.";
+    return "Waiting for the trivia screen to come back on the TV.";
   }
 
   if (!player) {
@@ -217,15 +259,15 @@ function getJoinStatusMessage(game, player) {
   }
 
   if (game.phase === "question") {
-    return "You joined during the round. Answer this question now!";
+    return "Answer now!";
   }
 
   if (game.phase === "reveal") {
-    return "You joined between questions. Wait for the next question to answer.";
+    return "Answer revealed. Wait for the next question.";
   }
 
   if (game.phase === "final") {
-    return "This round just ended. Stay here for the next round.";
+    return "Round complete! Your score was saved. Keep this page open for the next round.";
   }
 
   return "Waiting for the next question...";
@@ -235,7 +277,18 @@ async function renderGame(game) {
   currentGame = game || {};
   timerText.textContent = formatTime(currentGame.timer || 0);
 
-  if (!playerId) return;
+  // If they have not joined yet, show join screen.
+  if (!playerId || !playerName || !playerNameKey || !savedPin) {
+    showJoinView();
+    return;
+  }
+
+  showGameView();
+
+  // If the TV page starts a new round, automatically re-add this player.
+  if (currentGame.roundId) {
+    await addPlayerToCurrentRound(currentGame);
+  }
 
   const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
   currentPlayer = playerSnap.val();
@@ -273,9 +326,10 @@ async function renderGame(game) {
 
   if (currentGame.phase === "final") {
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
-    categoryText.textContent = "Final";
-    questionText.textContent = "Check the TV for the winner.";
+    categoryText.textContent = "Round Complete";
+    questionText.textContent = "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
     choicesEl.innerHTML = "";
+    return;
   }
 }
 
@@ -283,6 +337,14 @@ joinBtn.addEventListener("click", joinGame);
 
 if (playerName) nameInput.value = playerName;
 if (savedPin) pinInput.value = savedPin;
+
+// If the person already played before, show the game waiting screen right away.
+if (playerId && playerName && playerNameKey && savedPin) {
+  showGameView();
+  statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
+  categoryText.textContent = "Ready";
+  questionText.textContent = "Keep this page open. You will automatically join the next round.";
+}
 
 gameRef.on("value", snap => {
   renderGame(snap.val());
