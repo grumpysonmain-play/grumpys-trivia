@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play Grumpy's Trivia</title>
+  <link rel="stylesheet" href="play.css" />
+</head>
+<body>
+  <main class="phone">
+    <section id="joinView" class="card">
+      <h1>Grumpy's Trivia</h1>
+      <p>
+        Enter a nickname and 4-digit PIN.
+        If the name is new, it will be saved.
+        If the name already exists, you need the correct PIN.
+      </p>
+
+      <input id="nameInput" maxlength="18" placeholder="Nickname" />
+      <input id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="4-digit PIN" />
+
+      <button id="joinBtn">Join Game</button>
+
+      <div id="joinError" class="small"></div>
+      <div class="small">Keep this page open while you play.</div>
+    </section>
+
+    <section id="gameView" class="card hidden">
+      <div class="top-row">
+        <div>
+          <div class="label">Current Score</div>
+          <div id="scoreText" class="score">0</div>
+        </div>
+        <div>
+          <div class="label">Timer</div>
+          <div id="timerText" class="timer">0:00</div>
+        </div>
+      </div>
+
+      <div id="statusText" class="status">Waiting for the next question...</div>
+
+      <div id="categoryText" class="category">Trivia</div>
+      <h2 id="questionText">Waiting for question...</h2>
+
+      <div id="choices" class="choices"></div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="play.js"></script>
+</body>
+</html>
