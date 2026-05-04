@@ -8,6 +8,7 @@ const JOIN_SECONDS = 20;
 const QUESTION_SECONDS = 20;
 const REVEAL_SECONDS = 8;
 const FINAL_SECONDS = 40;
+const MAX_POINTS = 1000;
 
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
@@ -28,6 +29,7 @@ let questions = [];
 let currentQuestionIndex = 0;
 let correctAnswerIndex = 0;
 let roundId = Date.now().toString();
+let currentQuestionStartedAt = null;
 
 function setPhase(phase) {
   screenEl.classList.remove("phase-join", "phase-question", "phase-reveal", "phase-final");
@@ -159,19 +161,13 @@ async function addRoundScoresToAllTime(roundLeaders) {
   for (let i = 0; i < roundLeaders.length; i++) {
     const player = roundLeaders[i];
 
-    if (!player.nameKey) {
-      console.warn("Skipping all-time score because player has no nameKey:", player);
-      continue;
-    }
+    if (!player.nameKey) continue;
 
     const profileRef = claimedNamesRef.child(player.nameKey);
     const profileSnap = await profileRef.once("value");
     const profile = profileSnap.val();
 
-    if (!profile) {
-      console.warn("Skipping all-time score because claimed profile was not found:", player);
-      continue;
-    }
+    if (!profile) continue;
 
     await profileRef.update({
       displayName: player.name,
@@ -197,8 +193,16 @@ async function scoreQuestion() {
     const answer = player.answers?.[currentQuestionIndex];
 
     if (answer && answer.choiceIndex === correctAnswerIndex && !answer.scored) {
-      updates[`players/${playerId}/score`] = (player.score || 0) + 100;
+      const pointsEarned = Math.max(0, Math.min(MAX_POINTS, Math.round(answer.pointsPossible || 0)));
+
+      updates[`players/${playerId}/score`] = (player.score || 0) + pointsEarned;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/scored`] = true;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/pointsEarned`] = pointsEarned;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/wasCorrect`] = true;
+    } else if (answer && !answer.scored) {
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/scored`] = true;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/pointsEarned`] = 0;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/wasCorrect`] = false;
     }
   });
 
@@ -220,8 +224,8 @@ function showJoinScreen() {
   roundProgressEl.textContent = "Round starts soon";
 
   answersEl.innerHTML = `
-    <div class="answer">Fast answers score points</div>
-    <div class="answer">Top 5 shown after each question</div>
+    <div class="answer">Fast answers score more</div>
+    <div class="answer">Up to 1000 points per question</div>
     <div class="answer">Play from your phone</div>
     <div class="answer">Winner shown at the end</div>
   `;
@@ -234,10 +238,11 @@ async function showQuestion(questionData, index) {
 
   phaseLabel.textContent = "Question";
   currentQuestionIndex = index;
+  currentQuestionStartedAt = Date.now();
 
   categoryEl.textContent = decodeHtml(questionData.category);
   questionEl.textContent = decodeHtml(questionData.question);
-  messageEl.textContent = "Answer now on your phone.";
+  messageEl.textContent = "Answer fast — your point value is dropping.";
   roundProgressEl.textContent = `Question ${index + 1} of ${questions.length}`;
 
   const choices = shuffle([
@@ -260,6 +265,9 @@ async function showQuestion(questionData, index) {
     choices,
     correctAnswerIndex: null,
     timer: QUESTION_SECONDS,
+    questionStartedAt: currentQuestionStartedAt,
+    questionSeconds: QUESTION_SECONDS,
+    maxPoints: MAX_POINTS,
     finalSaved: false
   });
 }
