@@ -1,0 +1,152 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(242,201,76,0.22), transparent 35%),
+    linear-gradient(135deg, #111, #050505);
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+.phone {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.45);
+}
+
+.hidden {
+  display: none;
+}
+
+h1 {
+  font-size: 42px;
+  margin: 0 0 12px;
+  color: #f2c94c;
+}
+
+p {
+  font-size: 18px;
+  color: #ddd;
+}
+
+input {
+  width: 100%;
+  font-size: 22px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 0;
+  margin: 18px 0;
+}
+
+button {
+  width: 100%;
+  font-size: 22px;
+  font-weight: 900;
+  border: 0;
+  border-radius: 16px;
+  padding: 18px;
+  background: #f2c94c;
+  color: #111;
+}
+
+.small {
+  margin-top: 16px;
+  color: #bbb;
+  font-size: 14px;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.label {
+  color: #bbb;
+  font-size: 13px;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.score,
+.timer {
+  font-size: 34px;
+  font-weight: 950;
+  color: #f2c94c;
+}
+
+.status {
+  padding: 14px;
+  background: rgba(0,0,0,0.32);
+  border-radius: 16px;
+  color: #ddd;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.category {
+  display: inline-block;
+  background: #f2c94c;
+  color: #111;
+  font-weight: 950;
+  padding: 8px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.choices {
+  display: grid;
+  gap: 12px;
+}
+
+.choice {
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.16);
+  color: white;
+  border-radius: 18px;
+  padding: 18px;
+  font-size: 20px;
+  font-weight: 850;
+  text-align: left;
+}
+
+.choice:disabled {
+  opacity: 0.55;
+}
+
+.choice.selected {
+  border-color: #f2c94c;
+  background: rgba(242,201,76,0.22);
+}
+
+.choice.correct {
+  border-color: #31d56d;
+  background: rgba(49,213,109,0.28);
+}
+
+.choice.wrong {
+  border-color: #e74c3c;
+  background: rgba(231,76,60,0.22);
+}
