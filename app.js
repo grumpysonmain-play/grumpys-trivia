@@ -94,27 +94,12 @@ function startCountdown(seconds) {
   });
 }
 
-function ensureTvPointsBar() {
-  let pointsBox = document.getElementById("tvPointsBox");
-
-  if (!pointsBox) {
-    pointsBox = document.createElement("div");
-    pointsBox.id = "tvPointsBox";
-    pointsBox.className = "tv-points-box hidden";
-    pointsBox.innerHTML = `
-      <div class="tv-points-top">
-        <span>Points Available</span>
-        <strong id="tvPointsText">1000</strong>
-      </div>
-      <div class="tv-points-bar">
-        <div id="tvPointsFill" class="tv-points-fill"></div>
-      </div>
-    `;
-
-    messageEl.insertAdjacentElement("beforebegin", pointsBox);
-  }
-
-  return pointsBox;
+function getTvPointsEls() {
+  return {
+    box: document.getElementById("tvPointsBox"),
+    text: document.getElementById("tvPointsText"),
+    fill: document.getElementById("tvPointsFill")
+  };
 }
 
 function calculateLivePoints(startedAt = currentQuestionStartedAt) {
@@ -128,20 +113,20 @@ function calculateLivePoints(startedAt = currentQuestionStartedAt) {
 }
 
 function updateTvPointsBar(points) {
-  const pointsBox = ensureTvPointsBar();
-  const pointsText = document.getElementById("tvPointsText");
-  const pointsFill = document.getElementById("tvPointsFill");
+  const { box, text, fill } = getTvPointsEls();
+
+  if (!box || !text || !fill) return;
 
   const safePoints = Math.max(0, Math.min(MAX_POINTS, Math.round(points || 0)));
   const percent = (safePoints / MAX_POINTS) * 100;
 
-  pointsText.textContent = safePoints.toLocaleString();
-  pointsFill.style.width = `${percent}%`;
+  text.textContent = safePoints.toLocaleString();
+  fill.style.width = `${percent}%`;
 
-  pointsBox.classList.remove("hidden", "tv-points-low");
+  box.classList.remove("hidden", "tv-points-low");
 
   if (safePoints <= MAX_POINTS * 0.25) {
-    pointsBox.classList.add("tv-points-low");
+    box.classList.add("tv-points-low");
   }
 }
 
@@ -164,8 +149,12 @@ function stopTvPointsBar() {
 
 function hideTvPointsBar() {
   stopTvPointsBar();
-  const pointsBox = ensureTvPointsBar();
-  pointsBox.classList.add("hidden");
+
+  const { box } = getTvPointsEls();
+
+  if (box) {
+    box.classList.add("hidden");
+  }
 }
 
 function getPointsFromAnswer(answer) {
@@ -184,6 +173,7 @@ function getSortedPlayers(playersObj = {}) {
       if ((b.score || 0) !== (a.score || 0)) {
         return (b.score || 0) - (a.score || 0);
       }
+
       return (a.name || "").localeCompare(b.name || "");
     });
 }
@@ -211,6 +201,7 @@ function makeBoardList(players) {
     .map(player => {
       const name = player.name || player.displayName || "Player";
       const score = player.score ?? player.totalScore ?? 0;
+
       return `<li><span>${name}</span><strong>${score.toLocaleString()}</strong></li>`;
     })
     .join("");
@@ -363,7 +354,7 @@ async function showQuestion(questionData, index) {
 async function showAnswerReveal(index) {
   setPhase("reveal");
   stopTvPointsBar();
-  updateTvPointsBar(0);
+  hideTvPointsBar();
 
   phaseLabel.textContent = "Answer";
   messageEl.textContent = "Correct answer revealed • Current Top 5 updated";
@@ -515,7 +506,7 @@ gameRef.child("players").on("value", snap => {
 });
 
 async function init() {
-  ensureTvPointsBar();
+  hideTvPointsBar();
   setQrCode();
   await loadQuestions();
   runRound();
