@@ -28,7 +28,7 @@
     <section id="gameView" class="card hidden">
       <div class="top-row">
         <div>
-          <div class="label">Current Score</div>
+          <div class="label">Round Score</div>
           <div id="scoreText" class="score">0</div>
         </div>
         <div>
@@ -38,6 +38,25 @@
       </div>
 
       <div id="statusText" class="status">Waiting for the next question...</div>
+
+      <div id="playerStats" class="player-stats">
+        <div>
+          <div class="stat-label">All-Time Score</div>
+          <div id="allTimeScoreText" class="stat-value">0</div>
+        </div>
+        <div>
+          <div class="stat-label">All-Time Rank</div>
+          <div id="rankText" class="stat-value">—</div>
+        </div>
+        <div>
+          <div class="stat-label">Wins</div>
+          <div id="winsText" class="stat-value">0</div>
+        </div>
+        <div>
+          <div class="stat-label">Games</div>
+          <div id="gamesText" class="stat-value">0</div>
+        </div>
+      </div>
 
       <div id="categoryText" class="category">Trivia</div>
       <h2 id="questionText">Waiting for question...</h2>
