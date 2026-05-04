@@ -50,6 +50,7 @@ const BLOCKED_WORDS = [
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
+
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
@@ -67,6 +68,7 @@ function makeNameKey(name) {
 
 function isNameAllowed(name) {
   const lowered = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
   return !BLOCKED_WORDS.some(word => lowered.includes(word));
 }
 
@@ -112,6 +114,7 @@ async function loadPlayerStats() {
 
   const snap = await claimedNamesRef.once("value");
   const profilesObj = snap.val() || {};
+
   const profiles = Object.entries(profilesObj)
     .map(([key, profile]) => ({
       key,
@@ -174,7 +177,9 @@ function stopLivePoints() {
 
 function lockPoints(points, maxPoints = 1000) {
   stopLivePoints();
+
   const lockedPoints = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
+
   updatePointsDisplay(lockedPoints, maxPoints, "Locked In");
   pointsBox.classList.add("points-locked");
 }
@@ -186,18 +191,23 @@ function hidePointsBox() {
 
 function launchFireworks() {
   const oldFireworks = document.querySelector(".fireworks");
-  if (oldFireworks) oldFireworks.remove();
+
+  if (oldFireworks) {
+    oldFireworks.remove();
+  }
 
   const fireworks = document.createElement("div");
   fireworks.className = "fireworks";
 
   for (let i = 0; i < 18; i++) {
     const spark = document.createElement("span");
+
     spark.style.setProperty("--x", `${Math.random() * 220 - 110}px`);
     spark.style.setProperty("--y", `${Math.random() * 220 - 110}px`);
     spark.style.left = `${20 + Math.random() * 60}%`;
     spark.style.top = `${18 + Math.random() * 45}%`;
     spark.style.animationDelay = `${Math.random() * 0.25}s`;
+
     fireworks.appendChild(spark);
   }
 
@@ -236,7 +246,9 @@ async function addPlayerToCurrentRound(game) {
     });
 
     lastSeenRoundId = game.roundId;
+
     localStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
+
     lastFireworkQuestion = null;
     localLockedAnswers = {};
   } catch (error) {
@@ -339,24 +351,33 @@ async function submitAnswer(choiceIndex) {
   };
 
   localLockedAnswers[questionIndex] = answerData;
+
   lockPoints(pointsPossible, currentGame.maxPoints || 1000);
 
   document.querySelectorAll(".choice").forEach((btn, index) => {
     btn.disabled = true;
+    btn.classList.add("choice-disabled");
 
     if (index === choiceIndex) {
       btn.classList.add("selected");
     }
   });
 
-  statusText.textContent = `Answer submitted. Locked in for ${pointsPossible.toLocaleString()} possible points.`;
+  statusText.textContent = `Answer locked in for ${pointsPossible.toLocaleString()} possible points.`;
 
   try {
     await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set(answerData);
   } catch (error) {
     console.error("Answer submit failed:", error);
+
     statusText.textContent = "There was a problem submitting your answer. Try again.";
+
     delete localLockedAnswers[questionIndex];
+
+    document.querySelectorAll(".choice").forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove("choice-disabled", "selected");
+    });
   }
 
   isSubmittingAnswer = false;
@@ -377,6 +398,7 @@ function renderChoices(game) {
 
   game.choices.forEach((choice, index) => {
     const btn = document.createElement("button");
+
     btn.className = "choice";
     btn.textContent = `${getLetter(index)}. ${choice}`;
 
@@ -396,7 +418,14 @@ function renderChoices(game) {
       }
     }
 
-    btn.onclick = () => submitAnswer(index);
+    btn.addEventListener("pointerdown", event => {
+      event.preventDefault();
+
+      if (btn.disabled) return;
+
+      submitAnswer(index);
+    }, { once: true });
+
     choicesEl.appendChild(btn);
   });
 }
@@ -414,6 +443,7 @@ function getAnswerFeedback(game, player) {
 
   if (answer.choiceIndex === game.correctAnswerIndex) {
     const points = answer.pointsEarned ?? answer.pointsPossible ?? 0;
+
     return `Correct! +${points.toLocaleString()} points`;
   }
 
@@ -472,17 +502,21 @@ async function renderGame(game) {
   if (!currentGame.phase || currentGame.phase === "join") {
     showPlayerStats();
     hidePointsBox();
+
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
+
     categoryText.textContent = "Get Ready";
     questionText.textContent = "Watch the TV for the round countdown.";
     choicesEl.innerHTML = "";
+
     await loadPlayerStats();
     return;
   }
 
   if (currentGame.phase === "question") {
     hidePlayerStats();
+
     statusText.className = "status";
 
     const existingAnswer = currentPlayer?.answers?.[currentGame.questionIndex] || localLockedAnswers[currentGame.questionIndex];
@@ -494,11 +528,12 @@ async function renderGame(game) {
     }
 
     statusText.textContent = existingAnswer
-      ? `Answer submitted. Locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
+      ? `Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
       : getJoinStatusMessage(currentGame, currentPlayer);
 
     categoryText.textContent = currentGame.category || "Trivia";
     questionText.textContent = currentGame.question || "Question loading...";
+
     renderChoices(currentGame);
     return;
   }
@@ -512,6 +547,7 @@ async function renderGame(game) {
 
     if (answer) {
       const displayPoints = isCorrect ? (answer.pointsEarned ?? answer.pointsPossible ?? 0) : 0;
+
       updatePointsDisplay(displayPoints, currentGame.maxPoints || 1000, "Points Earned");
       pointsBox.classList.remove("hidden");
       pointsBox.classList.add("points-locked");
@@ -530,6 +566,7 @@ async function renderGame(game) {
 
     categoryText.textContent = currentGame.category || "Trivia";
     questionText.textContent = currentGame.question || "Answer revealed.";
+
     renderChoices(currentGame);
     return;
   }
@@ -537,11 +574,14 @@ async function renderGame(game) {
   if (currentGame.phase === "final") {
     showPlayerStats();
     hidePointsBox();
+
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
+
     categoryText.textContent = "Round Complete";
     questionText.textContent = "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
     choicesEl.innerHTML = "";
+
     await loadPlayerStats();
     return;
   }
@@ -549,16 +589,23 @@ async function renderGame(game) {
 
 joinBtn.addEventListener("click", joinGame);
 
-if (playerName) nameInput.value = playerName;
-if (savedPin) pinInput.value = savedPin;
+if (playerName) {
+  nameInput.value = playerName;
+}
+
+if (savedPin) {
+  pinInput.value = savedPin;
+}
 
 if (playerId && playerName && playerNameKey && savedPin) {
   showGameView();
   showPlayerStats();
   hidePointsBox();
+
   statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
   categoryText.textContent = "Ready";
   questionText.textContent = "Keep this page open. You will automatically join the next round.";
+
   loadPlayerStats();
 }
 
