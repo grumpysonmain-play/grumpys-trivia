@@ -133,9 +133,19 @@ function calculateLivePoints(game) {
   if (!game || !game.questionStartedAt) return 0;
 
   const maxPoints = game.maxPoints || 1000;
-  const questionMs = (game.questionSeconds || 20) * 1000;
+  const questionSeconds = game.questionSeconds || 20;
+  const graceSeconds = game.fullPointsGraceSeconds ?? 3;
+
   const elapsedMs = Date.now() - game.questionStartedAt;
-  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedMs / questionMs));
+  const graceMs = graceSeconds * 1000;
+  const scoringMs = Math.max(1, (questionSeconds - graceSeconds) * 1000);
+
+  if (elapsedMs <= graceMs) {
+    return maxPoints;
+  }
+
+  const scoringElapsedMs = elapsedMs - graceMs;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - scoringElapsedMs / scoringMs));
 
   return Math.ceil(maxPoints * remainingRatio);
 }
