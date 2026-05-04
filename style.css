@@ -47,8 +47,13 @@ body {
 }
 
 @keyframes slowFloat {
-  from { transform: translate(-2%, -2%) scale(1); }
-  to { transform: translate(2%, 2%) scale(1.05); }
+  from {
+    transform: translate(-2%, -2%) scale(1);
+  }
+
+  to {
+    transform: translate(2%, 2%) scale(1.05);
+  }
 }
 
 .top-bar,
@@ -119,6 +124,7 @@ h1 {
   display: flex;
   flex-direction: column;
   animation: cardIn 0.45s ease both;
+  min-height: 0;
 }
 
 @keyframes cardIn {
@@ -126,6 +132,7 @@ h1 {
     opacity: 0;
     transform: translateY(24px) scale(0.985);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -174,16 +181,28 @@ h1 {
   animation: answerIn 0.35s ease both;
 }
 
-.answer:nth-child(1) { animation-delay: 0.04s; }
-.answer:nth-child(2) { animation-delay: 0.10s; }
-.answer:nth-child(3) { animation-delay: 0.16s; }
-.answer:nth-child(4) { animation-delay: 0.22s; }
+.answer:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.answer:nth-child(2) {
+  animation-delay: 0.10s;
+}
+
+.answer:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.answer:nth-child(4) {
+  animation-delay: 0.22s;
+}
 
 @keyframes answerIn {
   from {
     opacity: 0;
     transform: translateX(-18px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -198,14 +217,87 @@ h1 {
 }
 
 @keyframes correctPop {
-  0% { transform: scale(0.95); }
-  55% { transform: scale(1.045); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0.95);
+  }
+
+  55% {
+    transform: scale(1.045);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .answer.dim {
   opacity: 0.28;
   filter: grayscale(0.6);
+}
+
+.tv-points-box {
+  background: rgba(0,0,0,0.32);
+  border: 3px solid rgba(242,201,76,0.65);
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 24px;
+  margin-bottom: 6px;
+  box-shadow: 0 0 36px rgba(242,201,76,0.18);
+}
+
+.tv-points-box.hidden {
+  display: none !important;
+}
+
+.tv-points-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.tv-points-top span {
+  color: #ddd;
+  font-size: 26px;
+  text-transform: uppercase;
+  font-weight: 950;
+  letter-spacing: 2px;
+}
+
+.tv-points-top strong {
+  color: #f2c94c;
+  font-size: 58px;
+  font-weight: 950;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.tv-points-bar {
+  width: 100%;
+  height: 26px;
+  background: rgba(255,255,255,0.13);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tv-points-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #31d56d, #f2c94c);
+  border-radius: 999px;
+  transition: width 0.05s linear;
+}
+
+.tv-points-low {
+  border-color: rgba(231,76,60,0.8);
+}
+
+.tv-points-low .tv-points-top strong {
+  color: #ff6b5f;
+}
+
+.tv-points-low .tv-points-fill {
+  background: linear-gradient(90deg, #ff6b5f, #f2c94c);
 }
 
 .message {
@@ -241,6 +333,13 @@ h1 {
   place-items: center;
   font-size: 88px;
   font-weight: 950;
+  overflow: hidden;
+}
+
+.qr-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .qr-text {
@@ -327,11 +426,16 @@ h1 {
   border-color: rgba(242, 201, 76, 0.8);
 }
 
+.phase-join .tv-points-box {
+  display: none !important;
+}
+
 @keyframes pulseQR {
   0%, 100% {
     transform: scale(1);
     box-shadow: 0 0 0 rgba(242,201,76,0);
   }
+
   50% {
     transform: scale(1.035);
     box-shadow: 0 0 45px rgba(242,201,76,0.28);
@@ -356,8 +460,13 @@ h1 {
 }
 
 @keyframes timerPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.035); }
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.035);
+  }
 }
 
 .phase-question .answer {
@@ -381,7 +490,6 @@ h1 {
   color: #31d56d;
 }
 
-/* This is the big change: during answer reveal the leaderboard becomes bigger */
 .phase-reveal .content {
   grid-template-columns: 0.78fr 0.95fr;
 }
@@ -392,6 +500,11 @@ h1 {
 
 .phase-reveal .question {
   font-size: 42px;
+  margin-bottom: 22px;
+}
+
+.phase-reveal .answers {
+  gap: 16px;
 }
 
 .phase-reveal .answer {
@@ -410,6 +523,10 @@ h1 {
 
 .phase-reveal .qr-box {
   display: none;
+}
+
+.phase-reveal .tv-points-box {
+  display: none !important;
 }
 
 .phase-reveal .leaderboard {
@@ -446,6 +563,7 @@ h1 {
     opacity: 0.35;
     transform: translateX(36px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -492,6 +610,10 @@ h1 {
   width: 100%;
   grid-template-columns: 1fr 1fr;
   align-items: stretch;
+}
+
+.phase-final .tv-points-box {
+  display: none !important;
 }
 
 .final-board {
@@ -561,137 +683,8 @@ h1 {
   from {
     box-shadow: 0 0 20px rgba(242,201,76,0.25);
   }
+
   to {
     box-shadow: 0 0 60px rgba(242,201,76,0.65);
   }
-}
-.tv-points-box {
-  background: rgba(0,0,0,0.32);
-  border: 3px solid rgba(242,201,76,0.65);
-  border-radius: 24px;
-  padding: 20px;
-  margin-top: auto;
-  margin-bottom: 22px;
-  box-shadow: 0 0 36px rgba(242,201,76,0.18);
-}
-
-.tv-points-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.tv-points-top span {
-  color: #ddd;
-  font-size: 26px;
-  text-transform: uppercase;
-  font-weight: 950;
-  letter-spacing: 2px;
-}
-
-.tv-points-top strong {
-  color: #f2c94c;
-  font-size: 58px;
-  font-weight: 950;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.tv-points-bar {
-  width: 100%;
-  height: 26px;
-  background: rgba(255,255,255,0.13);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.tv-points-fill {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #31d56d, #f2c94c);
-  border-radius: 999px;
-  transition: width 0.05s linear;
-}
-
-.tv-points-low {
-  border-color: rgba(231,76,60,0.8);
-}
-
-.tv-points-low .tv-points-top strong {
-  color: #ff6b5f;
-}
-
-.tv-points-low .tv-points-fill {
-  background: linear-gradient(90deg, #ff6b5f, #f2c94c);
-}
-.tv-points-box {
-  background: rgba(0,0,0,0.32);
-  border: 3px solid rgba(242,201,76,0.65);
-  border-radius: 24px;
-  padding: 20px;
-  margin-top: 24px;
-  margin-bottom: 6px;
-  box-shadow: 0 0 36px rgba(242,201,76,0.18);
-}
-
-.tv-points-box.hidden {
-  display: none !important;
-}
-
-.tv-points-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.tv-points-top span {
-  color: #ddd;
-  font-size: 26px;
-  text-transform: uppercase;
-  font-weight: 950;
-  letter-spacing: 2px;
-}
-
-.tv-points-top strong {
-  color: #f2c94c;
-  font-size: 58px;
-  font-weight: 950;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.tv-points-bar {
-  width: 100%;
-  height: 26px;
-  background: rgba(255,255,255,0.13);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.tv-points-fill {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, #31d56d, #f2c94c);
-  border-radius: 999px;
-  transition: width 0.05s linear;
-}
-
-.tv-points-low {
-  border-color: rgba(231,76,60,0.8);
-}
-
-.tv-points-low .tv-points-top strong {
-  color: #ff6b5f;
-}
-
-.tv-points-low .tv-points-fill {
-  background: linear-gradient(90deg, #ff6b5f, #f2c94c);
-}
-
-.phase-join .tv-points-box,
-.phase-reveal .tv-points-box,
-.phase-final .tv-points-box {
-  display: none !important;
 }
