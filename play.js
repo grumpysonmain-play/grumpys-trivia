@@ -16,6 +16,11 @@ const categoryText = document.getElementById("categoryText");
 const questionText = document.getElementById("questionText");
 const choicesEl = document.getElementById("choices");
 
+const allTimeScoreText = document.getElementById("allTimeScoreText");
+const rankText = document.getElementById("rankText");
+const winsText = document.getElementById("winsText");
+const gamesText = document.getElementById("gamesText");
+
 let playerId = localStorage.getItem("grumpysTriviaPlayerId");
 let playerName = localStorage.getItem("grumpysTriviaPlayerName");
 let playerNameKey = localStorage.getItem("grumpysTriviaNameKey");
@@ -74,6 +79,35 @@ function showJoinView() {
   gameView.classList.add("hidden");
 }
 
+function updatePlayerStats(profile, rank) {
+  allTimeScoreText.textContent = (profile?.totalScore || 0).toLocaleString();
+  rankText.textContent = rank ? `#${rank}` : "—";
+  winsText.textContent = profile?.wins || 0;
+  gamesText.textContent = profile?.gamesPlayed || 0;
+}
+
+async function loadPlayerStats() {
+  if (!playerNameKey) {
+    updatePlayerStats(null, null);
+    return;
+  }
+
+  const snap = await claimedNamesRef.once("value");
+  const profilesObj = snap.val() || {};
+  const profiles = Object.entries(profilesObj)
+    .map(([key, profile]) => ({
+      key,
+      ...profile
+    }))
+    .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+
+  const index = profiles.findIndex(profile => profile.key === playerNameKey);
+  const profile = index >= 0 ? profiles[index] : null;
+  const rank = index >= 0 && (profile?.totalScore || 0) > 0 ? index + 1 : null;
+
+  updatePlayerStats(profile, rank);
+}
+
 async function addPlayerToCurrentRound(game) {
   if (!playerId || !playerName || !playerNameKey) return;
   if (!game || !game.roundId) return;
@@ -85,14 +119,11 @@ async function addPlayerToCurrentRound(game) {
     const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
     const existingRoundPlayer = playerSnap.val();
 
-    // If already joined to this exact round, do nothing.
     if (existingRoundPlayer && existingRoundPlayer.joinedRoundId === game.roundId) {
       isAutoJoining = false;
       return;
     }
 
-    // New round or player was wiped when TV slide restarted.
-    // Add them back with a fresh round score.
     await gameRef.child(`players/${playerId}`).set({
       id: playerId,
       name: playerName,
@@ -178,6 +209,7 @@ async function joinGame() {
   const game = gameSnap.val() || {};
 
   await addPlayerToCurrentRound(game);
+  await loadPlayerStats();
 
   showGameView();
 }
@@ -267,7 +299,7 @@ function getJoinStatusMessage(game, player) {
   }
 
   if (game.phase === "final") {
-    return "Round complete! Your score was saved. Keep this page open for the next round.";
+    return "Round complete! Your all-time score was saved. Keep this page open for the next round.";
   }
 
   return "Waiting for the next question...";
@@ -277,7 +309,6 @@ async function renderGame(game) {
   currentGame = game || {};
   timerText.textContent = formatTime(currentGame.timer || 0);
 
-  // If they have not joined yet, show join screen.
   if (!playerId || !playerName || !playerNameKey || !savedPin) {
     showJoinView();
     return;
@@ -285,7 +316,6 @@ async function renderGame(game) {
 
   showGameView();
 
-  // If the TV page starts a new round, automatically re-add this player.
   if (currentGame.roundId) {
     await addPlayerToCurrentRound(currentGame);
   }
@@ -294,6 +324,8 @@ async function renderGame(game) {
   currentPlayer = playerSnap.val();
 
   scoreText.textContent = currentPlayer?.score || 0;
+
+  await loadPlayerStats();
 
   if (!currentGame.phase || currentGame.phase === "join") {
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
@@ -329,6 +361,7 @@ async function renderGame(game) {
     categoryText.textContent = "Round Complete";
     questionText.textContent = "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
     choicesEl.innerHTML = "";
+    await loadPlayerStats();
     return;
   }
 }
@@ -338,12 +371,12 @@ joinBtn.addEventListener("click", joinGame);
 if (playerName) nameInput.value = playerName;
 if (savedPin) pinInput.value = savedPin;
 
-// If the person already played before, show the game waiting screen right away.
 if (playerId && playerName && playerNameKey && savedPin) {
   showGameView();
   statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
   categoryText.textContent = "Ready";
   questionText.textContent = "Keep this page open. You will automatically join the next round.";
+  loadPlayerStats();
 }
 
 gameRef.on("value", snap => {
