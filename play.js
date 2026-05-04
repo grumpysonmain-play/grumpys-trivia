@@ -21,6 +21,7 @@ const rankText = document.getElementById("rankText");
 const winsText = document.getElementById("winsText");
 const gamesText = document.getElementById("gamesText");
 
+const playerStats = document.getElementById("playerStats");
 const pointsBox = document.getElementById("pointsBox");
 const pointsLabel = document.getElementById("pointsLabel");
 const pointsText = document.getElementById("pointsText");
@@ -37,7 +38,8 @@ let lastSeenRoundId = localStorage.getItem("grumpysTriviaLastRoundId");
 let isAutoJoining = false;
 let lastFireworkQuestion = null;
 let pointsInterval = null;
-let lockedPoints = null;
+let isSubmittingAnswer = false;
+let localLockedAnswers = {};
 
 const BLOCKED_WORDS = [
   "fuck", "shit", "bitch", "asshole", "dick", "pussy", "cunt",
@@ -85,6 +87,14 @@ function showGameView() {
 function showJoinView() {
   joinView.classList.remove("hidden");
   gameView.classList.add("hidden");
+}
+
+function showPlayerStats() {
+  playerStats.classList.remove("hidden");
+}
+
+function hidePlayerStats() {
+  playerStats.classList.add("hidden");
 }
 
 function updatePlayerStats(profile, rank) {
@@ -164,7 +174,7 @@ function stopLivePoints() {
 
 function lockPoints(points, maxPoints = 1000) {
   stopLivePoints();
-  lockedPoints = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
+  const lockedPoints = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
   updatePointsDisplay(lockedPoints, maxPoints, "Locked In");
   pointsBox.classList.add("points-locked");
 }
@@ -228,7 +238,7 @@ async function addPlayerToCurrentRound(game) {
     lastSeenRoundId = game.roundId;
     localStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
     lastFireworkQuestion = null;
-    lockedPoints = null;
+    localLockedAnswers = {};
   } catch (error) {
     console.error("Auto-join failed:", error);
   }
@@ -307,25 +317,29 @@ async function joinGame() {
 }
 
 async function submitAnswer(choiceIndex) {
+  if (isSubmittingAnswer) return;
   if (!currentGame || currentGame.phase !== "question" || !playerId) return;
 
   const questionIndex = currentGame.questionIndex;
-  const existingAnswer = currentPlayer?.answers?.[questionIndex];
+  const existingAnswer = currentPlayer?.answers?.[questionIndex] || localLockedAnswers[questionIndex];
 
   if (existingAnswer) {
     statusText.textContent = "Answer already submitted. You cannot change it.";
     return;
   }
 
-  const pointsPossible = calculateLivePoints(currentGame);
-  lockPoints(pointsPossible, currentGame.maxPoints || 1000);
+  isSubmittingAnswer = true;
 
-  await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set({
+  const pointsPossible = calculateLivePoints(currentGame);
+  const answerData = {
     choiceIndex,
     answeredAt: Date.now(),
     pointsPossible,
     scored: false
-  });
+  };
+
+  localLockedAnswers[questionIndex] = answerData;
+  lockPoints(pointsPossible, currentGame.maxPoints || 1000);
 
   document.querySelectorAll(".choice").forEach((btn, index) => {
     btn.disabled = true;
@@ -336,6 +350,16 @@ async function submitAnswer(choiceIndex) {
   });
 
   statusText.textContent = `Answer submitted. Locked in for ${pointsPossible.toLocaleString()} possible points.`;
+
+  try {
+    await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set(answerData);
+  } catch (error) {
+    console.error("Answer submit failed:", error);
+    statusText.textContent = "There was a problem submitting your answer. Try again.";
+    delete localLockedAnswers[questionIndex];
+  }
+
+  isSubmittingAnswer = false;
 }
 
 function getLetter(index) {
@@ -348,7 +372,7 @@ function renderChoices(game) {
   if (!game.choices) return;
 
   const questionIndex = game.questionIndex;
-  const existingAnswer = currentPlayer?.answers?.[questionIndex];
+  const existingAnswer = currentPlayer?.answers?.[questionIndex] || localLockedAnswers[questionIndex];
   const selectedIndex = existingAnswer?.choiceIndex;
 
   game.choices.forEach((choice, index) => {
@@ -378,7 +402,7 @@ function renderChoices(game) {
 }
 
 function getAnswerFeedback(game, player) {
-  const answer = player?.answers?.[game.questionIndex];
+  const answer = player?.answers?.[game.questionIndex] || localLockedAnswers[game.questionIndex];
 
   if (!answer) {
     return "Time's up — no answer submitted.";
@@ -445,21 +469,23 @@ async function renderGame(game) {
 
   scoreText.textContent = currentPlayer?.score || 0;
 
-  await loadPlayerStats();
-
   if (!currentGame.phase || currentGame.phase === "join") {
+    showPlayerStats();
     hidePointsBox();
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
     categoryText.textContent = "Get Ready";
     questionText.textContent = "Watch the TV for the round countdown.";
     choicesEl.innerHTML = "";
+    await loadPlayerStats();
     return;
   }
 
   if (currentGame.phase === "question") {
+    hidePlayerStats();
     statusText.className = "status";
-    const existingAnswer = currentPlayer?.answers?.[currentGame.questionIndex];
+
+    const existingAnswer = currentPlayer?.answers?.[currentGame.questionIndex] || localLockedAnswers[currentGame.questionIndex];
 
     if (existingAnswer) {
       lockPoints(existingAnswer.pointsPossible || 0, currentGame.maxPoints || 1000);
@@ -478,14 +504,15 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "reveal") {
+    hidePlayerStats();
     stopLivePoints();
 
-    const answer = currentPlayer?.answers?.[currentGame.questionIndex];
+    const answer = currentPlayer?.answers?.[currentGame.questionIndex] || localLockedAnswers[currentGame.questionIndex];
     const isCorrect = answer && answer.choiceIndex === currentGame.correctAnswerIndex;
 
     if (answer) {
       const displayPoints = isCorrect ? (answer.pointsEarned ?? answer.pointsPossible ?? 0) : 0;
-      updatePointsDisplay(displayPoints, currentGame.maxPoints || 1000, isCorrect ? "Points Earned" : "Points Earned");
+      updatePointsDisplay(displayPoints, currentGame.maxPoints || 1000, "Points Earned");
       pointsBox.classList.remove("hidden");
       pointsBox.classList.add("points-locked");
     } else {
@@ -508,6 +535,7 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "final") {
+    showPlayerStats();
     hidePointsBox();
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
@@ -526,6 +554,7 @@ if (savedPin) pinInput.value = savedPin;
 
 if (playerId && playerName && playerNameKey && savedPin) {
   showGameView();
+  showPlayerStats();
   hidePointsBox();
   statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
   categoryText.textContent = "Ready";
