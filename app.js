@@ -1,14 +1,15 @@
 const TRIVIA_URLS = [
   "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=9",
   "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=21",
-  "https://opentdb.com/api.php?amount=1&type=multiple&difficulty=easy&category=23"
+  "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=23"
 ];
 
-const JOIN_SECONDS = 20;
+const JOIN_SECONDS = 30;
 const QUESTION_SECONDS = 20;
 const REVEAL_SECONDS = 8;
-const FINAL_SECONDS = 40;
+const FINAL_SECONDS = 42;
 const MAX_POINTS = 1000;
+const FULL_POINTS_GRACE_SECONDS = 3;
 
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
@@ -106,8 +107,15 @@ function calculateLivePoints(startedAt = currentQuestionStartedAt) {
   if (!startedAt) return 0;
 
   const elapsedMs = Date.now() - startedAt;
-  const totalMs = QUESTION_SECONDS * 1000;
-  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedMs / totalMs));
+  const graceMs = FULL_POINTS_GRACE_SECONDS * 1000;
+  const scoringMs = Math.max(1, (QUESTION_SECONDS - FULL_POINTS_GRACE_SECONDS) * 1000);
+
+  if (elapsedMs <= graceMs) {
+    return MAX_POINTS;
+  }
+
+  const scoringElapsedMs = elapsedMs - graceMs;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - scoringElapsedMs / scoringMs));
 
   return Math.ceil(MAX_POINTS * remainingRatio);
 }
@@ -161,8 +169,15 @@ function getPointsFromAnswer(answer) {
   if (!answer || !answer.answeredAt || !currentQuestionStartedAt) return 0;
 
   const elapsedMs = answer.answeredAt - currentQuestionStartedAt;
-  const totalMs = QUESTION_SECONDS * 1000;
-  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedMs / totalMs));
+  const graceMs = FULL_POINTS_GRACE_SECONDS * 1000;
+  const scoringMs = Math.max(1, (QUESTION_SECONDS - FULL_POINTS_GRACE_SECONDS) * 1000);
+
+  if (elapsedMs <= graceMs) {
+    return MAX_POINTS;
+  }
+
+  const scoringElapsedMs = elapsedMs - graceMs;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - scoringElapsedMs / scoringMs));
 
   return Math.ceil(MAX_POINTS * remainingRatio);
 }
@@ -297,13 +312,13 @@ function showJoinScreen() {
   phaseLabel.textContent = "Join Now";
   categoryEl.textContent = "Grumpy's Trivia";
   questionEl.textContent = "Scan the QR code and get ready to play!";
-  messageEl.textContent = "A new 5-question round is starting.";
+  messageEl.textContent = "A new 6-question round is starting.";
   roundProgressEl.textContent = "Round starts soon";
 
   answersEl.innerHTML = `
     <div class="answer">Fast answers score more</div>
     <div class="answer">Up to 1000 points per question</div>
-    <div class="answer">Play from your phone</div>
+    <div class="answer">6 questions per round</div>
     <div class="answer">Winner shown at the end</div>
   `;
 
@@ -345,6 +360,7 @@ async function showQuestion(questionData, index) {
     questionStartedAt: currentQuestionStartedAt,
     questionSeconds: QUESTION_SECONDS,
     maxPoints: MAX_POINTS,
+    fullPointsGraceSeconds: FULL_POINTS_GRACE_SECONDS,
     finalSaved: false
   });
 
@@ -429,11 +445,11 @@ async function loadQuestions() {
 
     questions = questionGroups.flatMap(group => group.results || []);
 
-    if (questions.length < 5) {
+    if (questions.length < 6) {
       throw new Error("Not enough trivia questions returned.");
     }
 
-    questions = shuffle(questions).slice(0, 5);
+    questions = shuffle(questions).slice(0, 6);
   } catch (error) {
     console.error(error);
 
@@ -467,6 +483,12 @@ async function loadQuestions() {
         question: "In baseball, how many strikes make an out?",
         correct_answer: "3",
         incorrect_answers: ["2", "4", "5"]
+      },
+      {
+        category: "History",
+        question: "What document begins with the words 'We the People'?",
+        correct_answer: "The Constitution",
+        incorrect_answers: ["The Declaration of Independence", "The Bill of Rights", "The Gettysburg Address"]
       }
     ];
   }
