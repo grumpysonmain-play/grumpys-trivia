@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grumpy's Trivia</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="screen">
+    <header class="top-bar">
+      <div>
+        <div class="eyebrow">LIVE BAR TRIVIA</div>
+        <h1>Grumpy's Trivia</h1>
+      </div>
+
+      <div class="round-info">
+        <div id="phaseLabel">Starting Soon</div>
+        <div id="timer">4:00</div>
+      </div>
+    </header>
+
+    <section class="content">
+      <div class="question-card">
+        <div id="category" class="category">General Trivia</div>
+        <div id="question" class="question">Loading trivia round...</div>
+
+        <div id="answers" class="answers">
+          <div class="answer">A. Loading...</div>
+          <div class="answer">B. Loading...</div>
+          <div class="answer">C. Loading...</div>
+          <div class="answer">D. Loading...</div>
+        </div>
+
+        <div id="message" class="message">Scan the QR code to join the next round.</div>
+      </div>
+
+      <aside class="side-panel">
+        <div class="qr-box">
+          <div id="qrCode" class="qr-placeholder">QR</div>
+          <div class="qr-text">Scan to Play</div>
+        </div>
+
+        <div class="leaderboard">
+          <h2>Top 5</h2>
+          <ol id="leaderboardList">
+            <li><span>Waiting...</span><strong>0</strong></li>
+          </ol>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="bottom-bar">
+      <div>Answer on your phone • New round every few minutes</div>
+      <div id="roundProgress">Round loading...</div>
+    </footer>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
