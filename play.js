@@ -7,6 +7,7 @@ const gameView = document.getElementById("gameView");
 const nameInput = document.getElementById("nameInput");
 const pinInput = document.getElementById("pinInput");
 const joinBtn = document.getElementById("joinBtn");
+const guestBtn = document.getElementById("guestBtn");
 const joinError = document.getElementById("joinError");
 
 const scoreText = document.getElementById("scoreText");
@@ -31,6 +32,7 @@ let playerId = localStorage.getItem("grumpysTriviaPlayerId");
 let playerName = localStorage.getItem("grumpysTriviaPlayerName");
 let playerNameKey = localStorage.getItem("grumpysTriviaNameKey");
 let savedPin = localStorage.getItem("grumpysTriviaPin");
+let isGuest = localStorage.getItem("grumpysTriviaIsGuest") === "true";
 
 let currentGame = null;
 let currentPlayer = null;
@@ -92,6 +94,11 @@ function showJoinView() {
 }
 
 function showPlayerStats() {
+  if (isGuest) {
+    hidePlayerStats();
+    return;
+  }
+
   playerStats.classList.remove("hidden");
 }
 
@@ -107,7 +114,7 @@ function updatePlayerStats(profile, rank) {
 }
 
 async function loadPlayerStats() {
-  if (!playerNameKey) {
+  if (isGuest || !playerNameKey) {
     updatePlayerStats(null, null);
     return;
   }
@@ -228,8 +235,45 @@ function launchFireworks() {
   }, 1400);
 }
 
+function makeGuestName() {
+  const number = Math.floor(100 + Math.random() * 900);
+  return `Guest ${number}`;
+}
+
+function makeGuestId() {
+  return `guest_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function saveGuestLocally(id, name) {
+  playerId = id;
+  playerName = name;
+  playerNameKey = "";
+  savedPin = "";
+  isGuest = true;
+
+  localStorage.setItem("grumpysTriviaPlayerId", playerId);
+  localStorage.setItem("grumpysTriviaPlayerName", playerName);
+  localStorage.setItem("grumpysTriviaNameKey", "");
+  localStorage.setItem("grumpysTriviaPin", "");
+  localStorage.setItem("grumpysTriviaIsGuest", "true");
+}
+
+function saveRegisteredLocally(id, name, nameKey, pin) {
+  playerId = id;
+  playerName = name;
+  playerNameKey = nameKey;
+  savedPin = pin;
+  isGuest = false;
+
+  localStorage.setItem("grumpysTriviaPlayerId", playerId);
+  localStorage.setItem("grumpysTriviaPlayerName", playerName);
+  localStorage.setItem("grumpysTriviaNameKey", playerNameKey);
+  localStorage.setItem("grumpysTriviaPin", savedPin);
+  localStorage.setItem("grumpysTriviaIsGuest", "false");
+}
+
 async function addPlayerToCurrentRound(game) {
-  if (!playerId || !playerName || !playerNameKey) return;
+  if (!playerId || !playerName) return;
   if (!game || !game.roundId) return;
   if (isAutoJoining) return;
 
@@ -247,7 +291,8 @@ async function addPlayerToCurrentRound(game) {
     await gameRef.child(`players/${playerId}`).set({
       id: playerId,
       name: playerName,
-      nameKey: playerNameKey,
+      nameKey: isGuest ? null : playerNameKey,
+      isGuest,
       score: 0,
       joinedAt: Date.now(),
       joinedRoundId: game.roundId,
@@ -298,13 +343,15 @@ async function joinGame() {
     return;
   }
 
+  let newPlayerId;
+
   if (existingProfile) {
-    playerId = existingProfile.playerId;
+    newPlayerId = existingProfile.playerId;
   } else {
-    playerId = `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    newPlayerId = `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
     await claimedNamesRef.child(nameKey).set({
-      playerId,
+      playerId: newPlayerId,
       displayName: cleanedName,
       pin,
       totalScore: 0,
@@ -315,14 +362,7 @@ async function joinGame() {
     });
   }
 
-  playerName = cleanedName;
-  playerNameKey = nameKey;
-  savedPin = pin;
-
-  localStorage.setItem("grumpysTriviaPlayerId", playerId);
-  localStorage.setItem("grumpysTriviaPlayerName", playerName);
-  localStorage.setItem("grumpysTriviaNameKey", playerNameKey);
-  localStorage.setItem("grumpysTriviaPin", savedPin);
+  saveRegisteredLocally(newPlayerId, cleanedName, nameKey, pin);
 
   await claimedNamesRef.child(nameKey).update({
     displayName: cleanedName,
@@ -336,6 +376,27 @@ async function joinGame() {
   await loadPlayerStats();
 
   showGameView();
+}
+
+async function joinAsGuest() {
+  setJoinError("");
+
+  const guestName = makeGuestName();
+  const guestId = makeGuestId();
+
+  saveGuestLocally(guestId, guestName);
+
+  const gameSnap = await gameRef.once("value");
+  const game = gameSnap.val() || {};
+
+  await addPlayerToCurrentRound(game);
+
+  hidePlayerStats();
+  showGameView();
+
+  statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
+  categoryText.textContent = "Guest Mode";
+  questionText.textContent = "Watch the TV for the next question.";
 }
 
 async function submitAnswer(choiceIndex) {
@@ -470,7 +531,9 @@ function getJoinStatusMessage(game, player) {
   }
 
   if (game.phase === "join") {
-    return "You are in. Get ready — the round is about to start.";
+    return isGuest
+      ? `You are in as ${playerName}. Guest scores do not save all-time.`
+      : "You are in. Get ready — the round is about to start.";
   }
 
   if (game.phase === "question") {
@@ -482,7 +545,9 @@ function getJoinStatusMessage(game, player) {
   }
 
   if (game.phase === "final") {
-    return "Round complete! Your all-time score was saved. Keep this page open for the next round.";
+    return isGuest
+      ? "Round complete! Guest scores do not save all-time. Keep this page open for the next round."
+      : "Round complete! Your all-time score was saved. Keep this page open for the next round.";
   }
 
   return "Waiting for the next question...";
@@ -492,7 +557,13 @@ async function renderGame(game) {
   currentGame = game || {};
   timerText.textContent = formatTime(currentGame.timer || 0);
 
-  if (!playerId || !playerName || !playerNameKey || !savedPin) {
+  if (!playerId || !playerName) {
+    hidePointsBox();
+    showJoinView();
+    return;
+  }
+
+  if (!isGuest && (!playerNameKey || !savedPin)) {
     hidePointsBox();
     showJoinView();
     return;
@@ -510,17 +581,24 @@ async function renderGame(game) {
   scoreText.textContent = currentPlayer?.score || 0;
 
   if (!currentGame.phase || currentGame.phase === "join") {
-    showPlayerStats();
+    if (isGuest) {
+      hidePlayerStats();
+    } else {
+      showPlayerStats();
+      await loadPlayerStats();
+    }
+
     hidePointsBox();
 
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
 
-    categoryText.textContent = "Get Ready";
-    questionText.textContent = "Watch the TV for the round countdown.";
-    choicesEl.innerHTML = "";
+    categoryText.textContent = isGuest ? "Guest Mode" : "Get Ready";
+    questionText.textContent = isGuest
+      ? "You can play this round, but your score will not save to the all-time leaderboard."
+      : "Watch the TV for the round countdown.";
 
-    await loadPlayerStats();
+    choicesEl.innerHTML = "";
     return;
   }
 
@@ -582,41 +660,56 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "final") {
-    showPlayerStats();
+    if (isGuest) {
+      hidePlayerStats();
+    } else {
+      showPlayerStats();
+      await loadPlayerStats();
+    }
+
     hidePointsBox();
 
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
 
-    categoryText.textContent = "Round Complete";
-    questionText.textContent = "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
-    choicesEl.innerHTML = "";
+    categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
+    questionText.textContent = isGuest
+      ? "Keep this page open. You will automatically join the next round as a guest."
+      : "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
 
-    await loadPlayerStats();
+    choicesEl.innerHTML = "";
     return;
   }
 }
 
 joinBtn.addEventListener("click", joinGame);
+guestBtn.addEventListener("click", joinAsGuest);
 
-if (playerName) {
+if (playerName && !isGuest) {
   nameInput.value = playerName;
 }
 
-if (savedPin) {
+if (savedPin && !isGuest) {
   pinInput.value = savedPin;
 }
 
-if (playerId && playerName && playerNameKey && savedPin) {
+if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
   showGameView();
-  showPlayerStats();
+
+  if (isGuest) {
+    hidePlayerStats();
+    statusText.textContent = `Waiting as ${playerName}. Guest scores do not save all-time.`;
+    categoryText.textContent = "Guest Mode";
+    questionText.textContent = "Keep this page open. You will automatically join the next round as a guest.";
+  } else {
+    showPlayerStats();
+    statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
+    categoryText.textContent = "Ready";
+    questionText.textContent = "Keep this page open. You will automatically join the next round.";
+    loadPlayerStats();
+  }
+
   hidePointsBox();
-
-  statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
-  categoryText.textContent = "Ready";
-  questionText.textContent = "Keep this page open. You will automatically join the next round.";
-
-  loadPlayerStats();
 }
 
 gameRef.on("value", snap => {
