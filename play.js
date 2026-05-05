@@ -490,21 +490,28 @@ function showNextRoundCountdown(targetTime) {
 }
 
 function rememberCompletedRoundIfNeeded(game, player) {
-  if (!game?.lastCompletedRoundId) return;
+  if (!game) return;
 
-  if (player?.joinedRoundId === game.lastCompletedRoundId) {
-    localStorage.setItem(LAST_COMPLETED_ROUND_KEY, game.lastCompletedRoundId);
+  const completedRoundId = game.lastCompletedRoundId || game.roundId;
+
+  if (!completedRoundId) return;
+
+  if (["final", "waiting"].includes(game.phase) && player?.joinedRoundId === completedRoundId) {
+    localStorage.setItem(LAST_COMPLETED_ROUND_KEY, completedRoundId);
   }
 }
 
 function shouldShowNextRoundCountdown(game, player) {
-  if (!game || game.phase !== "waiting") return false;
-  if (!game.lastCompletedRoundId || !game.nextRoundExpectedAt) return false;
+  if (!game || !["final", "waiting"].includes(game.phase)) return false;
+  if (!game.nextRoundExpectedAt) return false;
+
+  const completedRoundId = game.lastCompletedRoundId || game.roundId;
+  if (!completedRoundId) return false;
 
   const locallyCompletedRound = localStorage.getItem(LAST_COMPLETED_ROUND_KEY);
-  const playerJoinedCompletedRound = player?.joinedRoundId === game.lastCompletedRoundId;
+  const playerJoinedCompletedRound = player?.joinedRoundId === completedRoundId;
 
-  return playerJoinedCompletedRound || locallyCompletedRound === game.lastCompletedRoundId;
+  return playerJoinedCompletedRound || locallyCompletedRound === completedRoundId;
 }
 
 async function addPlayerToCurrentRound(game) {
@@ -958,8 +965,6 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "final") {
-    hideNextRoundCountdown();
-
     if (isGuest) {
       hidePlayerStats();
     } else {
@@ -969,6 +974,12 @@ async function renderGame(game) {
 
     hidePointsBox();
     updateMiniLeaderboard(playersObj);
+
+    if (shouldShowNextRoundCountdown(currentGame, currentPlayer)) {
+      showNextRoundCountdown(currentGame.nextRoundExpectedAt);
+    } else {
+      hideNextRoundCountdown();
+    }
 
     statusText.className = "status";
     statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
