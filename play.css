@@ -381,3 +381,22 @@ h2 {
     padding: 16px;
   }
 }
+.guest-divider {
+  text-align: center;
+  color: #bbb;
+  font-size: 15px;
+  font-weight: 900;
+  margin: 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.guest-btn {
+  background: rgba(255,255,255,0.14);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.22);
+}
+
+.guest-btn:active {
+  transform: scale(0.98);
+}
