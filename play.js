@@ -42,6 +42,10 @@ let lastFireworkQuestion = null;
 let pointsInterval = null;
 let isSubmittingAnswer = false;
 let localLockedAnswers = {};
+let nextRoundCountdownInterval = null;
+let nextRoundCountdownTarget = null;
+
+const LAST_COMPLETED_ROUND_KEY = "grumpysTriviaLastCompletedRoundId";
 
 const BLOCKED_WORDS = [
   "fuck", "fucker", "fucking", "shit", "shitty", "bitch", "asshole", "ass",
@@ -89,6 +93,14 @@ function normalizeNameForFilter(name) {
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
+
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function formatCountdownFromMs(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
 
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
@@ -410,9 +422,96 @@ function hideMiniLeaderboard() {
   }
 }
 
+function getNextRoundBox() {
+  let box = document.getElementById("nextRoundBox");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "nextRoundBox";
+    box.className = "next-round-box";
+    statusText.insertAdjacentElement("afterend", box);
+  }
+
+  return box;
+}
+
+function hideNextRoundCountdown() {
+  if (nextRoundCountdownInterval) {
+    clearInterval(nextRoundCountdownInterval);
+    nextRoundCountdownInterval = null;
+  }
+
+  nextRoundCountdownTarget = null;
+
+  const box = document.getElementById("nextRoundBox");
+
+  if (box) {
+    box.classList.add("hidden");
+    box.innerHTML = "";
+  }
+}
+
+function showNextRoundCountdown(targetTime) {
+  const box = getNextRoundBox();
+
+  if (!targetTime) {
+    hideNextRoundCountdown();
+    return;
+  }
+
+  box.classList.remove("hidden");
+
+  function render() {
+    const remainingMs = targetTime - Date.now();
+
+    box.innerHTML = `
+      <div class="next-round-label">Next Round Expected In</div>
+      <div class="next-round-time">${formatCountdownFromMs(remainingMs)}</div>
+      <div class="next-round-note">
+        Keep this page open. You’ll auto-join when trivia returns.
+        <br />
+        <span>Estimated from the TV slideshow.</span>
+      </div>
+    `;
+  }
+
+  render();
+
+  if (nextRoundCountdownTarget === targetTime && nextRoundCountdownInterval) {
+    return;
+  }
+
+  if (nextRoundCountdownInterval) {
+    clearInterval(nextRoundCountdownInterval);
+  }
+
+  nextRoundCountdownTarget = targetTime;
+  nextRoundCountdownInterval = setInterval(render, 1000);
+}
+
+function rememberCompletedRoundIfNeeded(game, player) {
+  if (!game?.lastCompletedRoundId) return;
+
+  if (player?.joinedRoundId === game.lastCompletedRoundId) {
+    localStorage.setItem(LAST_COMPLETED_ROUND_KEY, game.lastCompletedRoundId);
+  }
+}
+
+function shouldShowNextRoundCountdown(game, player) {
+  if (!game || game.phase !== "waiting") return false;
+  if (!game.lastCompletedRoundId || !game.nextRoundExpectedAt) return false;
+
+  const locallyCompletedRound = localStorage.getItem(LAST_COMPLETED_ROUND_KEY);
+  const playerJoinedCompletedRound = player?.joinedRoundId === game.lastCompletedRoundId;
+
+  return playerJoinedCompletedRound || locallyCompletedRound === game.lastCompletedRoundId;
+}
+
 async function addPlayerToCurrentRound(game) {
   if (!playerId || !playerName) return;
   if (!game || !game.roundId) return;
+  if (game.phase === "waiting") return;
+  if (game.lastCompletedRoundId === game.roundId) return;
   if (isAutoJoining) return;
 
   isAutoJoining = true;
@@ -531,6 +630,7 @@ async function joinAsGuest() {
 
   hidePlayerStats();
   hideMiniLeaderboard();
+  hideNextRoundCountdown();
   showGameView();
 
   statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
@@ -689,6 +789,10 @@ function getJoinStatusMessage(game, player) {
       : "Round complete! Your all-time score was saved. Keep this page open for the next round.";
   }
 
+  if (game.phase === "waiting") {
+    return "Waiting for trivia to return on the TV.";
+  }
+
   return "Waiting for the next question...";
 }
 
@@ -699,6 +803,7 @@ async function renderGame(game) {
   if (!playerId || !playerName) {
     hidePointsBox();
     hideMiniLeaderboard();
+    hideNextRoundCountdown();
     showJoinView();
     return;
   }
@@ -706,6 +811,7 @@ async function renderGame(game) {
   if (!isGuest && (!playerNameKey || !savedPin)) {
     hidePointsBox();
     hideMiniLeaderboard();
+    hideNextRoundCountdown();
     showJoinView();
     return;
   }
@@ -721,11 +827,51 @@ async function renderGame(game) {
 
   const playersSnap = await gameRef.child("players").once("value");
   const playersObj = playersSnap.val() || {};
-  const rankText = getCurrentRankText(playersObj);
+  const currentRankText = getCurrentRankText(playersObj);
+
+  rememberCompletedRoundIfNeeded(currentGame, currentPlayer);
 
   scoreText.textContent = currentPlayer?.score || 0;
 
+  if (currentGame.phase === "waiting") {
+    hidePointsBox();
+    hideMiniLeaderboard();
+
+    if (shouldShowNextRoundCountdown(currentGame, currentPlayer)) {
+      if (isGuest) {
+        hidePlayerStats();
+      } else {
+        showPlayerStats();
+        await loadPlayerStats();
+      }
+
+      showNextRoundCountdown(currentGame.nextRoundExpectedAt);
+
+      statusText.className = "status";
+      statusText.textContent = "Round complete. Waiting for trivia to return on the TV.";
+
+      categoryText.textContent = "Next Round";
+      setPhoneQuestionText("Keep this page open. You’ll automatically join when the next trivia round starts.");
+
+      choicesEl.innerHTML = "";
+      return;
+    }
+
+    hideNextRoundCountdown();
+
+    statusText.className = "status";
+    statusText.textContent = "Waiting for trivia to return on the TV.";
+
+    categoryText.textContent = "Waiting";
+    setPhoneQuestionText("Scan the QR code when the next round starts, or keep this page open.");
+
+    choicesEl.innerHTML = "";
+    return;
+  }
+
   if (!currentGame.phase || currentGame.phase === "join") {
+    hideNextRoundCountdown();
+
     if (isGuest) {
       hidePlayerStats();
     } else {
@@ -751,6 +897,7 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "question") {
+    hideNextRoundCountdown();
     hidePlayerStats();
     hideMiniLeaderboard();
 
@@ -765,8 +912,8 @@ async function renderGame(game) {
     }
 
     statusText.textContent = existingAnswer
-      ? `${rankText ? `${rankText}. ` : ""}Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
-      : `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
+      ? `${currentRankText ? `${currentRankText}. ` : ""}Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
+      : `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = currentGame.category || "Trivia";
     setPhoneQuestionText(currentGame.question || "Question loading...");
@@ -776,6 +923,7 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "reveal") {
+    hideNextRoundCountdown();
     hidePlayerStats();
     stopLivePoints();
 
@@ -794,7 +942,7 @@ async function renderGame(game) {
     }
 
     statusText.className = isCorrect ? "status status-correct" : "status status-wrong";
-    statusText.textContent = `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
+    statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     if (isCorrect && lastFireworkQuestion !== currentGame.questionIndex) {
       launchFireworks();
@@ -810,6 +958,8 @@ async function renderGame(game) {
   }
 
   if (currentGame.phase === "final") {
+    hideNextRoundCountdown();
+
     if (isGuest) {
       hidePlayerStats();
     } else {
@@ -821,7 +971,7 @@ async function renderGame(game) {
     updateMiniLeaderboard(playersObj);
 
     statusText.className = "status";
-    statusText.textContent = `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
+    statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
     setPhoneQuestionText(
@@ -864,6 +1014,7 @@ if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
 
   hidePointsBox();
   hideMiniLeaderboard();
+  hideNextRoundCountdown();
 }
 
 gameRef.on("value", snap => {
