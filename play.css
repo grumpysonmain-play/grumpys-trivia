@@ -439,3 +439,46 @@ h2 {
     font-size: 17px;
   }
 }
+.mini-leaderboard {
+  margin-top: 16px;
+  background: rgba(0,0,0,0.32);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.mini-title {
+  color: #f2c94c;
+  font-size: 14px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.mini-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 850;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.mini-row:first-of-type {
+  border-top: 0;
+}
+
+.mini-row strong {
+  color: #f2c94c;
+  white-space: nowrap;
+}
+
+.mini-you {
+  color: #31d56d;
+}
+
+.mini-you strong {
+  color: #31d56d;
+}
