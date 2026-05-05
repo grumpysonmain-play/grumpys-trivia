@@ -127,49 +127,18 @@
     }
 
     .main-screen-note {
-      background: linear-gradient(135deg, rgba(242,201,76,0.30), rgba(242,201,76,0.13));
-      border: 3px solid rgba(242,201,76,0.95);
+      background: linear-gradient(135deg, rgba(242,201,76,0.24), rgba(242,201,76,0.10));
+      border: 3px solid rgba(242,201,76,0.82);
       border-radius: 28px;
-      padding: 22px 26px;
-      font-size: 33px;
-      line-height: 1.12;
-      font-weight: 950;
+      padding: 24px 28px;
+      font-size: 36px;
+      line-height: 1.08;
+      font-weight: 1000;
       color: #fff6cf;
       box-shadow:
-        0 0 34px rgba(242,201,76,0.28),
-        inset 0 0 0 1px rgba(255,255,255,0.12);
-      position: relative;
-      animation: notePulse 1.8s ease-in-out infinite;
-    }
-
-    .main-screen-note::before {
-      content: "IMPORTANT";
-      display: inline-block;
-      background: #f2c94c;
-      color: #111;
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 18px;
-      font-weight: 950;
-      letter-spacing: 1px;
-      margin-right: 12px;
-      vertical-align: middle;
-    }
-
-    @keyframes notePulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow:
-          0 0 34px rgba(242,201,76,0.22),
-          inset 0 0 0 1px rgba(255,255,255,0.12);
-      }
-
-      50% {
-        transform: scale(1.015);
-        box-shadow:
-          0 0 48px rgba(242,201,76,0.38),
-          inset 0 0 0 1px rgba(255,255,255,0.18);
-      }
+        0 0 36px rgba(242,201,76,0.22),
+        inset 0 0 0 1px rgba(255,255,255,0.10);
+      text-shadow: 0 3px 12px rgba(0,0,0,0.45);
     }
 
     .live-card {
@@ -341,7 +310,7 @@
       }
 
       .main-screen-note {
-        font-size: 25px;
+        font-size: 28px;
       }
 
       .live-status {
