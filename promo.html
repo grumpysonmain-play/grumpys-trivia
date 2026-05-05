@@ -22,10 +22,10 @@
     .promo-screen {
       width: 100vw;
       height: 100vh;
-      padding: 44px;
+      padding: 36px 40px;
       display: grid;
       grid-template-columns: 1.05fr 0.95fr;
-      gap: 38px;
+      gap: 34px;
       position: relative;
       overflow: hidden;
       background:
@@ -77,7 +77,8 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 26px;
+      gap: 18px;
+      min-height: 0;
     }
 
     .promo-eyebrow {
@@ -89,7 +90,7 @@
     }
 
     .promo-title {
-      font-size: 92px;
+      font-size: 82px;
       line-height: 0.95;
       font-weight: 950;
       margin: 0;
@@ -97,8 +98,8 @@
     }
 
     .promo-subtitle {
-      font-size: 42px;
-      line-height: 1.15;
+      font-size: 38px;
+      line-height: 1.12;
       font-weight: 900;
       color: #eeeeee;
       max-width: 900px;
@@ -107,17 +108,17 @@
     .promo-instructions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 10px;
+      gap: 16px;
+      margin-top: 4px;
     }
 
     .promo-pill {
       background: rgba(255,255,255,0.10);
       border: 2px solid rgba(255,255,255,0.16);
-      border-radius: 26px;
-      padding: 22px;
-      font-size: 28px;
-      line-height: 1.15;
+      border-radius: 24px;
+      padding: 18px 20px;
+      font-size: 26px;
+      line-height: 1.12;
       font-weight: 900;
     }
 
@@ -128,27 +129,111 @@
     .main-screen-note {
       background: rgba(242,201,76,0.16);
       border: 2px solid rgba(242,201,76,0.58);
-      border-radius: 28px;
-      padding: 24px 28px;
-      font-size: 34px;
-      line-height: 1.15;
+      border-radius: 26px;
+      padding: 20px 24px;
+      font-size: 30px;
+      line-height: 1.12;
       font-weight: 950;
       color: #fff3c4;
       box-shadow: 0 0 34px rgba(242,201,76,0.12);
     }
 
+    .live-card {
+      background: rgba(0,0,0,0.38);
+      border: 2px solid rgba(255,255,255,0.16);
+      border-radius: 26px;
+      padding: 20px 22px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
+    }
+
+    .live-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    .live-badge {
+      color: #111;
+      background: #31d56d;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 20px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .live-timer {
+      color: #f2c94c;
+      font-size: 42px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .live-status {
+      font-size: 27px;
+      line-height: 1.14;
+      font-weight: 900;
+      color: white;
+    }
+
+    .top5 {
+      margin-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 14px;
+    }
+
+    .top5-title {
+      color: #f2c94c;
+      font-size: 24px;
+      font-weight: 950;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .top5-list {
+      margin: 0;
+      padding-left: 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 26px;
+    }
+
+    .top5-list li {
+      font-size: 22px;
+      font-weight: 850;
+      margin-bottom: 7px;
+    }
+
+    .top5-list span {
+      display: inline-block;
+      width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    .top5-list strong {
+      color: #f2c94c;
+    }
+
     .promo-right {
       display: flex;
       flex-direction: column;
-      gap: 24px;
       justify-content: center;
+      min-height: 0;
     }
 
     .qr-card {
       background: rgba(255,255,255,0.11);
       border: 3px solid rgba(242,201,76,0.66);
       border-radius: 36px;
-      padding: 30px;
+      padding: 26px;
       box-shadow: 0 26px 80px rgba(0,0,0,0.42);
       animation: qrPulse 1.8s ease-in-out infinite;
     }
@@ -160,7 +245,7 @@
       }
 
       50% {
-        transform: scale(1.025);
+        transform: scale(1.02);
         box-shadow: 0 0 55px rgba(242,201,76,0.32);
       }
     }
@@ -168,9 +253,9 @@
     .qr-title {
       text-align: center;
       color: #f2c94c;
-      font-size: 48px;
+      font-size: 46px;
       font-weight: 950;
-      margin-bottom: 22px;
+      margin-bottom: 18px;
       text-transform: uppercase;
     }
 
@@ -195,97 +280,22 @@
 
     .qr-caption {
       text-align: center;
-      margin-top: 20px;
-      font-size: 30px;
+      margin-top: 18px;
+      font-size: 28px;
       line-height: 1.2;
       font-weight: 900;
       color: #eeeeee;
     }
 
-    .live-card {
-      background: rgba(0,0,0,0.34);
-      border: 2px solid rgba(255,255,255,0.16);
-      border-radius: 30px;
-      padding: 24px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
-    }
-
-    .live-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 16px;
-    }
-
-    .live-badge {
-      color: #111;
-      background: #31d56d;
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 20px;
-      font-weight: 950;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .live-timer {
-      color: #f2c94c;
-      font-size: 44px;
-      font-weight: 950;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .live-status {
-      font-size: 31px;
-      line-height: 1.16;
-      font-weight: 900;
-      color: white;
-    }
-
-    .top5 {
-      margin-top: 18px;
-      border-top: 1px solid rgba(255,255,255,0.14);
-      padding-top: 18px;
-    }
-
-    .top5-title {
-      color: #f2c94c;
-      font-size: 26px;
-      font-weight: 950;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .top5-list {
-      margin: 0;
-      padding-left: 30px;
-    }
-
-    .top5-list li {
-      font-size: 24px;
-      font-weight: 850;
-      margin-bottom: 8px;
-    }
-
-    .top5-list span {
-      display: inline-block;
-      width: 210px;
-    }
-
-    .top5-list strong {
-      color: #f2c94c;
-    }
-
     @media (max-width: 1100px) {
       .promo-screen {
         grid-template-columns: 1fr;
-        padding: 30px;
+        padding: 28px;
         gap: 20px;
       }
 
       .promo-title {
-        font-size: 60px;
+        font-size: 58px;
       }
 
       .promo-subtitle {
@@ -297,16 +307,11 @@
       }
 
       .main-screen-note {
-        font-size: 26px;
+        font-size: 25px;
       }
 
-      .promo-right {
-        flex-direction: row;
-      }
-
-      .qr-card,
-      .live-card {
-        flex: 1;
+      .live-status {
+        font-size: 23px;
       }
     }
   </style>
@@ -337,14 +342,6 @@
       <div class="main-screen-note">
         Watch the main trivia screen in the backroom for the questions.
       </div>
-    </section>
-
-    <section class="promo-right">
-      <div class="qr-card">
-        <div class="qr-title">Scan to Play</div>
-        <div id="promoQrCode" class="promo-qr">QR</div>
-        <div class="qr-caption">Join on your phone</div>
-      </div>
 
       <div class="live-card">
         <div class="live-header">
@@ -362,6 +359,14 @@
             <li><span>Waiting...</span><strong>0</strong></li>
           </ol>
         </div>
+      </div>
+    </section>
+
+    <section class="promo-right">
+      <div class="qr-card">
+        <div class="qr-title">Scan to Play</div>
+        <div id="promoQrCode" class="promo-qr">QR</div>
+        <div class="qr-caption">Join on your phone</div>
       </div>
     </section>
   </main>
