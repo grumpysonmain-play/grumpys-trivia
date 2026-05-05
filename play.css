@@ -482,3 +482,46 @@ h2 {
 .mini-you strong {
   color: #31d56d;
 }
+.next-round-box {
+  margin: 14px 0 16px;
+  background: rgba(242,201,76,0.14);
+  border: 2px solid rgba(242,201,76,0.62);
+  border-radius: 18px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 0 28px rgba(242,201,76,0.12);
+}
+
+.next-round-box.hidden {
+  display: none !important;
+}
+
+.next-round-label {
+  color: #f2c94c;
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.next-round-time {
+  font-size: 44px;
+  font-weight: 950;
+  line-height: 1;
+  color: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.next-round-note {
+  margin-top: 8px;
+  color: #eeeeee;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.next-round-note span {
+  color: #cfcfcf;
+  font-size: 12px;
+}
