@@ -795,3 +795,51 @@ h1 {
 .scrolling-board li span {
   width: 300px;
 }
+.question.long-question {
+  font-size: 46px;
+  line-height: 1.08;
+  margin-bottom: 24px;
+}
+
+.question.extra-long-question {
+  font-size: 38px;
+  line-height: 1.06;
+  margin-bottom: 18px;
+}
+
+.question.super-long-question {
+  font-size: 32px;
+  line-height: 1.04;
+  margin-bottom: 14px;
+}
+
+.phase-question .question-card {
+  overflow: hidden;
+}
+
+.phase-question .answers {
+  margin-top: 18px;
+}
+
+.phase-question .answer {
+  font-size: 30px;
+  min-height: 84px;
+  padding: 22px;
+}
+
+.phase-question .question.extra-long-question ~ .answers .answer,
+.phase-question .question.super-long-question ~ .answers .answer {
+  font-size: 26px;
+  min-height: 74px;
+  padding: 18px;
+}
+
+.phase-question .question.super-long-question ~ .tv-points-box {
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.phase-question .question.super-long-question ~ .message {
+  font-size: 24px;
+  margin-top: 16px;
+}
