@@ -250,6 +250,20 @@ function getSortedPlayers(playersObj = {}) {
     });
 }
 
+function getRoundRank(playersObj = {}, playerId) {
+  const sortedPlayers = getSortedPlayers(playersObj);
+  const index = sortedPlayers.findIndex(player => player.id === playerId);
+
+  if (index === -1) {
+    return null;
+  }
+
+  return {
+    rank: index + 1,
+    total: sortedPlayers.length
+  };
+}
+
 function renderLeaderboard(playersObj = {}) {
   const players = getSortedPlayers(playersObj).slice(0, 5);
   const leaderboardList = document.getElementById("leaderboardList");
@@ -310,6 +324,7 @@ async function addRoundScoresToAllTime(roundLeaders) {
     const player = roundLeaders[i];
 
     if (!player.nameKey) continue;
+    if (player.isGuest) continue;
 
     const profileRef = claimedNamesRef.child(player.nameKey);
     const profileSnap = await profileRef.once("value");
@@ -330,6 +345,22 @@ async function addRoundScoresToAllTime(roundLeaders) {
     savedAt: Date.now(),
     playerCount: roundLeaders.length
   });
+}
+
+async function cleanupGuestPlayers() {
+  const snap = await gameRef.child("players").once("value");
+  const players = snap.val() || {};
+  const updates = {};
+
+  Object.entries(players).forEach(([playerId, player]) => {
+    if (player.isGuest || !player.nameKey || playerId.startsWith("guest_")) {
+      updates[`players/${playerId}`] = null;
+    }
+  });
+
+  if (Object.keys(updates).length > 0) {
+    await gameRef.update(updates);
+  }
 }
 
 async function scoreQuestion() {
@@ -567,6 +598,8 @@ async function runRound() {
 
   await showFinalScreen();
   await startCountdown(FINAL_SECONDS);
+
+  await cleanupGuestPlayers();
 
   phaseLabel.textContent = "Next Round";
   timerEl.textContent = "0:00";
