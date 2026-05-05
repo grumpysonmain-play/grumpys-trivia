@@ -688,3 +688,110 @@ h1 {
     box-shadow: 0 0 60px rgba(242,201,76,0.65);
   }
 }
+.final-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.final-confetti span {
+  position: absolute;
+  top: -40px;
+  width: 16px;
+  height: 28px;
+  border-radius: 4px;
+  background: #f2c94c;
+  opacity: 0.9;
+  animation: confettiFall linear infinite;
+}
+
+.final-confetti span:nth-child(3n) {
+  background: #31d56d;
+}
+
+.final-confetti span:nth-child(4n) {
+  background: #79b7ff;
+}
+
+.final-confetti span:nth-child(5n) {
+  background: #ffffff;
+}
+
+.final-confetti span:nth-child(6n) {
+  background: #ff6b5f;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-60px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(950px) translateX(var(--drift)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.phase-final .question-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.phase-final .category,
+.phase-final .question,
+.phase-final .message,
+.phase-final .answers {
+  position: relative;
+  z-index: 2;
+}
+
+.scrolling-board {
+  overflow: hidden;
+}
+
+.scroll-window {
+  height: 430px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scroll-list {
+  animation: leaderboardScroll 22s linear infinite;
+}
+
+.scroll-list:hover {
+  animation-play-state: paused;
+}
+
+@keyframes leaderboardScroll {
+  0% {
+    transform: translateY(0);
+  }
+
+  18% {
+    transform: translateY(0);
+  }
+
+  82% {
+    transform: translateY(-48%);
+  }
+
+  100% {
+    transform: translateY(-48%);
+  }
+}
+
+.scrolling-board li {
+  margin-bottom: 18px;
+}
+
+.scrolling-board li span {
+  width: 300px;
+}
