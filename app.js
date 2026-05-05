@@ -5,6 +5,8 @@ const FINAL_SECONDS = 42;
 const MAX_POINTS = 1000;
 const FULL_POINTS_GRACE_SECONDS = 3;
 
+const NEXT_TRIVIA_WAIT_SECONDS = 630; // 10 minutes 30 seconds
+
 const RECENT_QUESTION_STORAGE_KEY = "grumpysRecentlyUsedQuestions";
 const RECENT_QUESTION_LIMIT = 60;
 
@@ -29,6 +31,7 @@ let correctAnswerIndex = 0;
 let roundId = Date.now().toString();
 let currentQuestionStartedAt = null;
 let tvPointsInterval = null;
+let nextRoundExpectedAt = null;
 
 function setPhase(phase) {
   screenEl.classList.remove("phase-join", "phase-question", "phase-reveal", "phase-final");
@@ -248,20 +251,6 @@ function getSortedPlayers(playersObj = {}) {
 
       return (a.name || "").localeCompare(b.name || "");
     });
-}
-
-function getRoundRank(playersObj = {}, playerId) {
-  const sortedPlayers = getSortedPlayers(playersObj);
-  const index = sortedPlayers.findIndex(player => player.id === playerId);
-
-  if (index === -1) {
-    return null;
-  }
-
-  return {
-    rank: index + 1,
-    total: sortedPlayers.length
-  };
 }
 
 function renderLeaderboard(playersObj = {}) {
@@ -513,6 +502,10 @@ async function showFinalScreen() {
   const allTimeLeaders = await getAllTimeLeaders();
   const winnerName = roundLeaders[0]?.name || "Nobody yet";
 
+  // The host trivia slide still has FINAL_SECONDS left before it leaves,
+  // then the rest of the VXT slideshow takes about 10:30 before trivia returns.
+  nextRoundExpectedAt = Date.now() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
+
   phaseLabel.textContent = "Final";
   categoryEl.textContent = "Final Scoreboard";
   setTvQuestionText(`${winnerName} wins this round!`);
@@ -544,7 +537,9 @@ async function showFinalScreen() {
     roundId,
     phase: "final",
     timer: FINAL_SECONDS,
-    finalSaved: true
+    finalSaved: true,
+    lastCompletedRoundId: roundId,
+    nextRoundExpectedAt
   });
 }
 
@@ -576,13 +571,17 @@ async function loadQuestions() {
 
 async function runRound() {
   roundId = Date.now().toString();
+  nextRoundExpectedAt = null;
 
   await gameRef.set({
     roundId,
     phase: "join",
     timer: JOIN_SECONDS,
     players: {},
-    finalSaved: false
+    finalSaved: false,
+    lastCompletedRoundId: null,
+    nextRoundExpectedAt: null,
+    waitingMessage: null
   });
 
   showJoinScreen();
@@ -598,6 +597,18 @@ async function runRound() {
 
   await showFinalScreen();
   await startCountdown(FINAL_SECONDS);
+
+  const waitSeconds = nextRoundExpectedAt
+    ? Math.max(0, Math.ceil((nextRoundExpectedAt - Date.now()) / 1000))
+    : NEXT_TRIVIA_WAIT_SECONDS;
+
+  await gameRef.update({
+    phase: "waiting",
+    timer: waitSeconds,
+    lastCompletedRoundId: roundId,
+    nextRoundExpectedAt,
+    waitingMessage: "Next round expected soon. Keep this page open."
+  });
 
   await cleanupGuestPlayers();
 
