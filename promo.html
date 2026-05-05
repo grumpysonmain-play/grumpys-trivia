@@ -1,1 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join Grumpy's Trivia</title>
+  <link rel="stylesheet" href="style.css" />
 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #090909;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    .promo-screen {
+      width: 100vw;
+      height: 100vh;
+      padding: 44px;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 38px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(242,201,76,0.24), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(160,0,0,0.28), transparent 36%),
+        linear-gradient(135deg, #111, #050505 70%);
+    }
+
+    .promo-screen::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background:
+        radial-gradient(circle at 22% 30%, rgba(242,201,76,0.18), transparent 24%),
+        radial-gradient(circle at 75% 65%, rgba(255,255,255,0.08), transparent 26%);
+      animation: promoFloat 12s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .promo-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: radial-gradient(circle, black, transparent 82%);
+      pointer-events: none;
+    }
+
+    @keyframes promoFloat {
+      from {
+        transform: translate(-2%, -2%) scale(1);
+      }
+
+      to {
+        transform: translate(2%, 2%) scale(1.05);
+      }
+    }
+
+    .promo-left,
+    .promo-right {
+      position: relative;
+      z-index: 2;
+    }
+
+    .promo-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 26px;
+    }
+
+    .promo-eyebrow {
+      color: #f2c94c;
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+    }
+
+    .promo-title {
+      font-size: 92px;
+      line-height: 0.95;
+      font-weight: 950;
+      margin: 0;
+      text-shadow: 0 8px 34px rgba(0,0,0,0.55);
+    }
+
+    .promo-subtitle {
+      font-size: 42px;
+      line-height: 1.15;
+      font-weight: 900;
+      color: #eeeeee;
+      max-width: 900px;
+    }
+
+    .promo-instructions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .promo-pill {
+      background: rgba(255,255,255,0.10);
+      border: 2px solid rgba(255,255,255,0.16);
+      border-radius: 26px;
+      padding: 22px;
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 900;
+    }
+
+    .promo-pill strong {
+      color: #f2c94c;
+    }
+
+    .main-screen-note {
+      background: rgba(242,201,76,0.16);
+      border: 2px solid rgba(242,201,76,0.58);
+      border-radius: 28px;
+      padding: 24px 28px;
+      font-size: 34px;
+      line-height: 1.15;
+      font-weight: 950;
+      color: #fff3c4;
+      box-shadow: 0 0 34px rgba(242,201,76,0.12);
+    }
+
+    .promo-right {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      justify-content: center;
+    }
+
+    .qr-card {
+      background: rgba(255,255,255,0.11);
+      border: 3px solid rgba(242,201,76,0.66);
+      border-radius: 36px;
+      padding: 30px;
+      box-shadow: 0 26px 80px rgba(0,0,0,0.42);
+      animation: qrPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes qrPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 26px 80px rgba(0,0,0,0.42);
+      }
+
+      50% {
+        transform: scale(1.025);
+        box-shadow: 0 0 55px rgba(242,201,76,0.32);
+      }
+    }
+
+    .qr-title {
+      text-align: center;
+      color: #f2c94c;
+      font-size: 48px;
+      font-weight: 950;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+    }
+
+    .promo-qr {
+      width: 100%;
+      aspect-ratio: 1;
+      background: white;
+      color: #111;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      font-size: 88px;
+      font-weight: 950;
+      overflow: hidden;
+    }
+
+    .promo-qr img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .qr-caption {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 900;
+      color: #eeeeee;
+    }
+
+    .live-card {
+      background: rgba(0,0,0,0.34);
+      border: 2px solid rgba(255,255,255,0.16);
+      border-radius: 30px;
+      padding: 24px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
+    }
+
+    .live-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .live-badge {
+      color: #111;
+      background: #31d56d;
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 20px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .live-timer {
+      color: #f2c94c;
+      font-size: 44px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .live-status {
+      font-size: 31px;
+      line-height: 1.16;
+      font-weight: 900;
+      color: white;
+    }
+
+    .top5 {
+      margin-top: 18px;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 18px;
+    }
+
+    .top5-title {
+      color: #f2c94c;
+      font-size: 26px;
+      font-weight: 950;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .top5-list {
+      margin: 0;
+      padding-left: 30px;
+    }
+
+    .top5-list li {
+      font-size: 24px;
+      font-weight: 850;
+      margin-bottom: 8px;
+    }
+
+    .top5-list span {
+      display: inline-block;
+      width: 210px;
+    }
+
+    .top5-list strong {
+      color: #f2c94c;
+    }
+
+    @media (max-width: 1100px) {
+      .promo-screen {
+        grid-template-columns: 1fr;
+        padding: 30px;
+        gap: 20px;
+      }
+
+      .promo-title {
+        font-size: 60px;
+      }
+
+      .promo-subtitle {
+        font-size: 30px;
+      }
+
+      .promo-pill {
+        font-size: 22px;
+      }
+
+      .main-screen-note {
+        font-size: 26px;
+      }
+
+      .promo-right {
+        flex-direction: row;
+      }
+
+      .qr-card,
+      .live-card {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="promo-screen">
+    <section class="promo-left">
+      <div class="promo-eyebrow">LIVE BAR TRIVIA</div>
+
+      <h1 class="promo-title">Grumpy’s Trivia is LIVE</h1>
+
+      <div class="promo-subtitle">
+        Scan the code to join from your phone.
+      </div>
+
+      <div class="promo-instructions">
+        <div class="promo-pill">
+          <strong>Name + PIN</strong><br />
+          saves your all-time score
+        </div>
+
+        <div class="promo-pill">
+          or <strong>Play as a Guest</strong><br />
+          for the current round
+        </div>
+      </div>
+
+      <div class="main-screen-note">
+        Watch the main trivia screen in the backroom for the questions.
+      </div>
+    </section>
+
+    <section class="promo-right">
+      <div class="qr-card">
+        <div class="qr-title">Scan to Play</div>
+        <div id="promoQrCode" class="promo-qr">QR</div>
+        <div class="qr-caption">Join on your phone</div>
+      </div>
+
+      <div class="live-card">
+        <div class="live-header">
+          <div id="liveBadge" class="live-badge">Live</div>
+          <div id="promoTimer" class="live-timer">0:00</div>
+        </div>
+
+        <div id="promoStatus" class="live-status">
+          Waiting for the next trivia round...
+        </div>
+
+        <div class="top5">
+          <div class="top5-title">Current Top 5</div>
+          <ol id="promoTop5" class="top5-list">
+            <li><span>Waiting...</span><strong>0</strong></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="promo.js"></script>
+</body>
+</html>
