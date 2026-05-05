@@ -5,6 +5,9 @@ const FINAL_SECONDS = 42;
 const MAX_POINTS = 1000;
 const FULL_POINTS_GRACE_SECONDS = 3;
 
+const RECENT_QUESTION_STORAGE_KEY = "grumpysRecentlyUsedQuestions";
+const RECENT_QUESTION_LIMIT = 60;
+
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
@@ -45,7 +48,45 @@ function shuffle(array) {
     .map(({ value }) => value);
 }
 
-function pickRandomQuestions(bank, amount) {
+function getQuestionKey(question) {
+  return `${question.category || ""}::${question.question || ""}`
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getRecentlyUsedQuestions() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_QUESTION_STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentlyUsedQuestions(questionKeys) {
+  const trimmed = questionKeys.slice(-RECENT_QUESTION_LIMIT);
+  localStorage.setItem(RECENT_QUESTION_STORAGE_KEY, JSON.stringify(trimmed));
+}
+
+function markQuestionsUsed(selectedQuestions) {
+  const recent = getRecentlyUsedQuestions();
+  const newKeys = selectedQuestions.map(getQuestionKey);
+  const combined = [...recent, ...newKeys];
+
+  saveRecentlyUsedQuestions(combined);
+}
+
+function pickRandomQuestionsAvoidingRecent(bank, amount) {
+  const recent = getRecentlyUsedQuestions();
+  const recentSet = new Set(recent);
+
+  const freshQuestions = bank.filter(question => !recentSet.has(getQuestionKey(question)));
+
+  if (freshQuestions.length >= amount) {
+    return shuffle([...freshQuestions]).slice(0, amount);
+  }
+
+  // If we run low, use whatever is available so the game does not break.
   return shuffle([...bank]).slice(0, amount);
 }
 
@@ -236,7 +277,7 @@ async function getAllTimeLeaders() {
   return profiles
     .filter(profile => profile.totalScore > 0)
     .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
-    .slice(0, 5);
+    .slice(0, 15);
 }
 
 async function addRoundScoresToAllTime(roundLeaders) {
@@ -303,21 +344,36 @@ async function scoreQuestion() {
   renderLeaderboard(updatedSnap.val() || {});
 }
 
+function makeFinalConfetti() {
+  let pieces = "";
+
+  for (let i = 0; i < 42; i++) {
+    const left = Math.floor(Math.random() * 100);
+    const delay = (Math.random() * 2).toFixed(2);
+    const duration = (2.8 + Math.random() * 2.4).toFixed(2);
+    const drift = Math.floor(Math.random() * 220 - 110);
+
+    pieces += `<span style="left:${left}%; animation-delay:${delay}s; animation-duration:${duration}s; --drift:${drift}px;"></span>`;
+  }
+
+  return `<div class="final-confetti">${pieces}</div>`;
+}
+
 function showJoinScreen() {
   setPhase("join");
   hideTvPointsBar();
 
   phaseLabel.textContent = "Join Now";
   categoryEl.textContent = "Grumpy's Trivia";
-  questionEl.textContent = "Scan the QR code and get ready to play!";
-  messageEl.textContent = "A new 6-question round is starting.";
+  questionEl.textContent = "Scan the QR code to play!";
+  messageEl.textContent = "Returning players: use the same name + PIN. New players: create a nickname + 4-digit PIN. Just trying it? Tap Play as Guest.";
   roundProgressEl.textContent = "Round starts soon";
 
   answersEl.innerHTML = `
-    <div class="answer">Custom Question Bank</div>
-    <div class="answer">Sports • General Knowledge</div>
-    <div class="answer">U.S. History</div>
-    <div class="answer">Up to 1000 points per question</div>
+    <div class="answer">Name + PIN saves your all-time score</div>
+    <div class="answer">Play as Guest for this round only</div>
+    <div class="answer">6 questions per round</div>
+    <div class="answer">Fast answers score up to 1000 points</div>
   `;
 
   renderLeaderboard({});
@@ -411,6 +467,8 @@ async function showFinalScreen() {
   roundProgressEl.textContent = "Round complete";
 
   answersEl.innerHTML = `
+    ${makeFinalConfetti()}
+
     <div class="final-board round-board">
       <div class="winner-banner">🏆 This Round Winner: ${winnerName}</div>
       <h3>Final Top 5</h3>
@@ -419,11 +477,13 @@ async function showFinalScreen() {
       </ol>
     </div>
 
-    <div class="final-board all-time-board">
-      <h3>All-Time Leaders</h3>
-      <ol>
-        ${makeBoardList(allTimeLeaders)}
-      </ol>
+    <div class="final-board all-time-board scrolling-board">
+      <h3>All-Time Leaderboard</h3>
+      <div class="scroll-window">
+        <ol class="scroll-list">
+          ${makeBoardList(allTimeLeaders)}
+        </ol>
+      </div>
     </div>
   `;
 
@@ -444,9 +504,9 @@ function getSportsQuestions() {
 }
 
 async function loadQuestions() {
-  const general = pickRandomQuestions(getQuestionsByCategory("General Knowledge"), 2);
-  const history = pickRandomQuestions(getQuestionsByCategory("US History"), 2);
-  const sports = pickRandomQuestions(getSportsQuestions(), 2);
+  const general = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("General Knowledge"), 2);
+  const history = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("US History"), 2);
+  const sports = pickRandomQuestionsAvoidingRecent(getSportsQuestions(), 2);
 
   questions = shuffle([
     ...general,
@@ -457,6 +517,8 @@ async function loadQuestions() {
   if (questions.length < 6) {
     console.error("Not enough custom questions found. Check questions.js and category names.");
   }
+
+  markQuestionsUsed(questions);
 }
 
 async function runRound() {
