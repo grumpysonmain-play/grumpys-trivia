@@ -1,9 +1,3 @@
-const TRIVIA_URLS = [
-  "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=9",
-  "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=21",
-  "https://opentdb.com/api.php?amount=2&type=multiple&difficulty=easy&category=23"
-];
-
 const JOIN_SECONDS = 30;
 const QUESTION_SECONDS = 20;
 const REVEAL_SECONDS = 8;
@@ -49,6 +43,10 @@ function shuffle(array) {
     .map(value => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
+}
+
+function pickRandomQuestions(bank, amount) {
+  return shuffle([...bank]).slice(0, amount);
 }
 
 function formatTime(seconds) {
@@ -316,10 +314,10 @@ function showJoinScreen() {
   roundProgressEl.textContent = "Round starts soon";
 
   answersEl.innerHTML = `
-    <div class="answer">Fast answers score more</div>
+    <div class="answer">Custom Question Bank</div>
+    <div class="answer">Sports • General Knowledge</div>
+    <div class="answer">U.S. History</div>
     <div class="answer">Up to 1000 points per question</div>
-    <div class="answer">6 questions per round</div>
-    <div class="answer">Winner shown at the end</div>
   `;
 
   renderLeaderboard({});
@@ -437,60 +435,27 @@ async function showFinalScreen() {
   });
 }
 
+function getQuestionsByCategory(category) {
+  return CUSTOM_QUESTIONS.filter(q => q.category === category);
+}
+
+function getSportsQuestions() {
+  return CUSTOM_QUESTIONS.filter(q => ["NHL", "NFL", "NBA", "MLB"].includes(q.category));
+}
+
 async function loadQuestions() {
-  try {
-    const questionGroups = await Promise.all(
-      TRIVIA_URLS.map(url => fetch(url).then(response => response.json()))
-    );
+  const general = pickRandomQuestions(getQuestionsByCategory("General Knowledge"), 2);
+  const history = pickRandomQuestions(getQuestionsByCategory("US History"), 2);
+  const sports = pickRandomQuestions(getSportsQuestions(), 2);
 
-    questions = questionGroups.flatMap(group => group.results || []);
+  questions = shuffle([
+    ...general,
+    ...history,
+    ...sports
+  ]).slice(0, 6);
 
-    if (questions.length < 6) {
-      throw new Error("Not enough trivia questions returned.");
-    }
-
-    questions = shuffle(questions).slice(0, 6);
-  } catch (error) {
-    console.error(error);
-
-    questions = [
-      {
-        category: "General Knowledge",
-        question: "What planet is known as the Red Planet?",
-        correct_answer: "Mars",
-        incorrect_answers: ["Venus", "Jupiter", "Saturn"]
-      },
-      {
-        category: "Sports",
-        question: "How many points is a touchdown worth?",
-        correct_answer: "6",
-        incorrect_answers: ["3", "7", "10"]
-      },
-      {
-        category: "History",
-        question: "Who was the first President of the United States?",
-        correct_answer: "George Washington",
-        incorrect_answers: ["Abraham Lincoln", "Thomas Jefferson", "John Adams"]
-      },
-      {
-        category: "General Knowledge",
-        question: "How many days are in a leap year?",
-        correct_answer: "366",
-        incorrect_answers: ["365", "364", "367"]
-      },
-      {
-        category: "Sports",
-        question: "In baseball, how many strikes make an out?",
-        correct_answer: "3",
-        incorrect_answers: ["2", "4", "5"]
-      },
-      {
-        category: "History",
-        question: "What document begins with the words 'We the People'?",
-        correct_answer: "The Constitution",
-        incorrect_answers: ["The Declaration of Independence", "The Bill of Rights", "The Gettysburg Address"]
-      }
-    ];
+  if (questions.length < 6) {
+    console.error("Not enough custom questions found. Check questions.js and category names.");
   }
 }
 
@@ -530,6 +495,13 @@ gameRef.child("players").on("value", snap => {
 async function init() {
   hideTvPointsBar();
   setQrCode();
+
+  if (typeof CUSTOM_QUESTIONS === "undefined") {
+    console.error("questions.js did not load. Make sure questions.js is included before app.js in index.html.");
+    questionEl.textContent = "Question bank failed to load.";
+    return;
+  }
+
   await loadQuestions();
   runRound();
 }
