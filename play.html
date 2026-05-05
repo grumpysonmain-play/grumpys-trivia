@@ -11,7 +11,7 @@
     <section id="joinView" class="card">
       <h1>Grumpy's Trivia</h1>
       <p>
-        Enter a nickname and 4-digit PIN.
+        Enter a nickname and 4-digit PIN to save your all-time score.
         If the name is new, it will be saved.
         If the name already exists, you need the correct PIN.
       </p>
@@ -21,8 +21,14 @@
 
       <button id="joinBtn">Join Game</button>
 
+      <div class="guest-divider">or</div>
+
+      <button id="guestBtn" class="guest-btn">Play as Guest</button>
+
       <div id="joinError" class="small"></div>
-      <div class="small">Keep this page open while you play.</div>
+      <div class="small">
+        Guests can play the round, but guest scores do not save to the all-time leaderboard.
+      </div>
     </section>
 
     <section id="gameView" class="card hidden">
