@@ -44,10 +44,47 @@ let isSubmittingAnswer = false;
 let localLockedAnswers = {};
 
 const BLOCKED_WORDS = [
-  "fuck", "shit", "bitch", "asshole", "dick", "pussy", "cunt",
-  "nigger", "nigga", "fag", "faggot", "retard", "whore", "slut",
-  "cum", "porn", "sex", "hitler", "nazi"
+  "fuck", "fucker", "fucking", "shit", "shitty", "bitch", "asshole", "ass",
+  "dick", "cock", "pussy", "cunt", "cum", "jizz", "porn", "sex", "slut",
+  "whore", "rape", "rapist", "molest", "pedo", "pedophile",
+  "nigger", "nigga", "fag", "faggot", "retard", "spic", "chink", "kike",
+  "hitler", "nazi", "kkk", "isis", "terrorist",
+  "admin", "administrator", "owner", "staff", "employee", "manager",
+  "grumpysowner", "grumpysstaff", "grumpysmanager"
 ];
+
+const BLOCKED_EXACT_NAMES = [
+  "admin",
+  "administrator",
+  "owner",
+  "staff",
+  "manager",
+  "employee",
+  "grumpys",
+  "grumpysowner",
+  "grumpysstaff",
+  "grumpysmanager",
+  "triviahost",
+  "host"
+];
+
+function normalizeNameForFilter(name) {
+  return name
+    .toLowerCase()
+    .replace(/0/g, "o")
+    .replace(/1/g, "i")
+    .replace(/!/g, "i")
+    .replace(/3/g, "e")
+    .replace(/4/g, "a")
+    .replace(/@/g, "a")
+    .replace(/5/g, "s")
+    .replace(/\$/g, "s")
+    .replace(/7/g, "t")
+    .replace(/\+/g, "t")
+    .replace(/8/g, "b")
+    .replace(/9/g, "g")
+    .replace(/[^a-z0-9]/g, "");
+}
 
 function formatTime(seconds) {
   const mins = Math.floor(seconds / 60);
@@ -69,9 +106,23 @@ function makeNameKey(name) {
 }
 
 function isNameAllowed(name) {
-  const lowered = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleaned = cleanName(name);
+  const key = makeNameKey(cleaned);
+  const normalized = normalizeNameForFilter(cleaned);
 
-  return !BLOCKED_WORDS.some(word => lowered.includes(word));
+  if (!cleaned || key.length < 3) {
+    return false;
+  }
+
+  if (BLOCKED_EXACT_NAMES.includes(normalized)) {
+    return false;
+  }
+
+  if (normalized.includes("guest") && normalized.length <= 9) {
+    return false;
+  }
+
+  return !BLOCKED_WORDS.some(word => normalized.includes(normalizeNameForFilter(word)));
 }
 
 function isPinValid(pin) {
@@ -295,6 +346,70 @@ function saveRegisteredLocally(id, name, nameKey, pin) {
   localStorage.setItem("grumpysTriviaIsGuest", "false");
 }
 
+function getSortedPlayers(playersObj = {}) {
+  return Object.values(playersObj)
+    .sort((a, b) => {
+      if ((b.score || 0) !== (a.score || 0)) {
+        return (b.score || 0) - (a.score || 0);
+      }
+
+      return (a.name || "").localeCompare(b.name || "");
+    });
+}
+
+function getCurrentRankText(playersObj = {}, id = playerId) {
+  const sortedPlayers = getSortedPlayers(playersObj);
+  const index = sortedPlayers.findIndex(player => player.id === id);
+
+  if (index === -1 || sortedPlayers.length === 0) {
+    return "";
+  }
+
+  return `You are currently #${index + 1} of ${sortedPlayers.length}`;
+}
+
+function renderMiniLeaderboard(playersObj = {}) {
+  const players = getSortedPlayers(playersObj).slice(0, 3);
+
+  if (players.length === 0) {
+    return "";
+  }
+
+  return `
+    <div class="mini-leaderboard">
+      <div class="mini-title">Current Top 3</div>
+      ${players
+        .map((player, index) => `
+          <div class="mini-row ${player.id === playerId ? "mini-you" : ""}">
+            <span>${index + 1}. ${player.name || "Player"}</span>
+            <strong>${(player.score || 0).toLocaleString()}</strong>
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+function updateMiniLeaderboard(playersObj = {}) {
+  let mini = document.getElementById("miniLeaderboardBox");
+
+  if (!mini) {
+    mini = document.createElement("div");
+    mini.id = "miniLeaderboardBox";
+    choicesEl.insertAdjacentElement("afterend", mini);
+  }
+
+  mini.innerHTML = renderMiniLeaderboard(playersObj);
+}
+
+function hideMiniLeaderboard() {
+  const mini = document.getElementById("miniLeaderboardBox");
+
+  if (mini) {
+    mini.innerHTML = "";
+  }
+}
+
 async function addPlayerToCurrentRound(game) {
   if (!playerId || !playerName) return;
   if (!game || !game.roundId) return;
@@ -349,7 +464,7 @@ async function joinGame() {
   }
 
   if (!isNameAllowed(cleanedName)) {
-    setJoinError("Pick a different nickname.");
+    setJoinError("Pick a different nickname. That name is not allowed.");
     return;
   }
 
@@ -415,6 +530,7 @@ async function joinAsGuest() {
   await addPlayerToCurrentRound(game);
 
   hidePlayerStats();
+  hideMiniLeaderboard();
   showGameView();
 
   statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
@@ -582,12 +698,14 @@ async function renderGame(game) {
 
   if (!playerId || !playerName) {
     hidePointsBox();
+    hideMiniLeaderboard();
     showJoinView();
     return;
   }
 
   if (!isGuest && (!playerNameKey || !savedPin)) {
     hidePointsBox();
+    hideMiniLeaderboard();
     showJoinView();
     return;
   }
@@ -601,6 +719,10 @@ async function renderGame(game) {
   const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
   currentPlayer = playerSnap.val();
 
+  const playersSnap = await gameRef.child("players").once("value");
+  const playersObj = playersSnap.val() || {};
+  const rankText = getCurrentRankText(playersObj);
+
   scoreText.textContent = currentPlayer?.score || 0;
 
   if (!currentGame.phase || currentGame.phase === "join") {
@@ -612,6 +734,7 @@ async function renderGame(game) {
     }
 
     hidePointsBox();
+    hideMiniLeaderboard();
 
     statusText.className = "status";
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
@@ -629,6 +752,7 @@ async function renderGame(game) {
 
   if (currentGame.phase === "question") {
     hidePlayerStats();
+    hideMiniLeaderboard();
 
     statusText.className = "status";
 
@@ -641,8 +765,8 @@ async function renderGame(game) {
     }
 
     statusText.textContent = existingAnswer
-      ? `Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
-      : getJoinStatusMessage(currentGame, currentPlayer);
+      ? `${rankText ? `${rankText}. ` : ""}Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
+      : `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = currentGame.category || "Trivia";
     setPhoneQuestionText(currentGame.question || "Question loading...");
@@ -670,7 +794,7 @@ async function renderGame(game) {
     }
 
     statusText.className = isCorrect ? "status status-correct" : "status status-wrong";
-    statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
+    statusText.textContent = `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     if (isCorrect && lastFireworkQuestion !== currentGame.questionIndex) {
       launchFireworks();
@@ -681,6 +805,7 @@ async function renderGame(game) {
     setPhoneQuestionText(currentGame.question || "Answer revealed.");
 
     renderChoices(currentGame);
+    updateMiniLeaderboard(playersObj);
     return;
   }
 
@@ -693,9 +818,10 @@ async function renderGame(game) {
     }
 
     hidePointsBox();
+    updateMiniLeaderboard(playersObj);
 
     statusText.className = "status";
-    statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
+    statusText.textContent = `${rankText ? `${rankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
     setPhoneQuestionText(
@@ -737,6 +863,7 @@ if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
   }
 
   hidePointsBox();
+  hideMiniLeaderboard();
 }
 
 gameRef.on("value", snap => {
