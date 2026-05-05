@@ -106,6 +106,29 @@ function hidePlayerStats() {
   playerStats.classList.add("hidden");
 }
 
+function setPhoneQuestionText(text) {
+  const cleanText = text || "";
+
+  questionText.textContent = cleanText;
+  questionText.classList.remove(
+    "phone-long-question",
+    "phone-extra-long-question",
+    "phone-super-long-question"
+  );
+
+  if (cleanText.length > 90) {
+    questionText.classList.add("phone-long-question");
+  }
+
+  if (cleanText.length > 140) {
+    questionText.classList.add("phone-extra-long-question");
+  }
+
+  if (cleanText.length > 200) {
+    questionText.classList.add("phone-super-long-question");
+  }
+}
+
 function updatePlayerStats(profile, rank) {
   allTimeScoreText.textContent = (profile?.totalScore || 0).toLocaleString();
   rankText.textContent = rank ? `#${rank}` : "—";
@@ -396,7 +419,7 @@ async function joinAsGuest() {
 
   statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
   categoryText.textContent = "Guest Mode";
-  questionText.textContent = "Watch the TV for the next question.";
+  setPhoneQuestionText("Watch the TV for the next question.");
 }
 
 async function submitAnswer(choiceIndex) {
@@ -594,9 +617,11 @@ async function renderGame(game) {
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
 
     categoryText.textContent = isGuest ? "Guest Mode" : "Get Ready";
-    questionText.textContent = isGuest
-      ? "You can play this round, but your score will not save to the all-time leaderboard."
-      : "Watch the TV for the round countdown.";
+    setPhoneQuestionText(
+      isGuest
+        ? "You can play this round, but your score will not save to the all-time leaderboard."
+        : "Watch the TV for the round countdown."
+    );
 
     choicesEl.innerHTML = "";
     return;
@@ -620,7 +645,7 @@ async function renderGame(game) {
       : getJoinStatusMessage(currentGame, currentPlayer);
 
     categoryText.textContent = currentGame.category || "Trivia";
-    questionText.textContent = currentGame.question || "Question loading...";
+    setPhoneQuestionText(currentGame.question || "Question loading...");
 
     renderChoices(currentGame);
     return;
@@ -653,7 +678,7 @@ async function renderGame(game) {
     }
 
     categoryText.textContent = currentGame.category || "Trivia";
-    questionText.textContent = currentGame.question || "Answer revealed.";
+    setPhoneQuestionText(currentGame.question || "Answer revealed.");
 
     renderChoices(currentGame);
     return;
@@ -673,9 +698,11 @@ async function renderGame(game) {
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
 
     categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
-    questionText.textContent = isGuest
-      ? "Keep this page open. You will automatically join the next round as a guest."
-      : "Keep this page open. You will automatically join the next round when trivia comes back on the TV.";
+    setPhoneQuestionText(
+      isGuest
+        ? "Keep this page open. You will automatically join the next round as a guest."
+        : "Keep this page open. You will automatically join the next round when trivia comes back on the TV."
+    );
 
     choicesEl.innerHTML = "";
     return;
@@ -700,12 +727,12 @@ if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
     hidePlayerStats();
     statusText.textContent = `Waiting as ${playerName}. Guest scores do not save all-time.`;
     categoryText.textContent = "Guest Mode";
-    questionText.textContent = "Keep this page open. You will automatically join the next round as a guest.";
+    setPhoneQuestionText("Keep this page open. You will automatically join the next round as a guest.");
   } else {
     showPlayerStats();
     statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
     categoryText.textContent = "Ready";
-    questionText.textContent = "Keep this page open. You will automatically join the next round.";
+    setPhoneQuestionText("Keep this page open. You will automatically join the next round.");
     loadPlayerStats();
   }
 
