@@ -156,6 +156,14 @@ function showJoinView() {
   gameView.classList.add("hidden");
 }
 
+function setNextRoundLayout(isOn) {
+  if (isOn) {
+    gameView.classList.add("next-round-mode");
+  } else {
+    gameView.classList.remove("next-round-mode");
+  }
+}
+
 function showPlayerStats() {
   if (isGuest) {
     hidePlayerStats();
@@ -449,6 +457,8 @@ function hideNextRoundCountdown() {
     box.classList.add("hidden");
     box.innerHTML = "";
   }
+
+  setNextRoundLayout(false);
 }
 
 function showNextRoundCountdown(targetTime) {
@@ -460,6 +470,7 @@ function showNextRoundCountdown(targetTime) {
   }
 
   box.classList.remove("hidden");
+  setNextRoundLayout(true);
 
   function render() {
     const remainingMs = targetTime - Date.now();
@@ -469,8 +480,6 @@ function showNextRoundCountdown(targetTime) {
       <div class="next-round-time">${formatCountdownFromMs(remainingMs)}</div>
       <div class="next-round-note">
         Keep this page open. You’ll auto-join when trivia returns.
-        <br />
-        <span>Estimated from the TV slideshow.</span>
       </div>
     `;
   }
