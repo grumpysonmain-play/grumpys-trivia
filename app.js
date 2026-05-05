@@ -86,8 +86,26 @@ function pickRandomQuestionsAvoidingRecent(bank, amount) {
     return shuffle([...freshQuestions]).slice(0, amount);
   }
 
-  // If we run low, use whatever is available so the game does not break.
   return shuffle([...bank]).slice(0, amount);
+}
+
+function setTvQuestionText(text) {
+  const cleanText = text || "";
+
+  questionEl.textContent = cleanText;
+  questionEl.classList.remove("long-question", "extra-long-question", "super-long-question");
+
+  if (cleanText.length > 100) {
+    questionEl.classList.add("long-question");
+  }
+
+  if (cleanText.length > 150) {
+    questionEl.classList.add("extra-long-question");
+  }
+
+  if (cleanText.length > 210) {
+    questionEl.classList.add("super-long-question");
+  }
 }
 
 function formatTime(seconds) {
@@ -365,7 +383,7 @@ function showJoinScreen() {
 
   phaseLabel.textContent = "Join Now";
   categoryEl.textContent = "Grumpy's Trivia";
-  questionEl.textContent = "Scan the QR code to play!";
+  setTvQuestionText("Scan the QR code to play!");
   messageEl.textContent = "Returning players: use the same name + PIN. New players: create a nickname + 4-digit PIN. Just trying it? Tap Play as Guest.";
   roundProgressEl.textContent = "Round starts soon";
 
@@ -386,8 +404,12 @@ async function showQuestion(questionData, index) {
   currentQuestionIndex = index;
   currentQuestionStartedAt = Date.now();
 
-  categoryEl.textContent = decodeHtml(questionData.category);
-  questionEl.textContent = decodeHtml(questionData.question);
+  const decodedCategory = decodeHtml(questionData.category);
+  const decodedQuestion = decodeHtml(questionData.question);
+
+  categoryEl.textContent = decodedCategory;
+  setTvQuestionText(decodedQuestion);
+
   messageEl.textContent = "Answer fast — your point value is dropping.";
   roundProgressEl.textContent = `Question ${index + 1} of ${questions.length}`;
 
@@ -406,8 +428,8 @@ async function showQuestion(questionData, index) {
     roundId,
     phase: "question",
     questionIndex: index,
-    category: decodeHtml(questionData.category),
-    question: decodeHtml(questionData.question),
+    category: decodedCategory,
+    question: decodedQuestion,
     choices,
     correctAnswerIndex: null,
     timer: QUESTION_SECONDS,
@@ -462,7 +484,7 @@ async function showFinalScreen() {
 
   phaseLabel.textContent = "Final";
   categoryEl.textContent = "Final Scoreboard";
-  questionEl.textContent = `${winnerName} wins this round!`;
+  setTvQuestionText(`${winnerName} wins this round!`);
   messageEl.textContent = "All-time leaderboard saves by nickname + PIN.";
   roundProgressEl.textContent = "Round complete";
 
@@ -560,7 +582,7 @@ async function init() {
 
   if (typeof CUSTOM_QUESTIONS === "undefined") {
     console.error("questions.js did not load. Make sure questions.js is included before app.js in index.html.");
-    questionEl.textContent = "Question bank failed to load.";
+    setTvQuestionText("Question bank failed to load.");
     return;
   }
 
