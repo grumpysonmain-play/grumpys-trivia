@@ -301,7 +301,7 @@ async function getAllTimeLeaders() {
     .slice(0, 15);
 }
 
-async function addRoundScoresToAllTime(roundLeaders) {
+async function addRoundScoresToAllTime(allRoundPlayers) {
   const savedRoundSnap = await savedRoundsRef.child(roundId).once("value");
 
   if (savedRoundSnap.exists()) {
@@ -309,11 +309,12 @@ async function addRoundScoresToAllTime(roundLeaders) {
     return;
   }
 
-  for (let i = 0; i < roundLeaders.length; i++) {
-    const player = roundLeaders[i];
+  const guestCount = allRoundPlayers.filter(player => player.isGuest || !player.nameKey).length;
+  const namedPlayers = allRoundPlayers.filter(player => player.nameKey && !player.isGuest);
+  const namedCount = namedPlayers.length;
 
-    if (!player.nameKey) continue;
-    if (player.isGuest) continue;
+  for (let i = 0; i < namedPlayers.length; i++) {
+    const player = namedPlayers[i];
 
     const profileRef = claimedNamesRef.child(player.nameKey);
     const profileSnap = await profileRef.once("value");
@@ -321,18 +322,24 @@ async function addRoundScoresToAllTime(roundLeaders) {
 
     if (!profile) continue;
 
+    const isWinner = allRoundPlayers[0]?.id === player.id;
+
     await profileRef.update({
       displayName: player.name,
       totalScore: (profile.totalScore || 0) + (player.score || 0),
       gamesPlayed: (profile.gamesPlayed || 0) + 1,
-      wins: (profile.wins || 0) + (i === 0 ? 1 : 0),
+      wins: (profile.wins || 0) + (isWinner ? 1 : 0),
       lastPlayed: Date.now()
     });
   }
 
   await savedRoundsRef.child(roundId).set({
     savedAt: Date.now(),
-    playerCount: roundLeaders.length
+    playerCount: allRoundPlayers.length,
+    guestCount,
+    namedCount,
+    winnerName: allRoundPlayers[0]?.name || null,
+    winnerScore: allRoundPlayers[0]?.score || 0
   });
 }
 
@@ -495,9 +502,10 @@ async function showFinalScreen() {
   hideTvPointsBar();
 
   const snap = await gameRef.child("players").once("value");
-  const roundLeaders = getSortedPlayers(snap.val() || {}).slice(0, 5);
+  const allRoundPlayers = getSortedPlayers(snap.val() || {});
+  const roundLeaders = allRoundPlayers.slice(0, 5);
 
-  await addRoundScoresToAllTime(roundLeaders);
+  await addRoundScoresToAllTime(allRoundPlayers);
 
   const allTimeLeaders = await getAllTimeLeaders();
   const winnerName = roundLeaders[0]?.name || "Nobody yet";
