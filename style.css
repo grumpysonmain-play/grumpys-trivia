@@ -843,3 +843,55 @@ h1 {
   font-size: 24px;
   margin-top: 16px;
 }
+.question {
+  overflow: visible !important;
+  text-overflow: unset !important;
+  white-space: normal !important;
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+  max-height: none !important;
+}
+
+.question.long-question {
+  font-size: 42px !important;
+  line-height: 1.08 !important;
+  margin-bottom: 18px !important;
+}
+
+.question.extra-long-question {
+  font-size: 34px !important;
+  line-height: 1.06 !important;
+  margin-bottom: 14px !important;
+}
+
+.question.super-long-question {
+  font-size: 28px !important;
+  line-height: 1.04 !important;
+  margin-bottom: 10px !important;
+}
+
+.phase-question .question-card {
+  overflow: hidden;
+}
+
+.phase-question .answers {
+  margin-top: 14px;
+}
+
+.phase-question .question.extra-long-question ~ .answers .answer,
+.phase-question .question.super-long-question ~ .answers .answer {
+  font-size: 24px !important;
+  min-height: 68px !important;
+  padding: 16px !important;
+}
+
+.phase-question .question.super-long-question ~ .tv-points-box {
+  padding: 12px !important;
+  margin-top: 12px !important;
+}
+
+.phase-question .question.super-long-question ~ .message {
+  font-size: 22px !important;
+  margin-top: 12px !important;
+}
