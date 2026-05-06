@@ -25,6 +25,9 @@ const tabButtons = document.querySelectorAll(".tab-btn");
 
 let allPlayers = [];
 let currentTab = "all";
+let currentLiveGame = {};
+let statsCountdownInterval = null;
+let statsCountdownTarget = null;
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString();
@@ -34,6 +37,14 @@ function formatTime(seconds) {
   const safeSeconds = Math.max(0, Number(seconds) || 0);
   const mins = Math.floor(safeSeconds / 60);
   const secs = safeSeconds % 60;
+
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function formatCountdownFromMs(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
 
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
@@ -190,7 +201,49 @@ function getSortedLivePlayers(playersObj = {}) {
     });
 }
 
+function stopStatsCountdown() {
+  if (statsCountdownInterval) {
+    clearInterval(statsCountdownInterval);
+    statsCountdownInterval = null;
+  }
+
+  statsCountdownTarget = null;
+}
+
+function startStatsCountdown(targetTime) {
+  if (!targetTime) {
+    stopStatsCountdown();
+    return;
+  }
+
+  function render() {
+    const remainingMs = targetTime - Date.now();
+    const countdownText = formatCountdownFromMs(remainingMs);
+
+    liveTimerEl.textContent = countdownText;
+
+    if (remainingMs <= 0) {
+      liveQuestionEl.textContent = "Next round should be returning soon.";
+    } else {
+      liveQuestionEl.textContent = `Next round expected in ${countdownText}`;
+    }
+  }
+
+  render();
+
+  if (statsCountdownTarget === targetTime && statsCountdownInterval) {
+    return;
+  }
+
+  stopStatsCountdown();
+
+  statsCountdownTarget = targetTime;
+  statsCountdownInterval = setInterval(render, 1000);
+}
+
 function renderLiveGame(game = {}) {
+  currentLiveGame = game;
+
   const phase = game.phase || "Waiting";
   const playersObj = game.players || {};
   const livePlayers = getSortedLivePlayers(playersObj);
@@ -198,18 +251,20 @@ function renderLiveGame(game = {}) {
 
   livePlayersCountEl.textContent = livePlayers.length;
   livePhaseEl.textContent = phase;
-  liveTimerEl.textContent = formatTime(game.timer || 0);
 
-  if (game.phase === "question" || game.phase === "reveal") {
-    liveQuestionEl.textContent = game.question || "Question loading...";
-  } else if (game.phase === "final") {
-    liveQuestionEl.textContent = "Final scoreboard";
-  } else if (game.phase === "join") {
-    liveQuestionEl.textContent = "Players joining";
-  } else if (game.phase === "waiting") {
-    liveQuestionEl.textContent = "Waiting for next trivia slide";
+  if ((phase === "waiting" || phase === "final") && game.nextRoundExpectedAt) {
+    startStatsCountdown(Number(game.nextRoundExpectedAt));
   } else {
-    liveQuestionEl.textContent = "—";
+    stopStatsCountdown();
+    liveTimerEl.textContent = formatTime(game.timer || 0);
+
+    if (game.phase === "question" || game.phase === "reveal") {
+      liveQuestionEl.textContent = game.question || "Question loading...";
+    } else if (game.phase === "join") {
+      liveQuestionEl.textContent = "Players joining";
+    } else {
+      liveQuestionEl.textContent = "—";
+    }
   }
 
   if (liveTop5.length === 0) {
