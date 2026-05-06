@@ -28,15 +28,44 @@ const pointsLabel = document.getElementById("pointsLabel");
 const pointsText = document.getElementById("pointsText");
 const pointsFill = document.getElementById("pointsFill");
 
-let playerId = localStorage.getItem("grumpysTriviaPlayerId");
-let playerName = localStorage.getItem("grumpysTriviaPlayerName");
-let playerNameKey = localStorage.getItem("grumpysTriviaNameKey");
-let savedPin = localStorage.getItem("grumpysTriviaPin");
-let isGuest = localStorage.getItem("grumpysTriviaIsGuest") === "true";
+// Clear old guest data from the older version that used localStorage.
+// Guests should only live for the current browser session.
+if (localStorage.getItem("grumpysTriviaIsGuest") === "true") {
+  localStorage.removeItem("grumpysTriviaPlayerId");
+  localStorage.removeItem("grumpysTriviaPlayerName");
+  localStorage.removeItem("grumpysTriviaNameKey");
+  localStorage.removeItem("grumpysTriviaPin");
+  localStorage.removeItem("grumpysTriviaIsGuest");
+  localStorage.removeItem("grumpysTriviaLastRoundId");
+  localStorage.removeItem("grumpysTriviaLastCompletedRoundId");
+}
+
+const sessionGuest = sessionStorage.getItem("grumpysTriviaIsGuest") === "true";
+
+let playerId = sessionGuest
+  ? sessionStorage.getItem("grumpysTriviaPlayerId")
+  : localStorage.getItem("grumpysTriviaPlayerId");
+
+let playerName = sessionGuest
+  ? sessionStorage.getItem("grumpysTriviaPlayerName")
+  : localStorage.getItem("grumpysTriviaPlayerName");
+
+let playerNameKey = sessionGuest
+  ? ""
+  : localStorage.getItem("grumpysTriviaNameKey");
+
+let savedPin = sessionGuest
+  ? ""
+  : localStorage.getItem("grumpysTriviaPin");
+
+let isGuest = sessionGuest;
 
 let currentGame = null;
 let currentPlayer = null;
-let lastSeenRoundId = localStorage.getItem("grumpysTriviaLastRoundId");
+let lastSeenRoundId = isGuest
+  ? sessionStorage.getItem("grumpysTriviaLastRoundId")
+  : localStorage.getItem("grumpysTriviaLastRoundId");
+
 let isAutoJoining = false;
 let lastFireworkQuestion = null;
 let pointsInterval = null;
@@ -338,6 +367,16 @@ function makeGuestId() {
   return `guest_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
+function clearGuestSession() {
+  sessionStorage.removeItem("grumpysTriviaPlayerId");
+  sessionStorage.removeItem("grumpysTriviaPlayerName");
+  sessionStorage.removeItem("grumpysTriviaNameKey");
+  sessionStorage.removeItem("grumpysTriviaPin");
+  sessionStorage.removeItem("grumpysTriviaIsGuest");
+  sessionStorage.removeItem("grumpysTriviaLastRoundId");
+  sessionStorage.removeItem("grumpysTriviaLastCompletedRoundId");
+}
+
 function saveGuestLocally(id, name) {
   playerId = id;
   playerName = name;
@@ -345,14 +384,20 @@ function saveGuestLocally(id, name) {
   savedPin = "";
   isGuest = true;
 
-  localStorage.setItem("grumpysTriviaPlayerId", playerId);
-  localStorage.setItem("grumpysTriviaPlayerName", playerName);
-  localStorage.setItem("grumpysTriviaNameKey", "");
-  localStorage.setItem("grumpysTriviaPin", "");
-  localStorage.setItem("grumpysTriviaIsGuest", "true");
+  // Guests are only remembered for this browser session/tab.
+  sessionStorage.setItem("grumpysTriviaPlayerId", playerId);
+  sessionStorage.setItem("grumpysTriviaPlayerName", playerName);
+  sessionStorage.setItem("grumpysTriviaNameKey", "");
+  sessionStorage.setItem("grumpysTriviaPin", "");
+  sessionStorage.setItem("grumpysTriviaIsGuest", "true");
+
+  // Make sure old permanent guest data is gone.
+  localStorage.removeItem("grumpysTriviaIsGuest");
 }
 
 function saveRegisteredLocally(id, name, nameKey, pin) {
+  clearGuestSession();
+
   playerId = id;
   playerName = name;
   playerNameKey = nameKey;
@@ -506,7 +551,11 @@ function rememberCompletedRoundIfNeeded(game, player) {
   if (!completedRoundId) return;
 
   if (["final", "waiting"].includes(game.phase) && player?.joinedRoundId === completedRoundId) {
-    localStorage.setItem(LAST_COMPLETED_ROUND_KEY, completedRoundId);
+    if (isGuest) {
+      sessionStorage.setItem(LAST_COMPLETED_ROUND_KEY, completedRoundId);
+    } else {
+      localStorage.setItem(LAST_COMPLETED_ROUND_KEY, completedRoundId);
+    }
   }
 }
 
@@ -517,7 +566,10 @@ function shouldShowNextRoundCountdown(game, player) {
   const completedRoundId = game.lastCompletedRoundId || game.roundId;
   if (!completedRoundId) return false;
 
-  const locallyCompletedRound = localStorage.getItem(LAST_COMPLETED_ROUND_KEY);
+  const locallyCompletedRound = isGuest
+    ? sessionStorage.getItem(LAST_COMPLETED_ROUND_KEY)
+    : localStorage.getItem(LAST_COMPLETED_ROUND_KEY);
+
   const playerJoinedCompletedRound = player?.joinedRoundId === completedRoundId;
 
   return playerJoinedCompletedRound || locallyCompletedRound === completedRoundId;
@@ -555,7 +607,11 @@ async function addPlayerToCurrentRound(game) {
 
     lastSeenRoundId = game.roundId;
 
-    localStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
+    if (isGuest) {
+      sessionStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
+    } else {
+      localStorage.setItem("grumpysTriviaLastRoundId", game.roundId);
+    }
 
     lastFireworkQuestion = null;
     localLockedAnswers = {};
