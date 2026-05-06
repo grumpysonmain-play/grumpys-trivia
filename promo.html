@@ -290,6 +290,48 @@
       color: #eeeeee;
     }
 
+    .top5.hidden {
+      display: none !important;
+    }
+
+    .live-card.countdown-mode {
+      padding: 28px 30px;
+      text-align: center;
+      border: 3px solid rgba(242,201,76,0.72);
+      background: rgba(0,0,0,0.46);
+      box-shadow:
+        0 0 42px rgba(242,201,76,0.18),
+        0 18px 60px rgba(0,0,0,0.38);
+    }
+
+    .live-card.countdown-mode .live-header {
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .live-card.countdown-mode .live-badge {
+      font-size: 22px;
+      padding: 10px 20px;
+      background: #31d56d;
+    }
+
+    .live-card.countdown-mode .live-timer {
+      font-size: 86px;
+      line-height: 0.95;
+      color: #f2c94c;
+      text-shadow: 0 0 28px rgba(242,201,76,0.25);
+    }
+
+    .live-card.countdown-mode .live-status {
+      font-size: 32px;
+      line-height: 1.12;
+      color: #ffffff;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
     @media (max-width: 1100px) {
       .promo-screen {
         grid-template-columns: 1fr;
@@ -315,6 +357,14 @@
 
       .live-status {
         font-size: 23px;
+      }
+
+      .live-card.countdown-mode .live-timer {
+        font-size: 66px;
+      }
+
+      .live-card.countdown-mode .live-status {
+        font-size: 24px;
       }
     }
   </style>
