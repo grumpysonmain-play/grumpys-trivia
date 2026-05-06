@@ -187,15 +187,15 @@ function setPhoneQuestionText(text) {
     "phone-super-long-question"
   );
 
-  if (cleanText.length > 90) {
+  if (cleanText.length > 70) {
     questionText.classList.add("phone-long-question");
   }
 
-  if (cleanText.length > 140) {
+  if (cleanText.length > 105) {
     questionText.classList.add("phone-extra-long-question");
   }
 
-  if (cleanText.length > 200) {
+  if (cleanText.length > 145) {
     questionText.classList.add("phone-super-long-question");
   }
 }
