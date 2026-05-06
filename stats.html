@@ -22,7 +22,7 @@
     }
 
     .page {
-      width: min(1200px, calc(100% - 32px));
+      width: min(1250px, calc(100% - 32px));
       margin: 0 auto;
       padding: 32px 0 60px;
     }
@@ -63,14 +63,10 @@
       cursor: pointer;
     }
 
-    .refresh:active {
-      transform: scale(0.98);
-    }
-
     .cards {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
       margin-bottom: 22px;
     }
 
@@ -78,13 +74,13 @@
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 20px;
-      padding: 18px;
+      padding: 16px;
       box-shadow: 0 18px 50px rgba(0,0,0,0.25);
     }
 
     .card-label {
       color: #cfcfcf;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 850;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -92,7 +88,7 @@
     }
 
     .card-value {
-      font-size: 34px;
+      font-size: 30px;
       font-weight: 950;
       color: #f2c94c;
       line-height: 1;
@@ -126,26 +122,97 @@
       font-weight: 700;
     }
 
-    .search-row {
-      display: flex;
+    .live-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .live-box {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .live-title {
+      color: #f2c94c;
+      font-size: 14px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .live-line {
+      font-size: 16px;
+      margin: 8px 0;
+      color: #eee;
+      font-weight: 800;
+    }
+
+    .status-pill {
+      display: inline-block;
+      background: rgba(49,213,109,0.18);
+      color: #31d56d;
+      border: 1px solid rgba(49,213,109,0.40);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr 220px 220px;
       gap: 12px;
-      align-items: center;
       margin-bottom: 14px;
     }
 
-    .search-row input {
+    input,
+    select {
       width: 100%;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 14px;
       color: white;
       padding: 13px 14px;
-      font-size: 16px;
+      font-size: 15px;
       outline: none;
     }
 
-    .search-row input:focus {
+    select option {
+      color: #111;
+    }
+
+    input:focus,
+    select:focus {
       border-color: rgba(242,201,76,0.72);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #f2c94c;
+      color: #111;
+      border-color: #f2c94c;
     }
 
     table {
@@ -191,83 +258,28 @@
       color: #bdbdbd;
     }
 
-    .live-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .live-box {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px;
-      padding: 16px;
-    }
-
-    .live-title {
-      color: #f2c94c;
-      font-size: 14px;
-      font-weight: 950;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-    }
-
-    .live-line {
-      font-size: 16px;
-      margin: 8px 0;
-      color: #eee;
-      font-weight: 800;
-    }
-
-    .status-pill {
-      display: inline-block;
-      background: rgba(49,213,109,0.18);
-      color: #31d56d;
-      border: 1px solid rgba(49,213,109,0.40);
-      border-radius: 999px;
-      padding: 5px 10px;
-      font-size: 12px;
-      font-weight: 950;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
     .empty {
       color: #bbb;
       font-style: italic;
       padding: 18px 0;
     }
 
-    @media (max-width: 850px) {
-      .header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
+    @media (max-width: 980px) {
       .cards {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
       }
 
       .live-grid {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 34px;
-      }
-
-      .card-value {
-        font-size: 28px;
-      }
-
-      table {
-        font-size: 14px;
-      }
-
-      th:nth-child(5),
-      td:nth-child(5) {
-        display: none;
+      .header {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   </style>
@@ -303,6 +315,16 @@
         <div class="card-label">Live Players</div>
         <div id="livePlayersCount" class="card-value">0</div>
       </div>
+
+      <div class="card">
+        <div class="card-label">Guest Plays</div>
+        <div id="guestPlaysCount" class="card-value">0</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Named Plays</div>
+        <div id="namedPlaysCount" class="card-value">0</div>
+      </div>
     </section>
 
     <section class="section">
@@ -328,12 +350,32 @@
 
     <section class="section">
       <div class="section-head">
-        <h2>Full All-Time Leaderboard</h2>
+        <h2>Player Leaderboards</h2>
         <div id="leaderboardCount" class="small-note">0 players</div>
       </div>
 
-      <div class="search-row">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="all">All-Time Leaderboard</button>
+        <button class="tab-btn" data-tab="recent">Recent Players</button>
+        <button class="tab-btn" data-tab="inactive">Inactive Players</button>
+      </div>
+
+      <div class="toolbar">
         <input id="leaderboardSearch" type="text" placeholder="Search player name..." />
+
+        <select id="sortSelect">
+          <option value="score">Sort by Total Score</option>
+          <option value="wins">Sort by Wins</option>
+          <option value="games">Sort by Games Played</option>
+          <option value="average">Sort by Avg Score/Game</option>
+          <option value="recent">Sort by Last Played</option>
+          <option value="name">Sort by Name</option>
+        </select>
+
+        <select id="sortDirection">
+          <option value="desc">High to Low / Newest</option>
+          <option value="asc">Low to High / Oldest</option>
+        </select>
       </div>
 
       <div style="overflow-x:auto;">
@@ -344,13 +386,14 @@
               <th>Name</th>
               <th>Total Score</th>
               <th>Wins</th>
-              <th>Games Played</th>
+              <th>Games</th>
+              <th>Avg/Game</th>
               <th>Last Played</th>
             </tr>
           </thead>
           <tbody id="leaderboardBody">
             <tr>
-              <td colspan="6" class="empty">Loading leaderboard...</td>
+              <td colspan="7" class="empty">Loading leaderboard...</td>
             </tr>
           </tbody>
         </table>
