@@ -98,15 +98,15 @@ function setTvQuestionText(text) {
   questionEl.textContent = cleanText;
   questionEl.classList.remove("long-question", "extra-long-question", "super-long-question");
 
-  if (cleanText.length > 100) {
+  if (cleanText.length > 85) {
     questionEl.classList.add("long-question");
   }
 
-  if (cleanText.length > 150) {
+  if (cleanText.length > 125) {
     questionEl.classList.add("extra-long-question");
   }
 
-  if (cleanText.length > 210) {
+  if (cleanText.length > 165) {
     questionEl.classList.add("super-long-question");
   }
 }
@@ -502,8 +502,6 @@ async function showFinalScreen() {
   const allTimeLeaders = await getAllTimeLeaders();
   const winnerName = roundLeaders[0]?.name || "Nobody yet";
 
-  // The host trivia slide still has FINAL_SECONDS left before it leaves,
-  // then the rest of the VXT slideshow takes about 10:30 before trivia returns.
   nextRoundExpectedAt = Date.now() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
 
   phaseLabel.textContent = "Final";
