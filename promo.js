@@ -7,10 +7,22 @@ const promoStatus = document.getElementById("promoStatus");
 const promoTop5 = document.getElementById("promoTop5");
 const liveBadge = document.getElementById("liveBadge");
 
+let currentGame = {};
+let promoCountdownInterval = null;
+let promoCountdownTarget = null;
+
 function formatTime(seconds) {
   const safeSeconds = Math.max(0, Number(seconds) || 0);
   const mins = Math.floor(safeSeconds / 60);
   const secs = safeSeconds % 60;
+
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function formatCountdownFromMs(ms) {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
 
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
@@ -60,11 +72,60 @@ function renderTop5(playersObj = {}) {
     .join("");
 }
 
+function stopPromoCountdown() {
+  if (promoCountdownInterval) {
+    clearInterval(promoCountdownInterval);
+    promoCountdownInterval = null;
+  }
+
+  promoCountdownTarget = null;
+}
+
+function startPromoCountdown(targetTime) {
+  if (!targetTime) {
+    stopPromoCountdown();
+    return;
+  }
+
+  function render() {
+    const remainingMs = targetTime - Date.now();
+    const remainingText = formatCountdownFromMs(remainingMs);
+
+    promoTimer.textContent = remainingText;
+
+    if (remainingMs <= 0) {
+      liveBadge.textContent = "Soon";
+      promoStatus.textContent = "Trivia should be returning soon. Scan now and watch the main screen.";
+      return;
+    }
+
+    liveBadge.textContent = "Next Round";
+    promoStatus.textContent = `Next round expected in ${remainingText}. Scan now and keep your phone ready.`;
+  }
+
+  render();
+
+  if (promoCountdownTarget === targetTime && promoCountdownInterval) {
+    return;
+  }
+
+  stopPromoCountdown();
+
+  promoCountdownTarget = targetTime;
+  promoCountdownInterval = setInterval(render, 1000);
+}
+
 function setStatus(game = {}) {
   const phase = game.phase || "waiting";
   const timer = game.timer || 0;
   const questionIndex = Number.isInteger(game.questionIndex) ? game.questionIndex + 1 : null;
 
+  if ((phase === "waiting" || phase === "final") && game.nextRoundExpectedAt) {
+    startPromoCountdown(game.nextRoundExpectedAt);
+    return;
+  }
+
+  stopPromoCountdown();
   promoTimer.textContent = formatTime(timer);
 
   if (phase === "join") {
@@ -100,8 +161,9 @@ function setStatus(game = {}) {
 }
 
 function renderPromo(game = {}) {
-  setStatus(game);
-  renderTop5(game.players || {});
+  currentGame = game;
+  setStatus(currentGame);
+  renderTop5(currentGame.players || {});
 }
 
 setQrCode();
