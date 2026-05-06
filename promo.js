@@ -54,6 +54,34 @@ function getSortedPlayers(playersObj = {}) {
     });
 }
 
+function showTop5() {
+  const top5Box = document.querySelector(".top5");
+
+  if (top5Box) {
+    top5Box.classList.remove("hidden");
+  }
+}
+
+function hideTop5() {
+  const top5Box = document.querySelector(".top5");
+
+  if (top5Box) {
+    top5Box.classList.add("hidden");
+  }
+}
+
+function setCountdownMode(isOn) {
+  const liveCard = document.querySelector(".live-card");
+
+  if (!liveCard) return;
+
+  if (isOn) {
+    liveCard.classList.add("countdown-mode");
+  } else {
+    liveCard.classList.remove("countdown-mode");
+  }
+}
+
 function renderTop5(playersObj = {}) {
   const players = getSortedPlayers(playersObj).slice(0, 5);
 
@@ -79,6 +107,7 @@ function stopPromoCountdown() {
   }
 
   promoCountdownTarget = null;
+  setCountdownMode(false);
 }
 
 function startPromoCountdown(targetTime) {
@@ -86,6 +115,9 @@ function startPromoCountdown(targetTime) {
     stopPromoCountdown();
     return;
   }
+
+  setCountdownMode(true);
+  hideTop5();
 
   function render() {
     const remainingMs = targetTime - Date.now();
@@ -100,7 +132,7 @@ function startPromoCountdown(targetTime) {
     }
 
     liveBadge.textContent = "Next Round";
-    promoStatus.textContent = `Next round expected in ${remainingText}. Scan now and keep your phone ready.`;
+    promoStatus.textContent = "Scan now and keep your phone ready.";
   }
 
   render();
@@ -110,6 +142,8 @@ function startPromoCountdown(targetTime) {
   }
 
   stopPromoCountdown();
+  setCountdownMode(true);
+  hideTop5();
 
   promoCountdownTarget = targetTime;
   promoCountdownInterval = setInterval(render, 1000);
@@ -126,6 +160,7 @@ function setStatus(game = {}) {
   }
 
   stopPromoCountdown();
+  showTop5();
   promoTimer.textContent = formatTime(timer);
 
   if (phase === "join") {
@@ -147,12 +182,6 @@ function setStatus(game = {}) {
     promoStatus.textContent = questionIndex
       ? `Answer reveal after Question ${questionIndex}. Current scores are updating.`
       : "Answer reveal is live. Current scores are updating.";
-    return;
-  }
-
-  if (phase === "final") {
-    liveBadge.textContent = "Final";
-    promoStatus.textContent = "Round complete. Scan to join the next round.";
     return;
   }
 
