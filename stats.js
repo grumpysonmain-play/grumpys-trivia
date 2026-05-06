@@ -6,6 +6,8 @@ const namedPlayersCountEl = document.getElementById("namedPlayersCount");
 const scoredPlayersCountEl = document.getElementById("scoredPlayersCount");
 const savedRoundsCountEl = document.getElementById("savedRoundsCount");
 const livePlayersCountEl = document.getElementById("livePlayersCount");
+const guestPlaysCountEl = document.getElementById("guestPlaysCount");
+const namedPlaysCountEl = document.getElementById("namedPlaysCount");
 
 const livePhaseEl = document.getElementById("livePhase");
 const liveTimerEl = document.getElementById("liveTimer");
@@ -16,9 +18,13 @@ const lastUpdatedEl = document.getElementById("lastUpdated");
 const leaderboardBodyEl = document.getElementById("leaderboardBody");
 const leaderboardCountEl = document.getElementById("leaderboardCount");
 const leaderboardSearchEl = document.getElementById("leaderboardSearch");
+const sortSelectEl = document.getElementById("sortSelect");
+const sortDirectionEl = document.getElementById("sortDirection");
 const refreshBtn = document.getElementById("refreshBtn");
+const tabButtons = document.querySelectorAll(".tab-btn");
 
 let allPlayers = [];
+let currentTab = "all";
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString();
@@ -48,7 +54,12 @@ function formatDate(timestamp) {
   }
 }
 
-function getSortedPlayers(playersObj = {}) {
+function getAvgScore(player) {
+  if (!player.gamesPlayed) return 0;
+  return Math.round((player.totalScore || 0) / player.gamesPlayed);
+}
+
+function getPlayers(playersObj = {}) {
   return Object.entries(playersObj)
     .map(([nameKey, profile]) => ({
       nameKey,
@@ -58,18 +69,114 @@ function getSortedPlayers(playersObj = {}) {
       gamesPlayed: profile.gamesPlayed || 0,
       lastPlayed: profile.lastPlayed || null,
       createdAt: profile.createdAt || null
-    }))
-    .sort((a, b) => {
-      if ((b.totalScore || 0) !== (a.totalScore || 0)) {
-        return (b.totalScore || 0) - (a.totalScore || 0);
-      }
+    }));
+}
 
-      if ((b.wins || 0) !== (a.wins || 0)) {
-        return (b.wins || 0) - (a.wins || 0);
-      }
+function getDefaultRankedPlayers(players) {
+  return [...players].sort((a, b) => {
+    if ((b.totalScore || 0) !== (a.totalScore || 0)) {
+      return (b.totalScore || 0) - (a.totalScore || 0);
+    }
 
+    if ((b.wins || 0) !== (a.wins || 0)) {
+      return (b.wins || 0) - (a.wins || 0);
+    }
+
+    return (a.name || "").localeCompare(b.name || "");
+  });
+}
+
+function sortPlayers(players) {
+  const sortBy = sortSelectEl.value;
+  const direction = sortDirectionEl.value;
+  const multiplier = direction === "asc" ? 1 : -1;
+
+  return [...players].sort((a, b) => {
+    let aVal;
+    let bVal;
+
+    if (sortBy === "score") {
+      aVal = a.totalScore || 0;
+      bVal = b.totalScore || 0;
+    } else if (sortBy === "wins") {
+      aVal = a.wins || 0;
+      bVal = b.wins || 0;
+    } else if (sortBy === "games") {
+      aVal = a.gamesPlayed || 0;
+      bVal = b.gamesPlayed || 0;
+    } else if (sortBy === "average") {
+      aVal = getAvgScore(a);
+      bVal = getAvgScore(b);
+    } else if (sortBy === "recent") {
+      aVal = a.lastPlayed || 0;
+      bVal = b.lastPlayed || 0;
+    } else if (sortBy === "name") {
+      return direction === "asc"
+        ? (a.name || "").localeCompare(b.name || "")
+        : (b.name || "").localeCompare(a.name || "");
+    }
+
+    if (aVal === bVal) {
       return (a.name || "").localeCompare(b.name || "");
-    });
+    }
+
+    return aVal > bVal ? multiplier : -multiplier;
+  });
+}
+
+function getTabPlayers() {
+  if (currentTab === "recent") {
+    return allPlayers.filter(player => player.lastPlayed);
+  }
+
+  if (currentTab === "inactive") {
+    return allPlayers.filter(player => !player.gamesPlayed || !player.totalScore);
+  }
+
+  return allPlayers;
+}
+
+function renderLeaderboard() {
+  const search = leaderboardSearchEl.value.trim().toLowerCase();
+  const rankedPlayers = getDefaultRankedPlayers(allPlayers);
+
+  let players = getTabPlayers();
+
+  players = players.filter(player => {
+    if (!search) return true;
+    return (player.name || "").toLowerCase().includes(search);
+  });
+
+  players = sortPlayers(players);
+
+  leaderboardCountEl.textContent = `${players.length} player${players.length === 1 ? "" : "s"}`;
+
+  if (players.length === 0) {
+    leaderboardBodyEl.innerHTML = `
+      <tr>
+        <td colspan="7" class="empty">No players found.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  leaderboardBodyEl.innerHTML = players
+    .map(player => {
+      const trueRank = rankedPlayers.findIndex(p => p.nameKey === player.nameKey) + 1;
+
+      return `
+        <tr>
+          <td class="rank">#${trueRank}</td>
+          <td>${player.name}</td>
+          <td class="score">${formatNumber(player.totalScore)}</td>
+          <td>${formatNumber(player.wins)}</td>
+          <td>${formatNumber(player.gamesPlayed)}</td>
+          <td>${formatNumber(getAvgScore(player))}</td>
+          <td class="muted">${formatDate(player.lastPlayed)}</td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 function getSortedLivePlayers(playersObj = {}) {
@@ -81,44 +188,6 @@ function getSortedLivePlayers(playersObj = {}) {
 
       return (a.name || "").localeCompare(b.name || "");
     });
-}
-
-function renderLeaderboard() {
-  const search = leaderboardSearchEl.value.trim().toLowerCase();
-
-  const filteredPlayers = allPlayers.filter(player => {
-    if (!search) return true;
-
-    return (player.name || "").toLowerCase().includes(search);
-  });
-
-  leaderboardCountEl.textContent = `${filteredPlayers.length} player${filteredPlayers.length === 1 ? "" : "s"}`;
-
-  if (filteredPlayers.length === 0) {
-    leaderboardBodyEl.innerHTML = `
-      <tr>
-        <td colspan="6" class="empty">No players found.</td>
-      </tr>
-    `;
-    return;
-  }
-
-  leaderboardBodyEl.innerHTML = filteredPlayers
-    .map(player => {
-      const trueRank = allPlayers.findIndex(p => p.nameKey === player.nameKey) + 1;
-
-      return `
-        <tr>
-          <td class="rank">#${trueRank}</td>
-          <td>${player.name}</td>
-          <td class="score">${formatNumber(player.totalScore)}</td>
-          <td>${formatNumber(player.wins)}</td>
-          <td>${formatNumber(player.gamesPlayed)}</td>
-          <td class="muted">${formatDate(player.lastPlayed)}</td>
-        </tr>
-      `;
-    })
-    .join("");
 }
 
 function renderLiveGame(game = {}) {
@@ -158,6 +227,22 @@ function renderLiveGame(game = {}) {
     .join("");
 }
 
+function renderSavedRoundStats(savedRoundsObj = {}) {
+  const rounds = Object.values(savedRoundsObj);
+
+  let guestPlays = 0;
+  let namedPlays = 0;
+
+  rounds.forEach(round => {
+    guestPlays += round.guestCount || 0;
+    namedPlays += round.namedCount || 0;
+  });
+
+  savedRoundsCountEl.textContent = rounds.length;
+  guestPlaysCountEl.textContent = formatNumber(guestPlays);
+  namedPlaysCountEl.textContent = formatNumber(namedPlays);
+}
+
 async function loadStats() {
   lastUpdatedEl.textContent = "Loading...";
 
@@ -171,14 +256,14 @@ async function loadStats() {
   const savedRoundsObj = savedRoundsSnap.val() || {};
   const game = gameSnap.val() || {};
 
-  allPlayers = getSortedPlayers(claimedObj);
+  allPlayers = getPlayers(claimedObj);
 
   const scoredPlayers = allPlayers.filter(player => (player.totalScore || 0) > 0);
 
   namedPlayersCountEl.textContent = allPlayers.length;
   scoredPlayersCountEl.textContent = scoredPlayers.length;
-  savedRoundsCountEl.textContent = Object.keys(savedRoundsObj).length;
 
+  renderSavedRoundStats(savedRoundsObj);
   renderLiveGame(game);
   renderLeaderboard();
 
@@ -189,7 +274,18 @@ async function loadStats() {
   })}`;
 }
 
+tabButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    tabButtons.forEach(btn => btn.classList.remove("active"));
+    button.classList.add("active");
+    currentTab = button.dataset.tab;
+    renderLeaderboard();
+  });
+});
+
 leaderboardSearchEl.addEventListener("input", renderLeaderboard);
+sortSelectEl.addEventListener("change", renderLeaderboard);
+sortDirectionEl.addEventListener("change", renderLeaderboard);
 refreshBtn.addEventListener("click", loadStats);
 
 gameRef.on("value", snap => {
@@ -197,7 +293,7 @@ gameRef.on("value", snap => {
 });
 
 claimedNamesRef.on("value", snap => {
-  allPlayers = getSortedPlayers(snap.val() || {});
+  allPlayers = getPlayers(snap.val() || {});
 
   const scoredPlayers = allPlayers.filter(player => (player.totalScore || 0) > 0);
 
@@ -214,7 +310,7 @@ claimedNamesRef.on("value", snap => {
 });
 
 savedRoundsRef.on("value", snap => {
-  savedRoundsCountEl.textContent = Object.keys(snap.val() || {}).length;
+  renderSavedRoundStats(snap.val() || {});
 });
 
 loadStats();
