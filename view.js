@@ -214,18 +214,18 @@ function renderGame(game = {}) {
 
   if (phase === "final") {
     phaseLabel.textContent = "Final";
-    categoryEl.textContent = "Round Complete";
-    setQuestionText("Final scoreboard is showing on the host screen.");
-    messageEl.textContent = "Next round starts soon. Keep your phone ready.";
+    categoryEl.textContent = "Host Screen Returning Soon";
+    setQuestionText("The main trivia screen will be back soon.");
+    messageEl.textContent = "This viewer screen will update automatically when the host trivia screen comes back.";
     answersEl.innerHTML = "";
     return;
   }
 
   if (phase === "waiting") {
-    phaseLabel.textContent = "Next Round";
-    categoryEl.textContent = "Waiting";
-    setQuestionText("Next round is coming soon.");
-    messageEl.textContent = "This viewer page will update automatically when the host starts the next round.";
+    phaseLabel.textContent = "Waiting";
+    categoryEl.textContent = "Host Screen Returning Soon";
+    setQuestionText("The main trivia screen will be back soon.");
+    messageEl.textContent = "This viewer screen will update automatically when the host trivia screen comes back.";
     answersEl.innerHTML = "";
     return;
   }
