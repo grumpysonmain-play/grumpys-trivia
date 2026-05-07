@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grumpy's Trivia Viewer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #070707;
+      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
+
+    .viewer-screen {
+      width: 100vw;
+      height: 100vh;
+      padding: 34px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 28px;
+      background:
+        radial-gradient(circle at top left, rgba(242,201,76,0.16), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(130,0,0,0.24), transparent 38%),
+        linear-gradient(135deg, #111, #050505 72%);
+    }
+
+    .main-panel,
+    .side-panel {
+      position: relative;
+      z-index: 2;
+    }
+
+    .main-panel {
+      background: rgba(0,0,0,0.36);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 34px;
+      padding: 34px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      box-shadow: 0 22px 70px rgba(0,0,0,0.38);
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .phase {
+      background: #f2c94c;
+      color: #111;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 24px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
+    .timer {
+      color: #f2c94c;
+      font-size: 68px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .category {
+      color: #f2c94c;
+      font-size: 30px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+
+    .question {
+      font-size: 54px;
+      line-height: 1.04;
+      font-weight: 950;
+      margin: 0 0 24px;
+      text-shadow: 0 6px 26px rgba(0,0,0,0.45);
+      overflow: visible;
+      white-space: normal;
+    }
+
+    .question.long-question {
+      font-size: 44px;
+      line-height: 1.05;
+    }
+
+    .question.extra-long-question {
+      font-size: 35px;
+      line-height: 1.05;
+    }
+
+    .question.super-long-question {
+      font-size: 28px;
+      line-height: 1.04;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: auto;
+    }
+
+    .answer {
+      background: rgba(255,255,255,0.10);
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 24px;
+      padding: 22px;
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.12;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+    }
+
+    .answer.correct {
+      background: rgba(49,213,109,0.20);
+      border-color: rgba(49,213,109,0.85);
+      box-shadow: 0 0 34px rgba(49,213,109,0.22);
+    }
+
+    .answer.dim {
+      opacity: 0.45;
+    }
+
+    .message {
+      margin-top: 18px;
+      color: #ddd;
+      font-size: 24px;
+      font-weight: 850;
+    }
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .qr-card,
+    .leader-card {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.12);
+      border-radius: 28px;
+      padding: 22px;
+      box-shadow: 0 18px 55px rgba(0,0,0,0.3);
+    }
+
+    .qr-title,
+    .leader-title {
+      color: #f2c94c;
+      font-size: 24px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    .qr {
+      width: 100%;
+      aspect-ratio: 1;
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: #111;
+      font-size: 54px;
+      font-weight: 950;
+    }
+
+    .qr img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .qr-caption {
+      margin-top: 12px;
+      color: #eee;
+      font-size: 18px;
+      font-weight: 850;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .leader-card {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .leader-list {
+      margin: 0;
+      padding-left: 28px;
+    }
+
+    .leader-list li {
+      font-size: 21px;
+      font-weight: 850;
+      margin-bottom: 12px;
+    }
+
+    .leader-list span {
+      display: inline-block;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    .leader-list strong {
+      color: #f2c94c;
+      float: right;
+    }
+
+    .waiting-box {
+      background: rgba(242,201,76,0.13);
+      border: 3px solid rgba(242,201,76,0.62);
+      border-radius: 28px;
+      padding: 30px;
+      text-align: center;
+      margin-top: auto;
+      box-shadow: 0 0 42px rgba(242,201,76,0.13);
+    }
+
+    .waiting-label {
+      color: #f2c94c;
+      font-size: 24px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .waiting-time {
+      font-size: 92px;
+      color: #f2c94c;
+      font-weight: 950;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1200px) {
+      .viewer-screen {
+        grid-template-columns: 1fr;
+        overflow: auto;
+      }
+
+      .side-panel {
+        display: none;
+      }
+
+      .question {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="viewer-screen">
+    <section class="main-panel">
+      <div class="top-row">
+        <div id="phaseLabel" class="phase">Viewer</div>
+        <div id="timer" class="timer">0:00</div>
+      </div>
+
+      <div id="category" class="category">Grumpy's Trivia</div>
+
+      <h1 id="question" class="question">
+        Waiting for the host screen...
+      </h1>
+
+      <div id="waitingBox" class="waiting-box hidden">
+        <div class="waiting-label">Next Round Expected In</div>
+        <div id="waitingTime" class="waiting-time">0:00</div>
+      </div>
+
+      <div id="answers" class="answers"></div>
+
+      <div id="message" class="message">
+        This is a viewer-only screen. It will not control the game.
+      </div>
+    </section>
+
+    <aside class="side-panel">
+      <div class="qr-card">
+        <div class="qr-title">Scan to Play</div>
+        <div id="qrCode" class="qr">QR</div>
+        <div class="qr-caption">Join from your phone</div>
+      </div>
+
+      <div class="leader-card">
+        <div class="leader-title">Current Top 5</div>
+        <ol id="leaderboardList" class="leader-list">
+          <li><span>Waiting...</span><strong>0</strong></li>
+        </ol>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="view.js"></script>
+</body>
+</html>
