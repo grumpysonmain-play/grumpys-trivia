@@ -237,7 +237,7 @@
       background: rgba(242,201,76,0.13);
       border: 3px solid rgba(242,201,76,0.62);
       border-radius: 28px;
-      padding: 30px;
+      padding: 34px 30px;
       text-align: center;
       margin-top: auto;
       box-shadow: 0 0 42px rgba(242,201,76,0.13);
@@ -245,19 +245,20 @@
 
     .waiting-label {
       color: #f2c94c;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 950;
       text-transform: uppercase;
       letter-spacing: 2px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .waiting-time {
-      font-size: 92px;
+      font-size: 104px;
       color: #f2c94c;
       font-weight: 950;
       line-height: 1;
       font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 28px rgba(242,201,76,0.25);
     }
 
     .hidden {
@@ -276,6 +277,10 @@
 
       .question {
         font-size: 42px;
+      }
+
+      .waiting-time {
+        font-size: 78px;
       }
     }
   </style>
@@ -296,7 +301,7 @@
       </h1>
 
       <div id="waitingBox" class="waiting-box hidden">
-        <div class="waiting-label">Next Round Expected In</div>
+        <div class="waiting-label">Host Trivia Screen Back In</div>
         <div id="waitingTime" class="waiting-time">0:00</div>
       </div>
 
