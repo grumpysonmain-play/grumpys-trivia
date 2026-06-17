@@ -77,13 +77,47 @@ let nextRoundCountdownTarget = null;
 const LAST_COMPLETED_ROUND_KEY = "grumpysTriviaLastCompletedRoundId";
 
 const BLOCKED_WORDS = [
+  // Profanity / crude language
   "fuck", "fucker", "fucking", "shit", "shitty", "bitch", "asshole", "ass",
-  "dick", "cock", "pussy", "cunt", "cum", "jizz", "porn", "sex", "slut",
-  "whore", "rape", "rapist", "molest", "pedo", "pedophile",
+  "dick", "cock", "pussy", "cunt", "cum", "jizz", "porn", "sex",
+  "slut", "whore", "horny", "nude", "nudes",
+
+  // Sexual / creepy joke names
+  "daddy", "mommy", "mama", "papi", "stepdad", "stepmom",
+  "milf", "dilf", "sugarbaby", "sugar", "baby",
+  "suck", "sucks", "sucker", "lick", "licker", "spank",
+  "sexy", "thicc", "gyatt", "onlyfans", "simp", "cougar", "hoe", "hoes",
+
+  // Bathroom / gross names
+  "fart", "farter", "farting", "poop", "pooper", "poopy",
+  "pee", "piss", "butt", "booty", "balls", "nuts", "booger",
+  "toilet", "diarrhea", "diarrhoea", "crap", "turd", "shart",
+  "barf", "vomit", "stinky", "smelly", "boob", "boobs",
+
+  // Hate / slurs / violent content
+  "rape", "rapist", "molest", "pedo", "pedophile",
   "nigger", "nigga", "fag", "faggot", "retard", "spic", "chink", "kike",
   "hitler", "nazi", "kkk", "isis", "terrorist",
+
+  // Admin/staff impersonation
   "admin", "administrator", "owner", "staff", "employee", "manager",
-  "grumpysowner", "grumpysstaff", "grumpysmanager"
+  "host", "triviahost", "grumpysowner", "grumpysstaff", "grumpysmanager",
+  "ceo", "president", "mod", "moderator", "security", "bartender",
+  "server", "cook", "chef", "dj", "announcer",
+
+  // Political bait names
+  "trump", "biden", "obama", "maga", "liberal", "conservative",
+
+  // Drug / bar-inappropriate joke names
+  "weed", "stoner", "drunk", "wasted",
+
+  // Common troll / fake names
+  "skibidi", "ohio", "chungus", "yeet", "sus", "imposter",
+  "amongus", "npc", "bot", "trash", "loser", "anonymous",
+  "unknown", "none", "null", "undefined", "test",
+
+  // “Your mom” type names
+  "yourmom", "yourdad", "urmom", "urdad", "yomama"
 ];
 
 const BLOCKED_EXACT_NAMES = [
@@ -98,11 +132,35 @@ const BLOCKED_EXACT_NAMES = [
   "grumpysstaff",
   "grumpysmanager",
   "triviahost",
-  "host"
+  "host",
+
+  "daddy",
+  "mommy",
+  "mama",
+  "papi",
+  "farter",
+  "fart",
+  "pooper",
+  "poop",
+  "butt",
+  "booty",
+
+  "trump",
+  "biden",
+  "obama",
+  "maga",
+
+  "guest",
+  "player",
+  "winner",
+  "loser",
+  "anonymous",
+  "unknown",
+  "test"
 ];
 
 function normalizeNameForFilter(name) {
-  return name
+  return String(name || "")
     .toLowerCase()
     .replace(/0/g, "o")
     .replace(/1/g, "i")
@@ -119,9 +177,70 @@ function normalizeNameForFilter(name) {
     .replace(/[^a-z0-9]/g, "");
 }
 
+function isHardBlockedName(name) {
+  const raw = String(name || "").toLowerCase();
+
+  // Removes spaces, dots, hyphens, apostrophes, underscores, etc.
+  // Example: "T-r.u m p" becomes "trump"
+  const compact = raw.replace(/[^a-z0-9]/g, "");
+
+  // Example: "6 9", "6-9", "6.9" all become "69"
+  const compactNumbers = raw.replace(/[^0-9]/g, "");
+
+  const hardBlocked = [
+    "trump",
+    "biden",
+    "obama",
+    "maga",
+
+    "daddy",
+    "mommy",
+    "mama",
+    "papi",
+
+    "fart",
+    "farter",
+    "poop",
+    "pooper",
+    "pee",
+    "piss",
+    "butt",
+    "booty",
+
+    "admin",
+    "administrator",
+    "owner",
+    "manager",
+    "staff",
+    "employee",
+    "host",
+    "grumpys",
+    "grumpy",
+
+    "fuck",
+    "shit",
+    "bitch",
+    "asshole",
+    "dick",
+    "pussy",
+    "cunt",
+    "sex",
+    "porn",
+    "hitler",
+    "nazi"
+  ];
+
+  if (compactNumbers.includes("69") || compactNumbers.includes("420")) {
+    return true;
+  }
+
+  return hardBlocked.some(word => compact.includes(word));
+}
+
 function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  const mins = Math.floor(safeSeconds / 60);
+  const secs = safeSeconds % 60;
 
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
@@ -135,15 +254,18 @@ function formatCountdownFromMs(ms) {
 }
 
 function cleanName(name) {
-  return name
+  return String(name || "")
     .trim()
-    .replace(/[^a-zA-Z0-9 _.-]/g, "")
+    // Only allow letters, numbers, spaces, apostrophes, hyphens, and periods
+    .replace(/[^a-zA-Z0-9 '\-.]/g, "")
     .replace(/\s+/g, " ")
-    .slice(0, 18);
+    .slice(0, 15);
 }
 
 function makeNameKey(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return String(name || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
 function isNameAllowed(name) {
@@ -151,19 +273,93 @@ function isNameAllowed(name) {
   const key = makeNameKey(cleaned);
   const normalized = normalizeNameForFilter(cleaned);
 
-  if (!cleaned || key.length < 3) {
+  // Reduces extra repeats for checking.
+  // Example: "Dadddddy" gets checked closer to "Dadddy".
+  const reducedRepeats = normalized.replace(/(.)\1{3,}/g, "$1$1$1");
+
+  const words = cleaned.split(" ").filter(Boolean);
+
+  // Must have a real name
+  if (!cleaned || key.length < 2) {
     return false;
   }
 
-  if (BLOCKED_EXACT_NAMES.includes(normalized)) {
+  // Max 15 visible characters
+  if (cleaned.length > 15) {
     return false;
   }
 
-  if (normalized.includes("guest") && normalized.length <= 9) {
+  // Max 2 words
+  if (words.length > 2) {
     return false;
   }
 
-  return !BLOCKED_WORDS.some(word => normalized.includes(normalizeNameForFilter(word)));
+  // No word longer than 12 characters
+  if (words.some(word => word.length > 12)) {
+    return false;
+  }
+
+  // Only letters, numbers, spaces, apostrophes, hyphens, and periods
+  if (/[^a-zA-Z0-9 '\-.]/.test(cleaned)) {
+    return false;
+  }
+
+  // No repeated letters/numbers more than 3 in a row
+  // Example blocked: "Saaaam", "Mikeeee", "1111"
+  if (/(.)\1{3,}/i.test(cleaned)) {
+    return false;
+  }
+
+  // Must include at least one letter
+  if (!/[a-z]/i.test(cleaned)) {
+    return false;
+  }
+
+  // Ban inappropriate number patterns, including:
+  // 69, 6 9, 6-9, 6.9, 6/9, and 420
+  const compactNumbers = cleaned.replace(/[^0-9]/g, "");
+  if (compactNumbers.includes("69") || compactNumbers.includes("420")) {
+    return false;
+  }
+
+  // Ban exact fake/admin/troll names
+  if (BLOCKED_EXACT_NAMES.includes(normalized) || BLOCKED_EXACT_NAMES.includes(reducedRepeats)) {
+    return false;
+  }
+
+  // Ban guest-style names for registered users
+  if (normalized.includes("guest")) {
+    return false;
+  }
+
+  // Ban Grumpy's impersonation names
+  if (normalized.includes("grumpys") || normalized.includes("grumpy")) {
+    return false;
+  }
+
+  // Ban “your mom” variants even with spaces/punctuation
+  if (
+    normalized.includes("yourmom") ||
+    normalized.includes("yourdad") ||
+    normalized.includes("urmom") ||
+    normalized.includes("urdad") ||
+    normalized.includes("yomama")
+  ) {
+    return false;
+  }
+
+  // Ban obvious bad words, including versions with spaces, periods, hyphens, or number swaps
+  const blocked = BLOCKED_WORDS.some(word => {
+    const badWord = normalizeNameForFilter(word);
+
+    return normalized.includes(badWord) || reducedRepeats.includes(badWord);
+  });
+
+  if (blocked) {
+    return false;
+  }
+
+  return true;
 }
 
 function isPinValid(pin) {
@@ -625,17 +821,18 @@ async function addPlayerToCurrentRound(game) {
 async function joinGame() {
   setJoinError("");
 
-  const cleanedName = cleanName(nameInput.value);
+  const rawName = nameInput.value;
+  const cleanedName = cleanName(rawName);
   const nameKey = makeNameKey(cleanedName);
   const pin = pinInput.value.trim();
 
-  if (!cleanedName || nameKey.length < 3) {
-    setJoinError("Enter a nickname with at least 3 letters/numbers.");
+  if (!cleanedName || nameKey.length < 2) {
+    setJoinError("Enter a nickname with at least 2 letters/numbers.");
     return;
   }
 
-  if (!isNameAllowed(cleanedName)) {
-    setJoinError("Pick a different nickname. That name is not allowed.");
+  if (isHardBlockedName(rawName) || isHardBlockedName(cleanedName) || !isNameAllowed(cleanedName)) {
+    setJoinError("Pick a different nickname. Use a normal first name or first name and last initial.");
     return;
   }
 
