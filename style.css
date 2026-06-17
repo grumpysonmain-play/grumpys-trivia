@@ -688,6 +688,7 @@ h1 {
     box-shadow: 0 0 60px rgba(242,201,76,0.65);
   }
 }
+
 .final-confetti {
   position: absolute;
   inset: 0;
@@ -795,103 +796,132 @@ h1 {
 .scrolling-board li span {
   width: 300px;
 }
-.question.long-question {
-  font-size: 46px;
-  line-height: 1.08;
-  margin-bottom: 24px;
-}
 
-.question.extra-long-question {
-  font-size: 38px;
-  line-height: 1.06;
-  margin-bottom: 18px;
-}
+/* =========================================================
+   TV QUESTION FIT FIX
+   Keeps long trivia questions from cutting off with "..."
+   ========================================================= */
 
-.question.super-long-question {
-  font-size: 32px;
-  line-height: 1.04;
-  margin-bottom: 14px;
-}
-
+/* Let the question card show wrapped text */
+.screen.phase-question .question-card,
 .phase-question .question-card {
-  overflow: hidden;
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  padding: 34px !important;
 }
 
-.phase-question .answers {
-  margin-top: 18px;
-}
-
-.phase-question .answer {
-  font-size: 30px;
-  min-height: 84px;
-  padding: 22px;
-}
-
-.phase-question .question.extra-long-question ~ .answers .answer,
-.phase-question .question.super-long-question ~ .answers .answer {
-  font-size: 26px;
-  min-height: 74px;
-  padding: 18px;
-}
-
-.phase-question .question.super-long-question ~ .tv-points-box {
-  padding: 16px;
-  margin-top: 16px;
-}
-
-.phase-question .question.super-long-question ~ .message {
-  font-size: 24px;
-  margin-top: 16px;
-}
+/* Stop question text from being clipped or ellipsized */
+.screen.phase-question .question,
+.phase-question .question,
 .question {
+  white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
-  white-space: normal !important;
-  display: block !important;
   -webkit-line-clamp: unset !important;
   -webkit-box-orient: unset !important;
+  display: block !important;
   max-height: none !important;
 }
 
-.question.long-question {
-  font-size: 42px !important;
-  line-height: 1.08 !important;
-  margin-bottom: 18px !important;
-}
-
-.question.extra-long-question {
+/* Make all TV questions smaller so long ones fit */
+.screen.phase-question .question,
+.phase-question .question {
   font-size: 34px !important;
-  line-height: 1.06 !important;
-  margin-bottom: 14px !important;
-}
-
-.question.super-long-question {
-  font-size: 28px !important;
-  line-height: 1.04 !important;
+  line-height: 1.08 !important;
   margin-bottom: 10px !important;
+  text-wrap: normal !important;
 }
 
-.phase-question .question-card {
-  overflow: hidden;
+/* If app.js adds long-question classes, make them even smaller */
+.screen.phase-question .question.long-question,
+.phase-question .question.long-question {
+  font-size: 32px !important;
+  line-height: 1.07 !important;
+  margin-bottom: 9px !important;
 }
 
-.phase-question .answers {
-  margin-top: 14px;
+.screen.phase-question .question.extra-long-question,
+.phase-question .question.extra-long-question {
+  font-size: 28px !important;
+  line-height: 1.06 !important;
+  margin-bottom: 8px !important;
 }
 
-.phase-question .question.extra-long-question ~ .answers .answer,
-.phase-question .question.super-long-question ~ .answers .answer {
+.screen.phase-question .question.super-long-question,
+.phase-question .question.super-long-question {
   font-size: 24px !important;
-  min-height: 68px !important;
-  padding: 16px !important;
+  line-height: 1.05 !important;
+  margin-bottom: 6px !important;
 }
 
-.phase-question .question.super-long-question ~ .tv-points-box {
-  padding: 12px !important;
-  margin-top: 12px !important;
+/* Tighten answers so the question has more room */
+.screen.phase-question .answers,
+.phase-question .answers {
+  gap: 10px !important;
+  margin-top: 8px !important;
 }
 
-.phase-question .question.super-long-question ~ .message {
-  font-size: 22px !important;
-  margin-top: 12px !important;
+.screen.phase-question .answer,
+.phase-question .answer {
+  font-size: 20px !important;
+  line-height: 1.08 !important;
+  min-height: 54px !important;
+  padding: 11px 15px !important;
+}
+
+/* Tighten points box */
+.screen.phase-question .tv-points-box,
+.phase-question .tv-points-box {
+  margin-top: 8px !important;
+  margin-bottom: 4px !important;
+  padding: 10px 12px !important;
+}
+
+.screen.phase-question .tv-points-top,
+.phase-question .tv-points-top {
+  margin-bottom: 8px !important;
+}
+
+.screen.phase-question .tv-points-top span,
+.phase-question .tv-points-top span {
+  font-size: 18px !important;
+}
+
+.screen.phase-question .tv-points-top strong,
+.phase-question .tv-points-top strong {
+  font-size: 40px !important;
+}
+
+.screen.phase-question .tv-points-bar,
+.phase-question .tv-points-bar {
+  height: 16px !important;
+}
+
+/* Tighten bottom message */
+.screen.phase-question .message,
+.phase-question .message {
+  font-size: 19px !important;
+  margin-top: 8px !important;
+}
+
+/* Extra safety if the TV browser is zoomed or shorter */
+@media (max-height: 800px) {
+  .screen.phase-question .question,
+  .phase-question .question {
+    font-size: 29px !important;
+    line-height: 1.06 !important;
+  }
+
+  .screen.phase-question .answer,
+  .phase-question .answer {
+    font-size: 18px !important;
+    min-height: 46px !important;
+    padding: 9px 13px !important;
+  }
+
+  .screen.phase-question .tv-points-top strong,
+  .phase-question .tv-points-top strong {
+    font-size: 34px !important;
+  }
 }
