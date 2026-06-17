@@ -65,6 +65,24 @@ function formatDate(timestamp) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function cleanDisplayName(name) {
+  return String(name || "")
+    .trim()
+    // Only allow letters, numbers, spaces, apostrophes, hyphens, and periods
+    .replace(/[^a-zA-Z0-9 '\-.]/g, "")
+    .replace(/\s+/g, " ")
+    .slice(0, 15);
+}
+
 function getAvgScore(player) {
   if (!player.gamesPlayed) return 0;
   return Math.round((player.totalScore || 0) / player.gamesPlayed);
@@ -74,6 +92,7 @@ function getPlayers(playersObj = {}) {
   return Object.entries(playersObj)
     .map(([nameKey, profile]) => ({
       nameKey,
+      playerId: profile.playerId || null,
       name: profile.displayName || nameKey,
       totalScore: profile.totalScore || 0,
       wins: profile.wins || 0,
@@ -165,7 +184,7 @@ function renderLeaderboard() {
   if (players.length === 0) {
     leaderboardBodyEl.innerHTML = `
       <tr>
-        <td colspan="7" class="empty">No players found.</td>
+        <td colspan="8" class="empty">No players found.</td>
       </tr>
     `;
     return;
@@ -174,16 +193,27 @@ function renderLeaderboard() {
   leaderboardBodyEl.innerHTML = players
     .map(player => {
       const trueRank = rankedPlayers.findIndex(p => p.nameKey === player.nameKey) + 1;
+      const safeName = escapeHtml(player.name);
+      const safeNameKey = escapeHtml(player.nameKey);
 
       return `
         <tr>
           <td class="rank">#${trueRank}</td>
-          <td>${player.name}</td>
+          <td>${safeName}</td>
           <td class="score">${formatNumber(player.totalScore)}</td>
           <td>${formatNumber(player.wins)}</td>
           <td>${formatNumber(player.gamesPlayed)}</td>
           <td>${formatNumber(getAvgScore(player))}</td>
           <td class="muted">${formatDate(player.lastPlayed)}</td>
+          <td class="action-cell">
+            <button
+              class="rename-btn"
+              data-name-key="${safeNameKey}"
+              data-current-name="${safeName}"
+            >
+              Rename
+            </button>
+          </td>
         </tr>
       `;
     })
@@ -275,7 +305,7 @@ function renderLiveGame(game = {}) {
   liveTop5El.innerHTML = liveTop5
     .map((player, index) => `
       <div class="live-line">
-        ${index + 1}. ${player.name || "Player"} — 
+        ${index + 1}. ${escapeHtml(player.name || "Player")} — 
         <span class="score">${formatNumber(player.score || 0)}</span>
       </div>
     `)
@@ -296,6 +326,51 @@ function renderSavedRoundStats(savedRoundsObj = {}) {
   savedRoundsCountEl.textContent = rounds.length;
   guestPlaysCountEl.textContent = formatNumber(guestPlays);
   namedPlaysCountEl.textContent = formatNumber(namedPlays);
+}
+
+async function renamePlayer(nameKey, currentName) {
+  if (!nameKey) return;
+
+  const newNameRaw = prompt(`Rename "${currentName}" to:`, currentName);
+
+  if (newNameRaw === null) return;
+
+  const newName = cleanDisplayName(newNameRaw);
+
+  if (!newName || newName.length < 2) {
+    alert("Name must be at least 2 characters.");
+    return;
+  }
+
+  const confirmed = confirm(`Change display name from "${currentName}" to "${newName}"?`);
+
+  if (!confirmed) return;
+
+  try {
+    await claimedNamesRef.child(nameKey).update({
+      displayName: newName,
+      renamedAt: Date.now()
+    });
+
+    const liveSnap = await gameRef.child("players").once("value");
+    const livePlayers = liveSnap.val() || {};
+    const updates = {};
+
+    Object.entries(livePlayers).forEach(([livePlayerId, player]) => {
+      if (player.nameKey === nameKey) {
+        updates[`players/${livePlayerId}/name`] = newName;
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
+      await gameRef.update(updates);
+    }
+
+    await loadStats();
+  } catch (error) {
+    console.error("Rename failed:", error);
+    alert("Rename failed. Try again.");
+  }
 }
 
 async function loadStats() {
@@ -342,6 +417,17 @@ leaderboardSearchEl.addEventListener("input", renderLeaderboard);
 sortSelectEl.addEventListener("change", renderLeaderboard);
 sortDirectionEl.addEventListener("change", renderLeaderboard);
 refreshBtn.addEventListener("click", loadStats);
+
+leaderboardBodyEl.addEventListener("click", event => {
+  const button = event.target.closest(".rename-btn");
+
+  if (!button) return;
+
+  const nameKey = button.dataset.nameKey;
+  const currentName = button.dataset.currentName;
+
+  renamePlayer(nameKey, currentName);
+});
 
 gameRef.on("value", snap => {
   renderLiveGame(snap.val() || {});
