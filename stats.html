@@ -264,6 +264,31 @@
       padding: 18px 0;
     }
 
+    .action-cell {
+      width: 110px;
+      white-space: nowrap;
+    }
+
+    .rename-btn {
+      background: rgba(242,201,76,0.16);
+      border: 1px solid rgba(242,201,76,0.70);
+      color: #f2c94c;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .rename-btn:hover {
+      background: rgba(242,201,76,0.28);
+    }
+
+    .rename-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 980px) {
       .cards {
         grid-template-columns: repeat(2, 1fr);
@@ -389,11 +414,12 @@
               <th>Games</th>
               <th>Avg/Game</th>
               <th>Last Played</th>
+              <th class="action-cell">Action</th>
             </tr>
           </thead>
           <tbody id="leaderboardBody">
             <tr>
-              <td colspan="7" class="empty">Loading leaderboard...</td>
+              <td colspan="8" class="empty">Loading leaderboard...</td>
             </tr>
           </tbody>
         </table>
@@ -404,6 +430,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="stats.js"></script>
+  <script src="stats.js?v=rename1"></script>
 </body>
 </html>
