@@ -7,22 +7,40 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="glow glow-gold"></div>
+    <div class="glow glow-red"></div>
+    <div class="light-beam beam-left"></div>
+    <div class="light-beam beam-right"></div>
+    <div class="noise"></div>
+  </div>
+
   <main class="screen">
     <header class="top-bar">
-      <div>
-        <div class="eyebrow">LIVE BAR TRIVIA</div>
-        <h1>Grumpy's Trivia</h1>
+      <div class="brand-lockup">
+        <img id="brandLogo" class="brand-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div>
+          <div class="eyebrow"><span class="live-dot"></span> LIVE BAR TRIVIA</div>
+          <h1>TRIVIA</h1>
+        </div>
       </div>
 
       <div class="round-info">
-        <div id="phaseLabel">Starting Soon</div>
+        <div class="round-label-row">
+          <span class="status-dot"></span>
+          <div id="phaseLabel">Starting Soon</div>
+        </div>
         <div id="timer">4:00</div>
+        <div class="timer-caption">TIME REMAINING</div>
       </div>
     </header>
 
     <section class="content">
       <div class="question-card">
-        <div id="category" class="category">General Trivia</div>
+        <div class="question-meta">
+          <div id="category" class="category">General Trivia</div>
+          <div id="questionCounter" class="question-counter">GET READY</div>
+        </div>
         <div id="question" class="question">Loading trivia round...</div>
 
         <div id="answers" class="answers">
@@ -47,12 +65,20 @@
 
       <aside class="side-panel">
         <div class="qr-box">
+          <div class="panel-kicker">JOIN THE GAME</div>
           <div id="qrCode" class="qr-placeholder">QR</div>
-          <div class="qr-text">Scan to Play</div>
+          <div class="qr-text">Scan to Play <span>›</span></div>
+          <div class="qr-subtext">No app needed</div>
         </div>
 
         <div class="leaderboard">
-          <h2>Top 5</h2>
+          <div class="leaderboard-head">
+            <div>
+              <div class="panel-kicker">LIVE RANKINGS</div>
+              <h2>Top 5</h2>
+            </div>
+            <span class="live-pill"><i></i> LIVE</span>
+          </div>
           <ol id="leaderboardList">
             <li><span>Waiting...</span><strong>0</strong></li>
           </ol>
@@ -61,8 +87,14 @@
     </section>
 
     <footer class="bottom-bar">
-      <div>Answer on your phone • New round every few minutes</div>
-      <div id="roundProgress">Round loading...</div>
+      <div class="footer-tip"><span>HOW TO PLAY</span> Answer on your phone • Faster answers earn more points</div>
+      <div class="join-ticker" aria-label="Players joined">
+        <div class="ticker-label">PLAYERS JOINED <strong id="joinPlayerCount">0</strong></div>
+        <div class="ticker-window">
+          <div id="joinTickerTrack" class="ticker-track"><span>Waiting for players…</span></div>
+        </div>
+      </div>
+      <div id="roundProgress" class="round-progress">Round loading...</div>
     </footer>
   </main>
 
