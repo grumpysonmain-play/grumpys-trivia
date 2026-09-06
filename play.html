@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Play Grumpy's Trivia</title>
-  <link rel="stylesheet" href="play.css?v=phone3" />
+  <link rel="stylesheet" href="play.css?v=hub1" />
 </head>
 <body>
   <div class="phone-atmosphere" aria-hidden="true">
@@ -16,13 +16,13 @@
     <section id="joinView" class="card join-card">
       <header class="mobile-brand">
         <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
-        <div><span class="brand-kicker"><i></i> LIVE BAR TRIVIA</span><h1>TRIVIA</h1></div>
+        <div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div>
       </header>
 
       <div class="join-intro">
-        <div class="section-kicker">PLAY ON YOUR PHONE</div>
-        <h2>Pick your trivia name.</h2>
-        <p>A nickname and four-digit PIN save your scores, wins, and all-time rank.</p>
+        <div class="section-kicker">ONE LOGIN · EVERY GAME</div>
+        <h2>Pick your player name.</h2>
+        <p>A nickname and four-digit PIN keep your trivia scores, streaks, wins, and rankings together.</p>
       </div>
 
       <div class="join-fields">
@@ -32,14 +32,46 @@
         <input id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••" aria-describedby="pinHelp" />
       </div>
 
-      <button id="joinBtn" type="button" class="primary-btn">Join the Game <span aria-hidden="true">›</span></button>
+      <button id="joinBtn" type="button" class="primary-btn">Continue to Games <span aria-hidden="true">›</span></button>
 
       <div class="guest-divider">or</div>
 
-      <button id="guestBtn" type="button" class="guest-btn">Play One Round as a Guest</button>
+      <button id="guestBtn" type="button" class="guest-btn">Continue as a Guest</button>
 
       <div id="joinError" class="join-error" role="alert"></div>
-      <div id="pinHelp" class="join-note">Returning player? Use the same nickname and PIN. Guest scores are not saved.</div>
+      <div id="pinHelp" class="join-note">Returning player? Use the same nickname and PIN. Guest records are only saved on this device.</div>
+    </section>
+
+    <section id="menuView" class="card game-menu hidden">
+      <header class="mobile-brand game-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div>
+        <div class="player-chip"><small>PLAYING AS</small><strong id="menuPlayerName">Player</strong></div>
+      </header>
+
+      <div class="menu-intro"><div class="section-kicker">CHOOSE A GAME</div><h2>What are you playing?</h2><p>Live trivia is the main event. Higher or Lower is always open.</p></div>
+
+      <a class="game-tile trivia-tile" href="play.html?game=trivia">
+        <div class="game-tile-art" aria-hidden="true"><span>?</span></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span id="triviaLiveBadge" class="tile-badge">TRIVIA</span><small id="triviaPhaseText">CHECKING STATUS</small></div>
+          <h3>Live Trivia</h3>
+          <p id="triviaMenuStatus">Checking the current round…</p>
+          <strong id="triviaActionText">Open Trivia <span>›</span></strong>
+        </div>
+      </a>
+
+      <a class="game-tile higher-lower-tile" href="higher-lower.html">
+        <div class="game-tile-art higher-lower-art" aria-hidden="true"><span>↑</span><span>↓</span></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>STREAK GAME</small></div>
+          <h3>Higher or Lower</h3>
+          <p>Guess the next value and build the longest correct-answer streak.</p>
+          <strong>Play Now <span>›</span></strong>
+        </div>
+      </a>
+
+      <div class="menu-note">More Grumpy's games can be added here later—without changing the QR code.</div>
     </section>
 
     <section id="gameView" class="card hidden">
@@ -48,6 +80,8 @@
         <div><span class="brand-kicker"><i></i> GRUMPY'S</span><h1>TRIVIA</h1></div>
         <div class="player-chip"><small>PLAYING AS</small><strong id="playerNameText">Player</strong></div>
       </header>
+
+      <a class="back-to-games" href="play.html">‹ All Games</a>
 
       <div class="top-row">
         <div>
@@ -104,6 +138,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="play.js?v=phone3"></script>
+  <script src="play.js?v=hub1"></script>
 </body>
 </html>

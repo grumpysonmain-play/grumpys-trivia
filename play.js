@@ -3,6 +3,7 @@ const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
 
 const joinView = document.getElementById("joinView");
+const menuView = document.getElementById("menuView");
 const gameView = document.getElementById("gameView");
 const nameInput = document.getElementById("nameInput");
 const pinInput = document.getElementById("pinInput");
@@ -30,6 +31,14 @@ const pointsFill = document.getElementById("pointsFill");
 const playerNameText = document.getElementById("playerNameText");
 const questionProgressText = document.getElementById("questionProgressText");
 const seasonalPhoneLogos = document.querySelectorAll(".seasonal-phone-logo");
+const menuPlayerName = document.getElementById("menuPlayerName");
+const triviaLiveBadge = document.getElementById("triviaLiveBadge");
+const triviaPhaseText = document.getElementById("triviaPhaseText");
+const triviaMenuStatus = document.getElementById("triviaMenuStatus");
+const triviaActionText = document.getElementById("triviaActionText");
+const routeParams = new URLSearchParams(window.location.search);
+const isTriviaRoute = routeParams.get("game") === "trivia";
+const isPlayerPreview = routeParams.get("preview") === "1";
 
 const PHONE_ROUND_THEMES = [
   { accent: "#ff4255", hot: "#ff9eaa", rgb: "255 66 85" },
@@ -53,23 +62,31 @@ if (localStorage.getItem("grumpysTriviaIsGuest") === "true") {
 
 const sessionGuest = sessionStorage.getItem("grumpysTriviaIsGuest") === "true";
 
-let playerId = sessionGuest
+let playerId = isPlayerPreview
+  ? "preview_player"
+  : sessionGuest
   ? sessionStorage.getItem("grumpysTriviaPlayerId")
   : localStorage.getItem("grumpysTriviaPlayerId");
 
-let playerName = sessionGuest
+let playerName = isPlayerPreview
+  ? "Trivia King"
+  : sessionGuest
   ? sessionStorage.getItem("grumpysTriviaPlayerName")
   : localStorage.getItem("grumpysTriviaPlayerName");
 
-let playerNameKey = sessionGuest
+let playerNameKey = isPlayerPreview
+  ? "previewplayer"
+  : sessionGuest
   ? ""
   : localStorage.getItem("grumpysTriviaNameKey");
 
-let savedPin = sessionGuest
+let savedPin = isPlayerPreview
+  ? "0000"
+  : sessionGuest
   ? ""
   : localStorage.getItem("grumpysTriviaPin");
 
-let isGuest = sessionGuest;
+let isGuest = isPlayerPreview || sessionGuest;
 
 let currentGame = null;
 let currentPlayer = null;
@@ -430,13 +447,61 @@ function setJoinError(message) {
 
 function showGameView() {
   joinView.classList.add("hidden");
+  menuView.classList.add("hidden");
   gameView.classList.remove("hidden");
   playerNameText.textContent = playerName || "Player";
 }
 
 function showJoinView() {
   joinView.classList.remove("hidden");
+  menuView.classList.add("hidden");
   gameView.classList.add("hidden");
+}
+
+function showMenuView() {
+  joinView.classList.add("hidden");
+  gameView.classList.add("hidden");
+  menuView.classList.remove("hidden");
+  menuPlayerName.textContent = playerName || "Player";
+  document.body.dataset.phonePhase = "menu";
+}
+
+function updateGameMenu(game = {}) {
+  const phase = game.phase || "waiting";
+  const timer = formatTime(game.timer || 0);
+  const questionNumber = Number.isInteger(game.questionIndex) ? game.questionIndex + 1 : null;
+  const isLive = ["join", "question", "reveal"].includes(phase);
+
+  triviaLiveBadge.classList.toggle("is-live", isLive);
+
+  if (phase === "join") {
+    triviaLiveBadge.textContent = "JOIN NOW";
+    triviaPhaseText.textContent = `${timer} LEFT`;
+    triviaMenuStatus.textContent = "A new trivia round is starting. Join from your phone now.";
+    triviaActionText.innerHTML = "Join Live Trivia <span>›</span>";
+    return;
+  }
+
+  if (phase === "question") {
+    triviaLiveBadge.textContent = "LIVE";
+    triviaPhaseText.textContent = questionNumber ? `QUESTION ${questionNumber} OF 6` : "QUESTION LIVE";
+    triviaMenuStatus.textContent = "Trivia is in progress. You can still open the live game screen.";
+    triviaActionText.innerHTML = "Open Live Trivia <span>›</span>";
+    return;
+  }
+
+  if (phase === "reveal") {
+    triviaLiveBadge.textContent = "LIVE";
+    triviaPhaseText.textContent = "ANSWER REVEAL";
+    triviaMenuStatus.textContent = "Scores are updating before the next question.";
+    triviaActionText.innerHTML = "Return to Trivia <span>›</span>";
+    return;
+  }
+
+  triviaLiveBadge.textContent = "TRIVIA";
+  triviaPhaseText.textContent = phase === "final" ? "ROUND COMPLETE" : "BETWEEN ROUNDS";
+  triviaMenuStatus.textContent = "The next trivia round has not started yet. You can keep this page open.";
+  triviaActionText.innerHTML = "Open Trivia Screen <span>›</span>";
 }
 
 function setPhonePhase(phase) {
@@ -963,10 +1028,13 @@ async function joinGame() {
   const gameSnap = await gameRef.once("value");
   const game = gameSnap.val() || {};
 
-  await addPlayerToCurrentRound(game);
-  await loadPlayerStats();
-
-  showGameView();
+  if (isTriviaRoute) {
+    await addPlayerToCurrentRound(game);
+    await loadPlayerStats();
+    showGameView();
+  } else {
+    showMenuView();
+  }
 }
 
 async function joinAsGuest() {
@@ -980,16 +1048,18 @@ async function joinAsGuest() {
   const gameSnap = await gameRef.once("value");
   const game = gameSnap.val() || {};
 
-  await addPlayerToCurrentRound(game);
-
-  hidePlayerStats();
-  hideMiniLeaderboard();
-  hideNextRoundCountdown();
-  showGameView();
-
-  statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
-  categoryText.textContent = "Guest Mode";
-  setPhoneQuestionText("Watch the TV for the next question.");
+  if (isTriviaRoute) {
+    await addPlayerToCurrentRound(game);
+    hidePlayerStats();
+    hideMiniLeaderboard();
+    hideNextRoundCountdown();
+    showGameView();
+    statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
+    categoryText.textContent = "Guest Mode";
+    setPhoneQuestionText("Watch the TV for the next question.");
+  } else {
+    showMenuView();
+  }
 }
 
 async function submitAnswer(choiceIndex) {
@@ -1160,6 +1230,7 @@ function getJoinStatusMessage(game, player) {
 async function renderGame(game) {
   currentGame = game || {};
   applyPhoneRoundTheme(currentGame.roundId);
+  updateGameMenu(currentGame);
   setPhonePhase(currentGame.phase || "waiting");
   timerText.textContent = formatTime(currentGame.timer || 0);
   playerNameText.textContent = playerName || "Player";
@@ -1179,6 +1250,14 @@ async function renderGame(game) {
     hideMiniLeaderboard();
     hideNextRoundCountdown();
     showJoinView();
+    return;
+  }
+
+  if (!isTriviaRoute) {
+    hidePointsBox();
+    hideMiniLeaderboard();
+    hideNextRoundCountdown();
+    showMenuView();
     return;
   }
 
@@ -1378,15 +1457,19 @@ if (savedPin && !isGuest) {
 }
 
 if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
-  showGameView();
-  setPhonePhase("waiting");
+  if (isTriviaRoute) {
+    showGameView();
+    setPhonePhase("waiting");
+  } else {
+    showMenuView();
+  }
 
-  if (isGuest) {
+  if (isTriviaRoute && isGuest) {
     hidePlayerStats();
     statusText.textContent = `Waiting as ${playerName}. Guest scores do not save all-time.`;
     categoryText.textContent = "Guest Mode";
     setPhoneQuestionText("Keep this page open. You will automatically join the next round as a guest.");
-  } else {
+  } else if (isTriviaRoute) {
     showPlayerStats();
     statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
     categoryText.textContent = "Ready";

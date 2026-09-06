@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Higher or Lower</title>
+  <link rel="stylesheet" href="play.css?v=hub1" />
+  <link rel="stylesheet" href="higher-lower.css?v=game1" />
+</head>
+<body>
+  <div class="phone-atmosphere" aria-hidden="true"><div class="phone-glow phone-glow-top"></div><div class="phone-glow phone-glow-bottom"></div></div>
+  <main class="phone">
+    <section id="loginGate" class="card hl-gate hidden">
+      <header class="mobile-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div></header>
+      <div class="section-kicker">PLAYER LOGIN NEEDED</div><h2>Choose your player first.</h2><p>Use the main game entrance to sign in with your name and PIN before playing.</p>
+      <a class="primary-btn gate-link" href="play.html">Go to Game Login <span>›</span></a>
+    </section>
+
+    <section id="higherLowerView" class="card hl-card hidden">
+      <header class="mobile-brand game-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> ALWAYS OPEN</span><h1>HIGHER<br>OR LOWER</h1></div><div class="player-chip"><small>PLAYING AS</small><strong id="hlPlayerName">Player</strong></div></header>
+      <a class="back-to-games" href="play.html">‹ All Games</a>
+
+      <div class="hl-scoreboard">
+        <div><span>Current Streak</span><strong id="currentStreak">0</strong></div>
+        <div><span>Personal Best</span><strong id="bestStreak">0</strong></div>
+        <div class="play-mode"><span>Mode</span><strong id="playMode">Free Play</strong></div>
+      </div>
+
+      <div class="hl-category-row"><span id="categoryName">Landmark Heights</span><small id="roundCount">GUESS 1</small></div>
+      <div id="comparisonArena" class="comparison-arena">
+        <article class="fact-card current-fact"><div class="fact-label">STARTING VALUE</div><h2 id="currentName">Eiffel Tower</h2><div id="currentValue" class="fact-value">1,083 <small>feet</small></div></article>
+        <div class="versus">VS</div>
+        <article id="nextFactCard" class="fact-card next-fact"><div class="fact-label">IS THIS VALUE…</div><h2 id="nextName">Empire State Building</h2><div id="nextValue" class="fact-value mystery">?</div></article>
+      </div>
+
+      <div id="guessButtons" class="guess-buttons">
+        <button id="higherBtn" class="guess-btn higher-btn" type="button"><span>↑</span><div><small>GUESS</small>Higher</div></button>
+        <button id="lowerBtn" class="guess-btn lower-btn" type="button"><span>↓</span><div><small>GUESS</small>Lower</div></button>
+      </div>
+      <div id="hlFeedback" class="hl-feedback" aria-live="polite">Will the hidden value be higher or lower?</div>
+
+      <section class="hl-leaderboard"><div class="hl-board-title"><span>Top Streaks</span><small>ALL PLAYERS</small></div><div id="hlLeaders" class="hl-leaders"><div class="hl-leader-row"><span>—</span><b>Waiting for scores</b><strong>0</strong></div></div></section>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="higher-lower.js?v=game1"></script>
+</body>
+</html>
