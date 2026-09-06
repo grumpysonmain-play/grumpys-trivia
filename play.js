@@ -27,6 +27,17 @@ const pointsBox = document.getElementById("pointsBox");
 const pointsLabel = document.getElementById("pointsLabel");
 const pointsText = document.getElementById("pointsText");
 const pointsFill = document.getElementById("pointsFill");
+const playerNameText = document.getElementById("playerNameText");
+const questionProgressText = document.getElementById("questionProgressText");
+const seasonalPhoneLogos = document.querySelectorAll(".seasonal-phone-logo");
+
+const PHONE_ROUND_THEMES = [
+  { accent: "#ff4255", hot: "#ff9eaa", rgb: "255 66 85" },
+  { accent: "#4aa8ff", hot: "#a7d7ff", rgb: "74 168 255" },
+  { accent: "#42d987", hot: "#a5f3c8", rgb: "66 217 135" },
+  { accent: "#ff8a35", hot: "#ffc28f", rgb: "255 138 53" },
+  { accent: "#9d73ff", hot: "#d5c3ff", rgb: "157 115 255" }
+];
 
 // Clear old guest data from the older version that used localStorage.
 // Guests should only live for the current browser session.
@@ -73,8 +84,54 @@ let isSubmittingAnswer = false;
 let localLockedAnswers = {};
 let nextRoundCountdownInterval = null;
 let nextRoundCountdownTarget = null;
+let currentPhoneThemeKey = null;
 
 const LAST_COMPLETED_ROUND_KEY = "grumpysTriviaLastCompletedRoundId";
+
+function applyPhoneRoundTheme(roundKey) {
+  const key = String(roundKey || "grumpys");
+
+  if (key === currentPhoneThemeKey) return;
+
+  currentPhoneThemeKey = key;
+
+  const index = [...key].reduce((total, character) => total + character.charCodeAt(0), 0) % PHONE_ROUND_THEMES.length;
+  const theme = PHONE_ROUND_THEMES[index];
+  const rootStyle = document.documentElement.style;
+
+  rootStyle.setProperty("--phone-accent", theme.accent);
+  rootStyle.setProperty("--phone-accent-hot", theme.hot);
+  rootStyle.setProperty("--phone-accent-rgb", theme.rgb);
+}
+
+function setPhoneSeasonalBranding(date = new Date()) {
+  const month = date.getMonth();
+  const day = date.getDate();
+  const isChristmasSeason = month === 11 || (month === 0 && day === 1);
+  const isPatrioticSeason =
+    (month === 6 && day >= 1 && day <= 7) ||
+    (month === 4 && day >= 23) ||
+    (month === 10 && day >= 8 && day <= 12);
+
+  const source = isChristmasSeason
+    ? "assets/grumpys-logo-christmas.png"
+    : isPatrioticSeason
+      ? "assets/grumpys-logo-usa.png"
+      : "assets/grumpys-logo.png";
+
+  const alt = isChristmasSeason
+    ? "Grumpy's Christmas logo"
+    : isPatrioticSeason
+      ? "Grumpy's USA logo"
+      : "Grumpy's St. Boni logo";
+
+  seasonalPhoneLogos.forEach(logo => {
+    logo.src = source;
+    logo.alt = alt;
+  });
+}
+
+setPhoneSeasonalBranding();
 
 const BLOCKED_WORDS = [
   // Profanity / crude language
@@ -368,17 +425,23 @@ function isPinValid(pin) {
 
 function setJoinError(message) {
   joinError.textContent = message;
-  joinError.style.color = message ? "#ffb3b3" : "#bbb";
+  joinError.classList.toggle("has-error", Boolean(message));
 }
 
 function showGameView() {
   joinView.classList.add("hidden");
   gameView.classList.remove("hidden");
+  playerNameText.textContent = playerName || "Player";
 }
 
 function showJoinView() {
   joinView.classList.remove("hidden");
   gameView.classList.add("hidden");
+}
+
+function setPhonePhase(phase) {
+  gameView.dataset.phase = phase || "waiting";
+  document.body.dataset.phonePhase = phase || "waiting";
 }
 
 function setNextRoundLayout(isOn) {
@@ -483,6 +546,28 @@ function updatePointsDisplay(points, maxPoints = 1000, label = "Points Available
   pointsLabel.textContent = label;
   pointsText.textContent = safePoints.toLocaleString();
   pointsFill.style.width = `${percent}%`;
+
+  let meterColor = "#46e58a";
+  let meterDark = "#168b4d";
+  let meterGlow = "rgba(70,229,138,.42)";
+
+  if (percent <= 25) {
+    meterColor = "#ff5b69";
+    meterDark = "#8d1723";
+    meterGlow = "rgba(255,91,105,.43)";
+  } else if (percent <= 55) {
+    meterColor = "#ff8a35";
+    meterDark = "#a84313";
+    meterGlow = "rgba(255,138,53,.4)";
+  } else if (percent <= 78) {
+    meterColor = "#f3d04f";
+    meterDark = "#9b7411";
+    meterGlow = "rgba(243,208,79,.38)";
+  }
+
+  pointsBox.style.setProperty("--meter-color", meterColor);
+  pointsBox.style.setProperty("--meter-dark", meterDark);
+  pointsBox.style.setProperty("--meter-glow", meterGlow);
 
   pointsBox.classList.remove("points-low", "points-locked");
 
@@ -642,7 +727,7 @@ function renderMiniLeaderboard(playersObj = {}) {
       ${players
         .map((player, index) => `
           <div class="mini-row ${player.id === playerId ? "mini-you" : ""}">
-            <span>${index + 1}. ${player.name || "Player"}</span>
+            <span class="mini-name"><span class="mini-medal" aria-label="${index + 1 === 1 ? "First" : index + 1 === 2 ? "Second" : "Third"} place">${["🥇", "🥈", "🥉"][index]}</span><span>${player.name || "Player"}</span>${player.id === playerId ? '<span class="you-pill">YOU</span>' : ""}</span>
             <strong>${(player.score || 0).toLocaleString()}</strong>
           </div>
         `)
@@ -977,9 +1062,16 @@ function renderChoices(game) {
 
   game.choices.forEach((choice, index) => {
     const btn = document.createElement("button");
+    const letter = document.createElement("span");
+    const copy = document.createElement("span");
 
     btn.className = "choice";
-    btn.textContent = `${getLetter(index)}. ${choice}`;
+    btn.type = "button";
+    letter.className = "choice-letter";
+    letter.textContent = getLetter(index);
+    copy.className = "choice-copy";
+    copy.textContent = choice;
+    btn.append(letter, copy);
 
     if (selectedIndex === index) {
       btn.classList.add("selected");
@@ -1067,9 +1159,13 @@ function getJoinStatusMessage(game, player) {
 
 async function renderGame(game) {
   currentGame = game || {};
+  applyPhoneRoundTheme(currentGame.roundId);
+  setPhonePhase(currentGame.phase || "waiting");
   timerText.textContent = formatTime(currentGame.timer || 0);
+  playerNameText.textContent = playerName || "Player";
 
   if (!playerId || !playerName) {
+    document.body.dataset.phonePhase = "join";
     hidePointsBox();
     hideMiniLeaderboard();
     hideNextRoundCountdown();
@@ -1078,6 +1174,7 @@ async function renderGame(game) {
   }
 
   if (!isGuest && (!playerNameKey || !savedPin)) {
+    document.body.dataset.phonePhase = "join";
     hidePointsBox();
     hideMiniLeaderboard();
     hideNextRoundCountdown();
@@ -1100,7 +1197,7 @@ async function renderGame(game) {
 
   rememberCompletedRoundIfNeeded(currentGame, currentPlayer);
 
-  scoreText.textContent = currentPlayer?.score || 0;
+  scoreText.textContent = (currentPlayer?.score || 0).toLocaleString();
 
   if (currentGame.phase === "waiting") {
     hidePointsBox();
@@ -1120,6 +1217,7 @@ async function renderGame(game) {
       statusText.textContent = "Round complete. Waiting for trivia to return on the TV.";
 
       categoryText.textContent = "Next Round";
+      questionProgressText.textContent = "ROUND COMPLETE";
       setPhoneQuestionText("Keep this page open. You’ll automatically join when the next trivia round starts.");
 
       choicesEl.innerHTML = "";
@@ -1132,6 +1230,7 @@ async function renderGame(game) {
     statusText.textContent = "Waiting for trivia to return on the TV.";
 
     categoryText.textContent = "Waiting";
+    questionProgressText.textContent = "STAY READY";
     setPhoneQuestionText("Scan the QR code when the next round starts, or keep this page open.");
 
     choicesEl.innerHTML = "";
@@ -1155,6 +1254,7 @@ async function renderGame(game) {
     statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
 
     categoryText.textContent = isGuest ? "Guest Mode" : "Get Ready";
+    questionProgressText.textContent = "GET READY";
     setPhoneQuestionText(
       isGuest
         ? "You can play this round, but your score will not save to the all-time leaderboard."
@@ -1185,6 +1285,7 @@ async function renderGame(game) {
       : `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = currentGame.category || "Trivia";
+    questionProgressText.textContent = `QUESTION ${(currentGame.questionIndex || 0) + 1} / 6`;
     setPhoneQuestionText(currentGame.question || "Question loading...");
 
     renderChoices(currentGame);
@@ -1219,6 +1320,7 @@ async function renderGame(game) {
     }
 
     categoryText.textContent = currentGame.category || "Trivia";
+    questionProgressText.textContent = `ANSWER ${(currentGame.questionIndex || 0) + 1} / 6`;
     setPhoneQuestionText(currentGame.question || "Answer revealed.");
 
     renderChoices(currentGame);
@@ -1247,6 +1349,7 @@ async function renderGame(game) {
     statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
 
     categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
+    questionProgressText.textContent = "FINAL SCORE";
     setPhoneQuestionText(
       isGuest
         ? "Keep this page open. You will automatically join the next round as a guest."
@@ -1260,6 +1363,11 @@ async function renderGame(game) {
 
 joinBtn.addEventListener("click", joinGame);
 guestBtn.addEventListener("click", joinAsGuest);
+[nameInput, pinInput].forEach(input => {
+  input.addEventListener("keydown", event => {
+    if (event.key === "Enter") joinGame();
+  });
+});
 
 if (playerName && !isGuest) {
   nameInput.value = playerName;
@@ -1271,6 +1379,7 @@ if (savedPin && !isGuest) {
 
 if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
   showGameView();
+  setPhonePhase("waiting");
 
   if (isGuest) {
     hidePlayerStats();

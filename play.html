@@ -4,37 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Play Grumpy's Trivia</title>
-  <link rel="stylesheet" href="play.css" />
+  <link rel="stylesheet" href="play.css?v=phone3" />
 </head>
 <body>
+  <div class="phone-atmosphere" aria-hidden="true">
+    <div class="phone-glow phone-glow-top"></div>
+    <div class="phone-glow phone-glow-bottom"></div>
+  </div>
+
   <main class="phone">
-    <section id="joinView" class="card">
-      <h1>Grumpy's Trivia</h1>
-      <p>
-        Enter a nickname and 4-digit PIN to save your all-time score.
-        If the name is new, it will be saved.
-        If the name already exists, you need the correct PIN.
-      </p>
+    <section id="joinView" class="card join-card">
+      <header class="mobile-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> LIVE BAR TRIVIA</span><h1>TRIVIA</h1></div>
+      </header>
 
-      <input id="nameInput" maxlength="18" placeholder="Nickname" />
-      <input id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="4-digit PIN" />
+      <div class="join-intro">
+        <div class="section-kicker">PLAY ON YOUR PHONE</div>
+        <h2>Pick your trivia name.</h2>
+        <p>A nickname and four-digit PIN save your scores, wins, and all-time rank.</p>
+      </div>
 
-      <button id="joinBtn">Join Game</button>
+      <div class="join-fields">
+        <label class="field-label" for="nameInput"><span>Nickname</span></label>
+        <input id="nameInput" maxlength="18" autocomplete="username" autocapitalize="words" placeholder="Example: Trivia King" />
+        <label class="field-label" for="pinInput"><span>Four-digit PIN</span><small>Remember this</small></label>
+        <input id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••" aria-describedby="pinHelp" />
+      </div>
+
+      <button id="joinBtn" type="button" class="primary-btn">Join the Game <span aria-hidden="true">›</span></button>
 
       <div class="guest-divider">or</div>
 
-      <button id="guestBtn" class="guest-btn">Play as Guest</button>
+      <button id="guestBtn" type="button" class="guest-btn">Play One Round as a Guest</button>
 
-      <div id="joinError" class="small"></div>
-      <div class="small">
-        Guests can play the round, but guest scores do not save to the all-time leaderboard.
-      </div>
+      <div id="joinError" class="join-error" role="alert"></div>
+      <div id="pinHelp" class="join-note">Returning player? Use the same nickname and PIN. Guest scores are not saved.</div>
     </section>
 
     <section id="gameView" class="card hidden">
+      <header class="mobile-brand game-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> GRUMPY'S</span><h1>TRIVIA</h1></div>
+        <div class="player-chip"><small>PLAYING AS</small><strong id="playerNameText">Player</strong></div>
+      </header>
+
       <div class="top-row">
         <div>
-          <div class="label">Round Score</div>
+          <div class="label">Your Score</div>
           <div id="scoreText" class="score">0</div>
         </div>
         <div>
@@ -43,7 +60,7 @@
         </div>
       </div>
 
-      <div id="statusText" class="status">Waiting for the next question...</div>
+      <div id="statusText" class="status" aria-live="polite">Waiting for the next question...</div>
 
       <div id="playerStats" class="player-stats">
         <div>
@@ -74,7 +91,10 @@
         </div>
       </div>
 
-      <div id="categoryText" class="category">Trivia</div>
+      <div class="question-heading">
+        <div id="categoryText" class="category">Trivia</div>
+        <div id="questionProgressText" class="question-progress">GET READY</div>
+      </div>
       <h2 id="questionText">Waiting for question...</h2>
 
       <div id="choices" class="choices"></div>
@@ -84,6 +104,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="play.js?v=names2"></script>
+  <script src="play.js?v=phone3"></script>
 </body>
 </html>
