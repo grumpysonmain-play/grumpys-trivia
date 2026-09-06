@@ -18,7 +18,7 @@
 
     <section id="higherLowerView" class="card hl-card hidden">
       <header class="mobile-brand game-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> ALWAYS OPEN</span><h1>HIGHER<br>OR LOWER</h1></div><div class="player-chip"><small>PLAYING AS</small><strong id="hlPlayerName">Player</strong></div></header>
-      <a class="back-to-games" href="play.html">‹ All Games</a>
+      <a class="back-to-games" href="play.html"><span aria-hidden="true">⌂</span> Game Menu</a>
 
       <div class="hl-scoreboard">
         <div><span>Current Streak</span><strong id="currentStreak">0</strong></div>
@@ -28,9 +28,9 @@
 
       <div class="hl-category-row"><span id="categoryName">Landmark Heights</span><small id="roundCount">GUESS 1</small></div>
       <div id="comparisonArena" class="comparison-arena">
-        <article class="fact-card current-fact"><div class="fact-label">STARTING VALUE</div><h2 id="currentName">Eiffel Tower</h2><div id="currentValue" class="fact-value">1,083 <small>feet</small></div></article>
+        <article class="fact-card current-fact"><div class="fact-label">STARTING VALUE</div><div class="fact-photo"><img id="currentImage" src="assets/higher-lower/eiffel-tower.jpg" alt="Eiffel Tower" /></div><h2 id="currentName">Eiffel Tower</h2><div id="currentValue" class="fact-value">1,083 <small>feet</small></div></article>
         <div class="versus">VS</div>
-        <article id="nextFactCard" class="fact-card next-fact"><div class="fact-label">IS THIS VALUE…</div><h2 id="nextName">Empire State Building</h2><div id="nextValue" class="fact-value mystery">?</div></article>
+        <article id="nextFactCard" class="fact-card next-fact"><div class="fact-label">IS THIS VALUE…</div><div class="fact-photo"><img id="nextImage" src="assets/higher-lower/empire-state-building.jpg" alt="Empire State Building" /></div><h2 id="nextName">Empire State Building</h2><div id="nextValue" class="fact-value mystery">?</div></article>
       </div>
 
       <div id="guessButtons" class="guess-buttons">
@@ -40,11 +40,12 @@
       <div id="hlFeedback" class="hl-feedback" aria-live="polite">Will the hidden value be higher or lower?</div>
 
       <section class="hl-leaderboard"><div class="hl-board-title"><span>Top Streaks</span><small>ALL PLAYERS</small></div><div id="hlLeaders" class="hl-leaders"><div class="hl-leader-row"><span>—</span><b>Waiting for scores</b><strong>0</strong></div></div></section>
+      <a class="photo-credits" href="assets/higher-lower/CREDITS.md" target="_blank" rel="noopener">Photo credits</a>
     </section>
   </main>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="higher-lower.js?v=game1"></script>
+  <script src="higher-lower.js?v=game3"></script>
 </body>
 </html>

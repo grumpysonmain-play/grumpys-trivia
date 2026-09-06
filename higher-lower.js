@@ -9,8 +9,10 @@ const categoryNameEl = document.getElementById("categoryName");
 const roundCountEl = document.getElementById("roundCount");
 const currentNameEl = document.getElementById("currentName");
 const currentValueEl = document.getElementById("currentValue");
+const currentImageEl = document.getElementById("currentImage");
 const nextNameEl = document.getElementById("nextName");
 const nextValueEl = document.getElementById("nextValue");
+const nextImageEl = document.getElementById("nextImage");
 const nextFactCard = document.getElementById("nextFactCard");
 const higherBtn = document.getElementById("higherBtn");
 const lowerBtn = document.getElementById("lowerBtn");
@@ -34,19 +36,13 @@ const isGuest = previewMode || sessionGuest;
 
 const FACT_DECKS = [
   { name:"Landmark Heights", unit:"feet", facts:[
-    {name:"Statue of Liberty",value:305},{name:"Space Needle",value:605},{name:"Gateway Arch",value:630},{name:"Eiffel Tower",value:1083},{name:"Empire State Building",value:1454},{name:"Willis Tower",value:1451},{name:"CN Tower",value:1815},{name:"Burj Khalifa",value:2717}
-  ]},
-  { name:"Movie Runtimes", unit:"minutes", facts:[
-    {name:"Toy Story",value:81},{name:"The Lion King",value:88},{name:"The Wizard of Oz",value:102},{name:"Back to the Future",value:116},{name:"Jaws",value:124},{name:"Jurassic Park",value:127},{name:"The Dark Knight",value:152},{name:"Titanic",value:195}
-  ]},
-  { name:"TV Premiere Years", unit:"year", facts:[
-    {name:"I Love Lucy",value:1951},{name:"The Brady Bunch",value:1969},{name:"Cheers",value:1982},{name:"The Simpsons",value:1989},{name:"Friends",value:1994},{name:"The Office",value:2005},{name:"Stranger Things",value:2016},{name:"Ted Lasso",value:2020}
+    {name:"Statue of Liberty",value:305,image:"statue-of-liberty.jpg"},{name:"Space Needle",value:605,image:"space-needle.jpg"},{name:"Gateway Arch",value:630,image:"gateway-arch.jpg"},{name:"Eiffel Tower",value:1083,image:"eiffel-tower.jpg"},{name:"Empire State Building",value:1454,image:"empire-state-building.jpg"},{name:"Willis Tower",value:1451,image:"willis-tower.jpg"},{name:"CN Tower",value:1815,image:"cn-tower.jpg"},{name:"Burj Khalifa",value:2717,image:"burj-khalifa.jpg"}
   ]},
   { name:"Animal Top Speeds", unit:"mph", facts:[
-    {name:"Giant Tortoise",value:1},{name:"Elephant",value:25},{name:"Grizzly Bear",value:35},{name:"Racehorse",value:44},{name:"Lion",value:50},{name:"Pronghorn",value:55},{name:"Cheetah",value:70},{name:"Peregrine Falcon (Dive)",value:240}
+    {name:"Giant Tortoise",value:1,image:"giant-tortoise.jpg"},{name:"Elephant",value:25,image:"elephant.jpg"},{name:"Grizzly Bear",value:35,image:"grizzly-bear.jpg"},{name:"Racehorse",value:44,image:"racehorse.jpg"},{name:"Lion",value:50,image:"lion.jpg"},{name:"Pronghorn",value:55,image:"pronghorn.jpg"},{name:"Cheetah",value:70,image:"cheetah.jpg"},{name:"Peregrine Falcon (Dive)",value:240,image:"peregrine-falcon.jpg"}
   ]},
   { name:"Approx. Food Calories", unit:"calories", facts:[
-    {name:"Large Egg",value:78},{name:"Banana",value:105},{name:"Glazed Donut",value:190},{name:"Cheeseburger",value:300},{name:"Slice of Pepperoni Pizza",value:313},{name:"Basket of French Fries",value:365},{name:"Chicken Burrito",value:650},{name:"Large Milkshake",value:800}
+    {name:"Large Egg",value:78,image:"large-egg.jpg"},{name:"Banana",value:105,image:"banana.jpg"},{name:"Glazed Donut",value:190,image:"glazed-donut.jpg"},{name:"Cheeseburger",value:300,image:"cheeseburger.jpg"},{name:"Slice of Pepperoni Pizza",value:313,image:"pepperoni-pizza.jpg"},{name:"Basket of French Fries",value:365,image:"french-fries.jpg"},{name:"Chicken Burrito",value:650,image:"chicken-burrito.jpg"},{name:"Large Milkshake",value:800,image:"milkshake.jpg"}
   ]}
 ];
 
@@ -68,7 +64,11 @@ function setSeasonalBranding(date = new Date()) {
 }
 
 function formatFactValue(value, unit) {
-  return `${Number(value).toLocaleString()} <small>${unit}</small>`;
+  const formattedValue = String(unit).toLowerCase() === "year"
+    ? String(Math.trunc(Number(value)))
+    : Number(value).toLocaleString();
+
+  return `${formattedValue} <small>${unit}</small>`;
 }
 
 function randomItem(items) {
@@ -85,8 +85,12 @@ function createComparison() {
   categoryNameEl.textContent = currentDeck.name;
   roundCountEl.textContent = `GUESS ${guessNumber}`;
   currentNameEl.textContent = currentFact.name;
+  currentImageEl.src = `assets/higher-lower/${currentFact.image}`;
+  currentImageEl.alt = currentFact.name;
   currentValueEl.innerHTML = formatFactValue(currentFact.value, currentDeck.unit);
   nextNameEl.textContent = nextFact.name;
+  nextImageEl.src = `assets/higher-lower/${nextFact.image}`;
+  nextImageEl.alt = nextFact.name;
   nextValueEl.textContent = "?";
   nextValueEl.className = "fact-value mystery";
   nextFactCard.classList.remove("is-correct", "is-wrong");

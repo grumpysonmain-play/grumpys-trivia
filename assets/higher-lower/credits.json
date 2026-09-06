@@ -1,0 +1,194 @@
+[
+  {
+    "item": "Statue of Liberty",
+    "file": "statue-of-liberty.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Front_view_of_Statue_of_Liberty_(cropped).jpg",
+    "creator": "AskALotl",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Space Needle",
+    "file": "space-needle.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Space_Needle_2011-07-04.jpg",
+    "creator": "Jordon Kalilich",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Space_Needle_2011-07-04.jpg"
+  },
+  {
+    "item": "Gateway Arch",
+    "file": "gateway-arch.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:St_Louis_night_expblend_cropped.jpg",
+    "creator": "St_Louis_night_expblend.jpg: Daniel Schwen\nderivative work: ←fetchcomms",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  {
+    "item": "Eiffel Tower",
+    "file": "eiffel-tower.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Paris_Eiffel_tower.jpg",
+    "creator": "Dharshini Vinayagam",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Empire State Building",
+    "file": "empire-state-building.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Empire_State_Building_(aerial_view).jpg",
+    "creator": "Sam Valadi",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Empire_State_Building_(aerial_view).jpg"
+  },
+  {
+    "item": "Willis Tower",
+    "file": "willis-tower.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Sears_Tower,_Wacker_Drive_and_Jackson_Boulevard,_Chicago,_IL_-_54189600901.jpg",
+    "creator": "w_lemay",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+  },
+  {
+    "item": "CN Tower",
+    "file": "cn-tower.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:CN_Tower.jpg",
+    "creator": "Local hero",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:CN_Tower.jpg"
+  },
+  {
+    "item": "Burj Khalifa",
+    "file": "burj-khalifa.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Burj_Khalifa_Image.jpg",
+    "creator": "Meandmybrix",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Giant tortoise",
+    "file": "giant-tortoise.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:A._gigantea_Aldabra_Giant_Tortoise.jpg",
+    "creator": "Childzy at en.wikipedia",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  {
+    "item": "African bush elephant",
+    "file": "elephant.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:178_Male_African_bush_elephant_in_Etosha_National_Park_Photo_by_Giles_Laurent.jpg",
+    "creator": "Giles Laurent",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "item": "Grizzly bear",
+    "file": "grizzly-bear.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:GrizzlyBearJeanBeaufort.jpg",
+    "creator": "Jean Beaufort",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Thoroughbred",
+    "file": "racehorse.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Applebite-Gentlemen.jpg",
+    "creator": "See Wikimedia Commons source page",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Applebite-Gentlemen.jpg"
+  },
+  {
+    "item": "Lion",
+    "file": "lion.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:020_The_lion_king_Snyggve_in_the_Serengeti_National_Park_Photo_by_Giles_Laurent.jpg",
+    "creator": "Giles Laurent",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "item": "Pronghorn",
+    "file": "pronghorn.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Antilocapra_americana.jpg",
+    "creator": "www.naturespicsonline.com",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "item": "Cheetah",
+    "file": "cheetah.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Male_cheetah_facing_left_in_South_Africa.jpg",
+    "creator": "AfricanConservation",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "item": "Peregrine falcon",
+    "file": "peregrine-falcon.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Falco_peregrinus_m_Humber_Bay_Park_Toronto.jpg",
+    "creator": "Mykola Swarnyk",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  {
+    "item": "Boiled egg",
+    "file": "large-egg.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Soft-boiled-egg.jpg",
+    "creator": "Amin",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  {
+    "item": "Banana",
+    "file": "banana.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Bananavarieties.jpg",
+    "creator": "TimothyPilgrim",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  {
+    "item": "Doughnut",
+    "file": "glazed-donut.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Glazed-Donut.jpg",
+    "creator": "Evan-Amos",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Glazed-Donut.jpg"
+  },
+  {
+    "item": "Cheeseburger",
+    "file": "cheeseburger.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Cheeseburger.jpg",
+    "creator": "Renee Comet (photographer)",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Cheeseburger.jpg"
+  },
+  {
+    "item": "Pizza",
+    "file": "pepperoni-pizza.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Pizza-3007395.jpg",
+    "creator": "igorovsyannykov",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "French fries",
+    "file": "french-fries.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:French_Fries.JPG",
+    "creator": "StockSnap",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Burrito",
+    "file": "chicken-burrito.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Burrito.JPG",
+    "creator": "samuelfernandezrivera",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  {
+    "item": "Milkshake",
+    "file": "milkshake.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Strawberry_milk_shake_(cropped).jpg",
+    "creator": "Renee Comet (Photographer)",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Strawberry_milk_shake_(cropped).jpg"
+  }
+]
