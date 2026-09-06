@@ -6,10 +6,65 @@ const promoTimer = document.getElementById("promoTimer");
 const promoStatus = document.getElementById("promoStatus");
 const promoTop5 = document.getElementById("promoTop5");
 const liveBadge = document.getElementById("liveBadge");
+const promoBrandLogo = document.getElementById("promoBrandLogo");
+const promoHeadline = document.getElementById("promoHeadline");
+
+const PROMO_ROUND_THEMES = [
+  { accent: "#ff4255", hot: "#ff9eaa", rgb: "255 66 85" },
+  { accent: "#4aa8ff", hot: "#a7d7ff", rgb: "74 168 255" },
+  { accent: "#42d987", hot: "#a5f3c8", rgb: "66 217 135" },
+  { accent: "#ff8a35", hot: "#ffc28f", rgb: "255 138 53" },
+  { accent: "#9d73ff", hot: "#d5c3ff", rgb: "157 115 255" }
+];
 
 let currentGame = {};
 let promoCountdownInterval = null;
 let promoCountdownTarget = null;
+let currentPromoThemeKey = null;
+
+function replayPromoHeadline() {
+  promoHeadline.classList.remove("promo-animate");
+  void promoHeadline.offsetWidth;
+  promoHeadline.classList.add("promo-animate");
+}
+
+function applyPromoRoundTheme(roundKey) {
+  const key = String(roundKey || "grumpys");
+
+  if (key === currentPromoThemeKey) return;
+
+  currentPromoThemeKey = key;
+
+  const index = [...key].reduce((total, character) => total + character.charCodeAt(0), 0) % PROMO_ROUND_THEMES.length;
+  const theme = PROMO_ROUND_THEMES[index];
+  const rootStyle = document.documentElement.style;
+
+  rootStyle.setProperty("--accent", theme.accent);
+  rootStyle.setProperty("--accent-hot", theme.hot);
+  rootStyle.setProperty("--accent-rgb", theme.rgb);
+}
+
+function setPromoSeasonalBranding(date = new Date()) {
+  const month = date.getMonth();
+  const day = date.getDate();
+  const isChristmasSeason = month === 11 || (month === 0 && day === 1);
+  const isPatrioticSeason =
+    (month === 6 && day >= 1 && day <= 7) ||
+    (month === 4 && day >= 23) ||
+    (month === 10 && day >= 8 && day <= 12);
+
+  promoBrandLogo.src = isChristmasSeason
+    ? "assets/grumpys-logo-christmas.png"
+    : isPatrioticSeason
+      ? "assets/grumpys-logo-usa.png"
+      : "assets/grumpys-logo.png";
+
+  promoBrandLogo.alt = isChristmasSeason
+    ? "Grumpy's Christmas logo"
+    : isPatrioticSeason
+      ? "Grumpy's USA logo"
+      : "Grumpy's St. Boni logo";
+}
 
 function formatTime(seconds) {
   const safeSeconds = Math.max(0, Number(seconds) || 0);
@@ -85,19 +140,32 @@ function setCountdownMode(isOn) {
 function renderTop5(playersObj = {}) {
   const players = getSortedPlayers(playersObj).slice(0, 5);
 
+  promoTop5.replaceChildren();
+
   if (players.length === 0) {
-    promoTop5.innerHTML = `<li><span>Waiting...</span><strong>0</strong></li>`;
+    const waiting = document.createElement("li");
+    waiting.innerHTML = '<span class="medal">●</span><span class="player-name">Waiting...</span><strong>0</strong>';
+    promoTop5.appendChild(waiting);
     return;
   }
 
-  promoTop5.innerHTML = players
-    .map(player => `
-      <li>
-        <span>${player.name || "Player"}</span>
-        <strong>${(player.score || 0).toLocaleString()}</strong>
-      </li>
-    `)
-    .join("");
+  const medals = ["🥇", "🥈", "🥉", "4", "5"];
+
+  players.forEach((player, index) => {
+    const row = document.createElement("li");
+    const medal = document.createElement("span");
+    const name = document.createElement("span");
+    const score = document.createElement("strong");
+
+    medal.className = "medal";
+    medal.textContent = medals[index];
+    name.className = "player-name";
+    name.textContent = player.name || "Player";
+    score.textContent = (player.score || 0).toLocaleString();
+
+    row.append(medal, name, score);
+    promoTop5.appendChild(row);
+  });
 }
 
 function stopPromoCountdown() {
@@ -191,11 +259,19 @@ function setStatus(game = {}) {
 
 function renderPromo(game = {}) {
   currentGame = game;
+  applyPromoRoundTheme(currentGame.roundId);
+  document.body.dataset.phase = currentGame.phase || "waiting";
   setStatus(currentGame);
   renderTop5(currentGame.players || {});
 }
 
+setPromoSeasonalBranding();
+applyPromoRoundTheme("grumpys");
 setQrCode();
+
+if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  setInterval(replayPromoHeadline, 10000);
+}
 
 gameRef.on("value", snap => {
   renderPromo(snap.val() || {});

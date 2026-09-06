@@ -4,429 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Join Grumpy's Trivia</title>
-  <link rel="stylesheet" href="style.css" />
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      background: #090909;
-      color: white;
-      font-family: Arial, Helvetica, sans-serif;
-      overflow: hidden;
-    }
-
-    .promo-screen {
-      width: 100vw;
-      height: 100vh;
-      padding: 36px 40px;
-      display: grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 34px;
-      position: relative;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at top left, rgba(242,201,76,0.24), transparent 34%),
-        radial-gradient(circle at bottom right, rgba(160,0,0,0.28), transparent 36%),
-        linear-gradient(135deg, #111, #050505 70%);
-    }
-
-    .promo-screen::before {
-      content: "";
-      position: absolute;
-      inset: -20%;
-      background:
-        radial-gradient(circle at 22% 30%, rgba(242,201,76,0.18), transparent 24%),
-        radial-gradient(circle at 75% 65%, rgba(255,255,255,0.08), transparent 26%);
-      animation: promoFloat 12s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
-
-    .promo-screen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-      background-size: 54px 54px;
-      mask-image: radial-gradient(circle, black, transparent 82%);
-      pointer-events: none;
-    }
-
-    @keyframes promoFloat {
-      from {
-        transform: translate(-2%, -2%) scale(1);
-      }
-
-      to {
-        transform: translate(2%, 2%) scale(1.05);
-      }
-    }
-
-    .promo-left,
-    .promo-right {
-      position: relative;
-      z-index: 2;
-    }
-
-    .promo-left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 18px;
-      min-height: 0;
-    }
-
-    .promo-eyebrow {
-      color: #f2c94c;
-      font-size: 30px;
-      font-weight: 950;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-    }
-
-    .promo-title {
-      font-size: 82px;
-      line-height: 0.95;
-      font-weight: 950;
-      margin: 0;
-      text-shadow: 0 8px 34px rgba(0,0,0,0.55);
-    }
-
-    .promo-subtitle {
-      font-size: 38px;
-      line-height: 1.12;
-      font-weight: 900;
-      color: #eeeeee;
-      max-width: 900px;
-    }
-
-    .promo-instructions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 4px;
-    }
-
-    .promo-pill {
-      background: rgba(255,255,255,0.10);
-      border: 2px solid rgba(255,255,255,0.16);
-      border-radius: 24px;
-      padding: 18px 20px;
-      font-size: 26px;
-      line-height: 1.12;
-      font-weight: 900;
-    }
-
-    .promo-pill strong {
-      color: #f2c94c;
-    }
-
-    .main-screen-note {
-      background: linear-gradient(135deg, rgba(242,201,76,0.24), rgba(242,201,76,0.10));
-      border: 3px solid rgba(242,201,76,0.82);
-      border-radius: 28px;
-      padding: 24px 28px;
-      font-size: 36px;
-      line-height: 1.08;
-      font-weight: 1000;
-      color: #fff6cf;
-      box-shadow:
-        0 0 36px rgba(242,201,76,0.22),
-        inset 0 0 0 1px rgba(255,255,255,0.10);
-      text-shadow: 0 3px 12px rgba(0,0,0,0.45);
-    }
-
-    .live-card {
-      background: rgba(0,0,0,0.38);
-      border: 2px solid rgba(255,255,255,0.16);
-      border-radius: 26px;
-      padding: 20px 22px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
-    }
-
-    .live-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 12px;
-    }
-
-    .live-badge {
-      color: #111;
-      background: #31d56d;
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 20px;
-      font-weight: 950;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
-
-    .live-timer {
-      color: #f2c94c;
-      font-size: 42px;
-      font-weight: 950;
-      font-variant-numeric: tabular-nums;
-      line-height: 1;
-    }
-
-    .live-status {
-      font-size: 27px;
-      line-height: 1.14;
-      font-weight: 900;
-      color: white;
-    }
-
-    .top5 {
-      margin-top: 16px;
-      border-top: 1px solid rgba(255,255,255,0.14);
-      padding-top: 14px;
-    }
-
-    .top5-title {
-      color: #f2c94c;
-      font-size: 24px;
-      font-weight: 950;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .top5-list {
-      margin: 0;
-      padding-left: 30px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      column-gap: 26px;
-    }
-
-    .top5-list li {
-      font-size: 22px;
-      font-weight: 850;
-      margin-bottom: 7px;
-    }
-
-    .top5-list span {
-      display: inline-block;
-      width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      vertical-align: bottom;
-    }
-
-    .top5-list strong {
-      color: #f2c94c;
-    }
-
-    .promo-right {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-height: 0;
-    }
-
-    .qr-card {
-      background: rgba(255,255,255,0.11);
-      border: 3px solid rgba(242,201,76,0.66);
-      border-radius: 36px;
-      padding: 26px;
-      box-shadow: 0 26px 80px rgba(0,0,0,0.42);
-      animation: qrPulse 1.8s ease-in-out infinite;
-    }
-
-    @keyframes qrPulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 26px 80px rgba(0,0,0,0.42);
-      }
-
-      50% {
-        transform: scale(1.02);
-        box-shadow: 0 0 55px rgba(242,201,76,0.32);
-      }
-    }
-
-    .qr-title {
-      text-align: center;
-      color: #f2c94c;
-      font-size: 46px;
-      font-weight: 950;
-      margin-bottom: 18px;
-      text-transform: uppercase;
-    }
-
-    .promo-qr {
-      width: 100%;
-      aspect-ratio: 1;
-      background: white;
-      color: #111;
-      border-radius: 24px;
-      display: grid;
-      place-items: center;
-      font-size: 88px;
-      font-weight: 950;
-      overflow: hidden;
-    }
-
-    .promo-qr img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .qr-caption {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 28px;
-      line-height: 1.2;
-      font-weight: 900;
-      color: #eeeeee;
-    }
-
-    .top5.hidden {
-      display: none !important;
-    }
-
-    .live-card.countdown-mode {
-      padding: 28px 30px;
-      text-align: center;
-      border: 3px solid rgba(242,201,76,0.72);
-      background: rgba(0,0,0,0.46);
-      box-shadow:
-        0 0 42px rgba(242,201,76,0.18),
-        0 18px 60px rgba(0,0,0,0.38);
-    }
-
-    .live-card.countdown-mode .live-header {
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .live-card.countdown-mode .live-badge {
-      font-size: 22px;
-      padding: 10px 20px;
-      background: #31d56d;
-    }
-
-    .live-card.countdown-mode .live-timer {
-      font-size: 86px;
-      line-height: 0.95;
-      color: #f2c94c;
-      text-shadow: 0 0 28px rgba(242,201,76,0.25);
-    }
-
-    .live-card.countdown-mode .live-status {
-      font-size: 32px;
-      line-height: 1.12;
-      color: #ffffff;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    @media (max-width: 1100px) {
-      .promo-screen {
-        grid-template-columns: 1fr;
-        padding: 28px;
-        gap: 20px;
-      }
-
-      .promo-title {
-        font-size: 58px;
-      }
-
-      .promo-subtitle {
-        font-size: 30px;
-      }
-
-      .promo-pill {
-        font-size: 22px;
-      }
-
-      .main-screen-note {
-        font-size: 28px;
-      }
-
-      .live-status {
-        font-size: 23px;
-      }
-
-      .live-card.countdown-mode .live-timer {
-        font-size: 66px;
-      }
-
-      .live-card.countdown-mode .live-status {
-        font-size: 24px;
-      }
-    }
+    :root{--accent:#ff4255;--accent-hot:#ff9eaa;--accent-rgb:255 66 85;--green:#46e58a;--line:rgba(255,255,255,.12)}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#020202;color:#fff}
+    body{display:grid;place-items:center;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    .promo-screen{position:relative;width:min(100vw,177.7778vh);height:min(100vh,56.25vw);aspect-ratio:16/9;container-type:size;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);gap:clamp(22px,2.2vw,44px);padding:clamp(22px,2.5vw,48px);overflow:hidden;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(145deg,rgb(var(--accent-rgb) / .18),transparent 42%),#060506;background-size:54px 54px,54px 54px,auto,auto;box-shadow:0 0 80px rgba(0,0,0,.7);transition:background 1s ease}
+    .promo-screen::before{content:"";position:absolute;width:62vw;aspect-ratio:1;left:-24vw;top:-38vw;border-radius:50%;background:var(--accent);filter:blur(110px);opacity:.13;animation:ambientDrift 9s ease-in-out infinite alternate}
+    .promo-screen::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.045;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E")}
+    @keyframes ambientDrift{to{transform:translate(12vw,8vw) scale(1.16)}}
+    .promo-left,.promo-right{position:relative;z-index:1;min-width:0}
+    .promo-left{display:flex;min-height:0;flex-direction:column;justify-content:center}
+    .brand{display:flex;align-items:center;gap:clamp(13px,1.2vw,22px);margin-bottom:clamp(16px,2vh,28px)}
+    .brand-logo{width:clamp(72px,7.2vw,128px);height:clamp(72px,7.2vw,128px);object-fit:contain;filter:drop-shadow(0 12px 22px rgba(0,0,0,.55))}
+    .brand-kicker{display:flex;align-items:center;gap:9px;color:var(--accent);font-size:clamp(10px,.9vw,17px);font-weight:950;letter-spacing:.19em;text-transform:uppercase}
+    .brand-kicker i{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 15px var(--accent);animation:liveBlink 1.6s ease-in-out infinite}
+    .brand-title{margin:4px 0 0;font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:clamp(36px,4vw,70px);line-height:.84;letter-spacing:.035em;text-transform:uppercase}
+    @keyframes liveBlink{50%{opacity:.35;transform:scale(.7)}}
+    .promo-eyebrow{color:var(--accent);font-size:clamp(11px,1vw,18px);font-weight:950;letter-spacing:.19em;text-transform:uppercase}
+    .promo-title{display:flex;flex-wrap:wrap;gap:.18em;margin:clamp(8px,1vh,14px) 0 0;font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:clamp(58px,7.1vw,130px);font-weight:900;line-height:.83;letter-spacing:.015em;text-transform:uppercase;text-wrap:balance}
+    .promo-word{display:inline-block;opacity:1}.promo-word:nth-child(1){color:var(--accent-hot)}.promo-word:nth-child(3){color:var(--accent)}
+    .promo-animate .promo-word{opacity:0;animation:wordIn .76s cubic-bezier(.16,.86,.25,1.15) forwards}.promo-animate .promo-word:nth-child(1){animation-delay:.12s}.promo-animate .promo-word:nth-child(2){animation-delay:.82s}.promo-animate .promo-word:nth-child(3){animation-delay:1.52s}
+    .promo-title.promo-animate{animation:phrasePulse 1.65s ease-in-out 2.4s 1}
+    @keyframes wordIn{from{opacity:0;transform:translateY(24px) scale(.72);filter:blur(7px)}70%{transform:translateY(-3px) scale(1.06)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+    @keyframes phrasePulse{0%,100%{transform:scale(1);text-shadow:0 0 0 rgb(var(--accent-rgb) / 0)}50%{transform:scale(1.025);text-shadow:0 0 30px rgb(var(--accent-rgb) / .28)}}
+    .promo-subtitle{max-width:900px;margin:clamp(12px,1.5vh,24px) 0;color:#d1ccc5;font-size:clamp(17px,1.7vw,31px);font-weight:750;line-height:1.24}.promo-subtitle strong{color:#fff}
+    .join-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(8px,.8vw,14px)}
+    .join-step{display:flex;align-items:center;gap:clamp(8px,.8vw,14px);min-width:0;padding:clamp(10px,1.15vw,19px);border:1px solid var(--line);border-radius:clamp(12px,1.2vw,20px);background:linear-gradient(135deg,rgb(var(--accent-rgb) / .11),rgba(255,255,255,.035))}
+    .step-number{width:clamp(31px,2.8vw,49px);aspect-ratio:1;display:grid;place-items:center;flex:0 0 auto;border:1px solid rgb(var(--accent-rgb) / .48);border-radius:11px;color:var(--accent);background:rgb(var(--accent-rgb) / .1);font-size:clamp(14px,1.35vw,24px);font-weight:950}
+    .join-step small{display:block;color:#7f7a74;font-size:clamp(7px,.55vw,10px);font-weight:950;letter-spacing:.12em;text-transform:uppercase}.join-step strong{display:block;margin-top:2px;overflow:hidden;color:#f7f4ef;font-size:clamp(11px,1.05vw,19px);font-weight:900;line-height:1.08;text-overflow:ellipsis}
+    .main-note{display:flex;align-items:center;gap:11px;margin-top:clamp(10px,1.3vh,18px);padding:clamp(10px,1vw,16px) clamp(13px,1.2vw,20px);border-left:3px solid var(--accent);border-radius:11px;color:#d5d0ca;background:rgba(0,0,0,.31);font-size:clamp(11px,1vw,18px);font-weight:780}.main-note strong{color:#fff}.main-note span{color:var(--accent);font-size:1.35em}
+    .live-card{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:clamp(12px,1.2vw,22px);margin-top:clamp(10px,1.4vh,20px);padding:clamp(11px,1.15vw,18px);border:1px solid var(--line);border-radius:clamp(14px,1.4vw,22px);background:rgba(0,0,0,.36);box-shadow:0 18px 55px rgba(0,0,0,.26)}
+    .live-header{display:flex;align-items:center;gap:10px}.live-badge{padding:7px 12px;border-radius:999px;color:#07190f;background:var(--green);font-size:clamp(9px,.75vw,13px);font-weight:950;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}.live-timer{color:var(--accent);font-size:clamp(25px,2.5vw,45px);font-weight:950;line-height:1;font-variant-numeric:tabular-nums}.live-status{color:#f0ece6;font-size:clamp(11px,1vw,18px);font-weight:820;line-height:1.2}
+    .top5{grid-column:1/-1;padding-top:clamp(8px,.8vh,13px);border-top:1px solid rgba(255,255,255,.09)}.top5-title{margin-bottom:6px;color:var(--accent);font-size:clamp(8px,.65vw,12px);font-weight:950;letter-spacing:.14em;text-transform:uppercase}.top5-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:0;padding:0;list-style:none}.top5-list li{display:flex;min-width:0;align-items:center;gap:5px;padding:5px 7px;border-radius:8px;background:rgba(255,255,255,.045);font-size:clamp(8px,.7vw,12px);font-weight:850}.top5-list .medal{flex:0 0 auto}.top5-list span.player-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.top5-list strong{margin-left:auto;color:var(--accent);font-variant-numeric:tabular-nums}.hidden{display:none!important}
+    .promo-right{display:flex;align-items:stretch;justify-content:center;min-height:0}.qr-card{position:relative;width:100%;max-width:720px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:clamp(19px,2.1vw,38px);border:1px solid rgb(var(--accent-rgb) / .46);border-radius:clamp(24px,2.3vw,42px);background:linear-gradient(155deg,rgba(29,26,26,.96),rgba(9,8,9,.98));box-shadow:0 26px 90px rgba(0,0,0,.48),0 0 45px rgb(var(--accent-rgb) / .1)}
+    .qr-card::before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent-hot),var(--accent),transparent);box-shadow:0 0 24px rgb(var(--accent-rgb) / .65)}
+    .qr-kicker{color:#8a857f;font-size:clamp(9px,.75vw,14px);font-weight:950;letter-spacing:.16em;text-transform:uppercase}.qr-title{margin:4px 0 clamp(11px,1.3vh,20px);color:#fff;font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif;font-size:clamp(38px,4.2vw,76px);line-height:1;letter-spacing:.025em;text-transform:uppercase}.qr-title span{color:var(--accent)}
+    .promo-qr{position:relative;width:min(100%,54cqh);aspect-ratio:1;display:grid;place-items:center;overflow:hidden;padding:clamp(9px,.8vw,14px);border:clamp(7px,.65vw,12px) solid #fff;border-radius:clamp(17px,1.5vw,27px);color:#111;background:#fff;font-size:70px;font-weight:950;box-shadow:0 0 0 2px rgb(var(--accent-rgb) / .55),0 0 45px rgb(var(--accent-rgb) / .2);animation:qrGlow 2.2s ease-in-out infinite}.promo-qr::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 14px var(--accent);animation:qrScan 3s ease-in-out infinite}.promo-qr img{width:100%;height:100%;object-fit:contain}
+    @keyframes qrGlow{50%{box-shadow:0 0 0 2px rgb(var(--accent-rgb) / .82),0 0 65px rgb(var(--accent-rgb) / .33)}}@keyframes qrScan{0%,8%{transform:translateY(-6px)}82%,100%{transform:translateY(54cqh)}}
+    .qr-caption{margin-top:clamp(13px,1.5vh,23px);text-align:center;color:#fff;font-size:clamp(17px,1.55vw,28px);font-weight:900;line-height:1.15}.qr-caption small{display:block;margin-top:6px;color:#88837d;font-size:.48em;letter-spacing:.14em;text-transform:uppercase}
+    .countdown-mode{grid-template-columns:1fr;text-align:center;border-color:rgb(var(--accent-rgb) / .55);box-shadow:0 0 38px rgb(var(--accent-rgb) / .14)}.countdown-mode .live-header{justify-content:center}.countdown-mode .live-timer{font-size:clamp(42px,4vw,72px)}.countdown-mode .live-status{font-size:clamp(15px,1.3vw,23px)}
+    @media(max-width:1050px){.promo-screen{grid-template-columns:1.08fr .92fr;padding:20px;gap:18px}.join-steps{grid-template-columns:1fr}.join-step{padding:8px 11px}.live-card{margin-top:10px}.top5-list{grid-template-columns:repeat(3,minmax(0,1fr))}.promo-qr{width:min(100%,48cqh)}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
   </style>
 </head>
 <body>
   <main class="promo-screen">
     <section class="promo-left">
-      <div class="promo-eyebrow">LIVE BAR TRIVIA</div>
-
-      <h1 class="promo-title">Grumpy’s Trivia is LIVE</h1>
-
-      <div class="promo-subtitle">
-        Scan the code to join from your phone.
+      <header class="brand"><img id="promoBrandLogo" class="brand-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><div class="brand-kicker"><i></i> Live Bar Trivia</div><div class="brand-title">Grumpy's Trivia</div></div></header>
+      <div class="promo-eyebrow">Grab your phone — no app needed</div>
+      <h1 id="promoHeadline" class="promo-title promo-animate" aria-label="Scan. Join. Play."><span class="promo-word">Scan.</span><span class="promo-word">Join.</span><span class="promo-word">Play.</span></h1>
+      <p class="promo-subtitle">Scan the code, pick a name, and <strong>answer right on your phone.</strong></p>
+      <div class="join-steps" aria-label="How to join">
+        <div class="join-step"><span class="step-number">1</span><div><small>Camera</small><strong>Scan the QR</strong></div></div>
+        <div class="join-step"><span class="step-number">2</span><div><small>Player</small><strong>Name + PIN</strong></div></div>
+        <div class="join-step"><span class="step-number">3</span><div><small>Game on</small><strong>Answer Fast</strong></div></div>
       </div>
-
-      <div class="promo-instructions">
-        <div class="promo-pill">
-          <strong>Name + PIN</strong><br />
-          saves your all-time score
-        </div>
-
-        <div class="promo-pill">
-          or <strong>Play as a Guest</strong><br />
-          for the current round
-        </div>
-      </div>
-
-      <div class="main-screen-note">
-        Watch the main trivia screen in the backroom for the questions.
-      </div>
-
+      <div class="main-note"><span aria-hidden="true">➜</span><div>Questions are shown on the <strong>main trivia screen in the backroom.</strong></div></div>
       <div class="live-card">
-        <div class="live-header">
-          <div id="liveBadge" class="live-badge">Live</div>
-          <div id="promoTimer" class="live-timer">0:00</div>
-        </div>
-
-        <div id="promoStatus" class="live-status">
-          Waiting for the next trivia round...
-        </div>
-
-        <div class="top5">
-          <div class="top5-title">Current Top 5</div>
-          <ol id="promoTop5" class="top5-list">
-            <li><span>Waiting...</span><strong>0</strong></li>
-          </ol>
-        </div>
+        <div class="live-header"><div id="liveBadge" class="live-badge">Live</div><div id="promoTimer" class="live-timer">0:00</div></div>
+        <div id="promoStatus" class="live-status">Waiting for the next trivia round...</div>
+        <div class="top5"><div class="top5-title">Current Game Leaders</div><ol id="promoTop5" class="top5-list"><li><span class="medal">●</span><span class="player-name">Waiting...</span><strong>0</strong></li></ol></div>
       </div>
     </section>
-
-    <section class="promo-right">
-      <div class="qr-card">
-        <div class="qr-title">Scan to Play</div>
-        <div id="promoQrCode" class="promo-qr">QR</div>
-        <div class="qr-caption">Join on your phone</div>
-      </div>
-    </section>
+    <section class="promo-right"><div class="qr-card"><div class="qr-kicker">Point your camera here</div><div class="qr-title">Join <span>Now</span></div><div id="promoQrCode" class="promo-qr">QR</div><div class="qr-caption">Scan to play<small>Works in your phone browser</small></div></div></section>
   </main>
-
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="promo.js"></script>
+  <script src="promo.js?v=promo4"></script>
 </body>
 </html>
