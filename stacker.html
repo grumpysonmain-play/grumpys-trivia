@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grumpy's Stacker</title>
+  <link rel="stylesheet" href="play.css?v=hub4" />
+  <link rel="stylesheet" href="stacker.css?v=game2" />
+</head>
+<body>
+  <div class="phone-atmosphere" aria-hidden="true"><div class="phone-glow phone-glow-top"></div><div class="phone-glow phone-glow-bottom"></div></div>
+  <main class="phone">
+    <section id="loginGate" class="card stacker-gate hidden">
+      <header class="mobile-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>STACKER</h1></div></header>
+      <div class="section-kicker">PLAYER LOGIN NEEDED</div><h2>Choose your player first.</h2><p>Use the main game entrance to sign in before playing Stacker.</p>
+      <a class="primary-btn gate-link" href="play.html">Go to Game Login <span>›</span></a>
+    </section>
+
+    <section id="stackerView" class="card stacker-card hidden">
+      <header class="mobile-brand game-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> GRUMPY'S ARCADE</span><h1>STACKER</h1></div><div class="player-chip"><small>PLAYER 1</small><strong id="stackerPlayerName">Player</strong></div></header>
+      <a class="back-to-games" href="play.html"><span aria-hidden="true">⌂</span> Game Menu</a>
+
+      <div class="stacker-scoreboard">
+        <div><span>Level</span><strong id="stackerLevel">0</strong></div>
+        <div><span>Personal Best</span><strong id="stackerBest">0</strong></div>
+        <div><span>Speed</span><strong id="stackerSpeed">1×</strong></div>
+      </div>
+
+      <div class="stacker-machine-wrap">
+        <div class="machine-top"><span>★ STACK TO THE TOP ★</span><small id="machineGoal">12 LEVELS</small></div>
+        <div id="stackerMachine" class="stacker-machine" role="img" aria-label="Stacker game board"></div>
+        <div class="machine-floor" aria-hidden="true"></div>
+      </div>
+
+      <div id="stackerStatus" class="stacker-status" aria-live="polite">Press Start, then tap when the blocks line up.</div>
+      <button id="stackerControl" class="stacker-control" type="button"><span id="controlIcon">▶</span><strong id="controlText">Start Game</strong></button>
+      <div class="stacker-tip">Tap the board, the button, or your space bar to stack.</div>
+
+      <section class="stacker-leaderboard"><div class="stacker-board-title"><span>Top Stackers</span><small>ALL PLAYERS</small></div><div id="stackerLeaders" class="stacker-leaders"><div class="stacker-leader-row"><span>—</span><b>Waiting for scores</b><strong>0</strong></div></div></section>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="stacker.js?v=game3"></script>
+</body>
+</html>
