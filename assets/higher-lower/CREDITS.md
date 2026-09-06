@@ -27,3 +27,36 @@ derivative work: ←fetchcomms; CC BY-SA 3.0; https://commons.wikimedia.org/wiki
 - **French fries** — StockSnap; CC0; https://commons.wikimedia.org/wiki/File:French_Fries.JPG
 - **Burrito** — samuelfernandezrivera; CC0; https://commons.wikimedia.org/wiki/File:Burrito.JPG
 - **Milkshake** — Renee Comet (Photographer); Public domain; https://commons.wikimedia.org/wiki/File:Strawberry_milk_shake_(cropped).jpg
+- **MetLife Stadium** — Anthony Quintano from Hillsborough, NJ, United States; CC BY 2.0; https://commons.wikimedia.org/wiki/File:Metlife_stadium_(Aerial_view).jpg
+- **Lambeau Field** — Tony Webster; CC BY 2.0; https://commons.wikimedia.org/wiki/File:Lambeau_Field_-_Green_Bay_Packers_Football_Stadium_-_Wisconsin.jpg
+- **AT&T Stadium** — Michael Barera; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Arlington_June_2020_4_(AT%26T_Stadium).jpg
+- **Empower Field at Mile High** — Pdubs.94; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Empower_Field_at_Mile_High_20241001.jpg
+- **Bank of America Stadium** — Quintin Soloviev; CC BY 4.0; https://commons.wikimedia.org/wiki/File:Aerial_view_of_Bank_of_America_Stadium_in_Charlotte.jpg
+- **Arrowhead Stadium** — Ichabod; CC BY-SA 3.0; https://commons.wikimedia.org/wiki/File:Aerial_view_of_Arrowhead_Stadium_08-31-2013.jpg
+- **Caesars Superdome** — DHSgov; Public domain; https://commons.wikimedia.org/wiki/File:DHS_Agencies_Support_Super_Bowl_LIX_Security_February_2025_-_108.jpg
+- **SoFi Stadium** — Troutfarm27; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:SoFi_Stadium_2023.jpg
+- **Mount Everest** — Rdevany; CC BY-SA 3.0; https://commons.wikimedia.org/wiki/File:Mt._Everest_from_Gokyo_Ri_November_5,_2012.jpg
+- **K2** — Zacharie Grossen; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Chogori.jpg
+- **Denali** — Denali National Park and Preserve; Public domain; https://commons.wikimedia.org/wiki/File:Wonder_Lake_and_Denali.jpg
+- **Mount Kilimanjaro** — Sergey Pesterev; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Kilimanjaro_from_Amboseli.jpg
+- **Mont Blanc** — Hseugut; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Mont_Blanc_Aiguille.jpg
+- **Matterhorn** — Photo: chil, on Camptocamp.org
+Derivative work:Zacharie Grossen; CC BY-SA 3.0; https://commons.wikimedia.org/wiki/File:Matterhorn_from_Domh%C3%BCtte_-_2.jpg
+- **Mount Rainier** — Caleb Riston; CC0; https://commons.wikimedia.org/wiki/File:Rainier20200906.jpg
+- **Mount Fuji** — Suicasmo; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:View_of_Mount_Fuji_from_%C5%8Cwakudani_20211202.jpg
+- **Lake Baikal** — Jacques Descloitres, MODIS Land Rapid Response Team, NASA/GSFC; Public domain; https://commons.wikimedia.org/wiki/File:Baikal.A2001296.0420.250m-NASA.jpg
+- **Lake Tanganyika** — NASA; Public domain; https://commons.wikimedia.org/wiki/File:STS51G-034-0012_Lake_Tanganyika_June1985.jpg
+- **Caspian Sea** — Jeff Schmaltz, MODIS Rapid Response Team, NASA/GSFC; Public domain; https://commons.wikimedia.org/wiki/File:Caspian_Sea_from_orbit.jpg
+- **Great Slave Lake** — Jacques Descloitres, MODIS Land Rapid Response Team, NASA/GSFC; Public domain; https://commons.wikimedia.org/wiki/File:Canada.A2002160.1920.721.250m.jpg
+- **Crater Lake** — WolfmanSF; CC BY-SA 3.0; https://commons.wikimedia.org/wiki/File:Crater_Lake_winter_pano2.jpg
+- **Lake Tahoe** — Lara Farhadi; CC BY 2.0; https://commons.wikimedia.org/wiki/File:Tahoe_North_Shore_from_the_East_Shore.jpg
+- **Lake Superior** — NASA; Public domain; https://commons.wikimedia.org/wiki/File:Lake_Superior,_ISS.jpg
+- **Lake Michigan** — Earth Science and Remote Sensing Unit, NASA Johnson Space Center, ISS Expedition 60; Public domain; https://commons.wikimedia.org/wiki/File:Lake_Michigan_in_true_color.jpg
+- **The Weeknd** — Brian Ziff; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:The_Weeknd_Portrait_by_Brian_Ziff.jpg
+- **Ed Sheeran** — Harald Krichel; CC BY-SA 3.0; https://commons.wikimedia.org/wiki/File:Ed_Sheeran-6886_(cropped_2).jpg
+- **The Neighbourhood** — Stefan Brending (2eight); CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:2018_RiP_-_The_Neighbourhood_-_by_2eight_-_8SC8869.jpg
+- **Harry Styles** — Raph_PH; CC BY 2.0; https://commons.wikimedia.org/wiki/File:HarryStylesWembley170623_(65_of_93)_(52982678051)_(cropped_2).jpg
+- **Drake (musician)** — GabboT; CC BY-SA 2.0; https://commons.wikimedia.org/wiki/File:Drake_at_The_Carter_Effect_2017_(36818935200)_(cropped).jpg
+- **Post Malone** — Chrisallmeid; CC BY-SA 4.0; https://commons.wikimedia.org/wiki/File:Post_Malone_July_2021_(cropped).jpg
+- **Lewis Capaldi** — Raph_PH; CC BY 4.0; https://commons.wikimedia.org/wiki/File:Glasto2025-41_(cropped).jpg
+- **The Kid Laroi** — Sony Music Entertainment; CC BY 4.0; https://commons.wikimedia.org/wiki/File:LEAD_PRESS_PC_ADAMKARGENIAN_(cropped).tif

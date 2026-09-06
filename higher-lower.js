@@ -43,6 +43,18 @@ const FACT_DECKS = [
   ]},
   { name:"Approx. Food Calories", unit:"calories", facts:[
     {name:"Large Egg",value:78,image:"large-egg.jpg"},{name:"Banana",value:105,image:"banana.jpg"},{name:"Glazed Donut",value:190,image:"glazed-donut.jpg"},{name:"Cheeseburger",value:300,image:"cheeseburger.jpg"},{name:"Slice of Pepperoni Pizza",value:313,image:"pepperoni-pizza.jpg"},{name:"Basket of French Fries",value:365,image:"french-fries.jpg"},{name:"Chicken Burrito",value:650,image:"chicken-burrito.jpg"},{name:"Large Milkshake",value:800,image:"milkshake.jpg"}
+  ]},
+  { name:"U.S. Stadium Capacity", unit:"seats", facts:[
+    {name:"MetLife Stadium",value:82500,image:"metlife-stadium.jpg"},{name:"Lambeau Field",value:81441,image:"lambeau-field.jpg"},{name:"AT&T Stadium",value:80000,image:"att-stadium.jpg"},{name:"Empower Field",value:76125,image:"empower-field.jpg"},{name:"Bank of America Stadium",value:75037,image:"bank-of-america-stadium.jpg"},{name:"Arrowhead Stadium",value:73426,image:"arrowhead-stadium.jpg"},{name:"Caesars Superdome",value:73208,image:"caesars-superdome.jpg"},{name:"SoFi Stadium",value:70000,image:"sofi-stadium.jpg"}
+  ]},
+  { name:"Mountain Elevations", unit:"feet", facts:[
+    {name:"Mount Everest",value:29032,image:"mount-everest.jpg"},{name:"K2",value:28251,image:"k2.jpg"},{name:"Denali",value:20310,image:"denali.jpg"},{name:"Mount Kilimanjaro",value:19341,image:"kilimanjaro.jpg"},{name:"Mont Blanc",value:15774,image:"mont-blanc.jpg"},{name:"Matterhorn",value:14692,image:"matterhorn.jpg"},{name:"Mount Rainier",value:14410,image:"mount-rainier.jpg"},{name:"Mount Fuji",value:12389,image:"mount-fuji.jpg"}
+  ]},
+  { name:"Maximum Lake Depths", unit:"feet", facts:[
+    {name:"Lake Baikal",value:5387,image:"lake-baikal.jpg"},{name:"Lake Tanganyika",value:4823,image:"lake-tanganyika.jpg"},{name:"Caspian Sea",value:3363,image:"caspian-sea.jpg"},{name:"Great Slave Lake",value:2015,image:"great-slave-lake.jpg"},{name:"Crater Lake",value:1943,image:"crater-lake.jpg"},{name:"Lake Tahoe",value:1645,image:"lake-tahoe.jpg"},{name:"Lake Superior",value:1332,image:"lake-superior.jpg"},{name:"Lake Michigan",value:923,image:"lake-michigan.jpg"}
+  ]},
+  { name:"Spotify Streams · Sep. 2026", unit:"million streams", facts:[
+    {name:"“Blinding Lights” · The Weeknd",value:5569,image:"blinding-lights.jpg"},{name:"“Shape of You” · Ed Sheeran",value:5073,image:"shape-of-you.jpg"},{name:"“Sweater Weather” · The Neighbourhood",value:4842,image:"sweater-weather.jpg"},{name:"“As It Was” · Harry Styles",value:4599,image:"as-it-was.jpg"},{name:"“One Dance” · Drake",value:4440,image:"one-dance.jpg"},{name:"“Sunflower” · Post Malone & Swae Lee",value:4426,image:"sunflower-song.jpg"},{name:"“Someone You Loved” · Lewis Capaldi",value:4422,image:"someone-you-loved.jpg"},{name:"“Stay” · The Kid LAROI & Justin Bieber",value:4058,image:"stay-song.jpg"}
   ]}
 ];
 

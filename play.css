@@ -128,7 +128,6 @@ button:active { transform:scale(.985); }
 .game-tile-copy>strong { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:10px; color:var(--phone-accent-hot); font-size:12px; font-weight:950; letter-spacing:.06em; text-transform:uppercase; }
 .game-tile-copy>strong span { font-size:21px; line-height:0; }
 .higher-lower-tile .game-tile-copy>strong { color:var(--phone-green); }
-.menu-note { margin-top:auto; padding-top:5px; color:#6f6a64; text-align:center; font-size:10px; font-weight:700; line-height:1.35; }
 .back-to-games { width:max-content; min-height:35px; display:inline-flex; align-items:center; gap:7px; margin:-3px 0 12px; padding:7px 11px; border:1px solid rgba(255,255,255,.15); border-radius:999px; color:#dedad4; background:rgba(255,255,255,.065); font-size:10px; font-weight:950; letter-spacing:.1em; text-decoration:none; text-transform:uppercase; box-shadow:0 7px 16px rgba(0,0,0,.18); transition:border-color .18s ease,color .18s ease,background .18s ease; }
 .back-to-games span { color:var(--phone-accent); font-size:16px; line-height:1; }
 .back-to-games:active { color:#fff; border-color:var(--phone-accent); background:rgb(var(--phone-accent-rgb) / .12); }
