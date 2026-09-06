@@ -111,6 +111,7 @@ button:active { transform:scale(.985); }
 .menu-intro { margin:2px 0 18px; }
 .menu-intro h2 { margin:6px 0 6px; font-size:clamp(27px,7.5vw,38px); line-height:1; letter-spacing:-.035em; }
 .menu-intro p { margin:0; color:#aaa59e; font-size:13px; font-weight:700; line-height:1.35; }
+.game-tiles { display:block; }
 .game-tile { position:relative; min-height:190px; display:grid; grid-template-columns:92px minmax(0,1fr); gap:15px; margin-bottom:13px; overflow:hidden; padding:17px; border:1px solid rgba(255,255,255,.13); border-radius:19px; color:#fff; text-decoration:none; background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025)); box-shadow:0 15px 35px rgba(0,0,0,.22); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
 .game-tile::before { content:""; position:absolute; inset:0 0 auto; height:2px; opacity:.75; background:linear-gradient(90deg,transparent,var(--phone-accent),transparent); }
 .game-tile:active { transform:scale(.985); }

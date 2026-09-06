@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Play Grumpy's Trivia</title>
-  <link rel="stylesheet" href="play.css?v=hub4" />
+  <link rel="stylesheet" href="play.css?v=hub5" />
 </head>
 <body>
   <div class="phone-atmosphere" aria-hidden="true">
@@ -51,7 +51,8 @@
 
       <div class="menu-intro"><div class="section-kicker">CHOOSE A GAME</div><h2>What are you playing?</h2><p>Live trivia is the main event. The arcade games are always open.</p></div>
 
-      <a class="game-tile trivia-tile" href="play.html?game=trivia">
+      <div id="gameTiles" class="game-tiles">
+      <a class="game-tile trivia-tile" data-game-id="trivia" href="play.html?game=trivia">
         <div class="game-tile-art" aria-hidden="true"><span>?</span></div>
         <div class="game-tile-copy">
           <div class="game-tile-top"><span id="triviaLiveBadge" class="tile-badge">TRIVIA</span><small id="triviaPhaseText">CHECKING STATUS</small></div>
@@ -61,7 +62,7 @@
         </div>
       </a>
 
-      <a class="game-tile higher-lower-tile" href="higher-lower.html">
+      <a class="game-tile higher-lower-tile" data-game-id="higher-lower" href="higher-lower.html">
         <div class="game-tile-art higher-lower-art" aria-hidden="true"><span>↑</span><span>↓</span></div>
         <div class="game-tile-copy">
           <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>STREAK GAME</small></div>
@@ -71,7 +72,7 @@
         </div>
       </a>
 
-      <a class="game-tile stacker-tile" href="stacker.html">
+      <a class="game-tile stacker-tile" data-game-id="stacker" href="stacker.html">
         <div class="game-tile-art stacker-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
         <div class="game-tile-copy">
           <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>TIMING GAME</small></div>
@@ -81,7 +82,7 @@
         </div>
       </a>
 
-      <a class="game-tile emoji-tile" href="emoji-decoder.html">
+      <a class="game-tile emoji-tile" data-game-id="emoji-decoder" href="emoji-decoder.html">
         <div class="game-tile-art emoji-art" aria-hidden="true"><span>🎬</span><span>🎵</span><b>?</b></div>
         <div class="game-tile-copy">
           <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>WORD GAME</small></div>
@@ -90,6 +91,7 @@
           <strong>Play Now <span>›</span></strong>
         </div>
       </a>
+      </div>
 
     </section>
 
@@ -157,6 +159,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="play.js?v=hub3"></script>
+  <script src="play.js?v=hub4"></script>
 </body>
 </html>

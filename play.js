@@ -1,6 +1,8 @@
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
+const gatewayOrderRef = db.ref("settings/gatewayOrder");
+const DEFAULT_GATEWAY_ORDER = ["trivia", "higher-lower", "stacker", "emoji-decoder"];
 
 const joinView = document.getElementById("joinView");
 const menuView = document.getElementById("menuView");
@@ -36,6 +38,7 @@ const triviaLiveBadge = document.getElementById("triviaLiveBadge");
 const triviaPhaseText = document.getElementById("triviaPhaseText");
 const triviaMenuStatus = document.getElementById("triviaMenuStatus");
 const triviaActionText = document.getElementById("triviaActionText");
+const gameTilesEl = document.getElementById("gameTiles");
 const routeParams = new URLSearchParams(window.location.search);
 const isTriviaRoute = routeParams.get("game") === "trivia";
 const isPlayerPreview = routeParams.get("preview") === "1";
@@ -149,6 +152,31 @@ function setPhoneSeasonalBranding(date = new Date()) {
 }
 
 setPhoneSeasonalBranding();
+
+function applyGatewayOrder(savedOrder) {
+  if (!gameTilesEl) return;
+
+  const availableTiles = new Map(
+    [...gameTilesEl.querySelectorAll("[data-game-id]")].map(tile => [tile.dataset.gameId, tile])
+  );
+  const requestedOrder = Array.isArray(savedOrder) ? savedOrder : [];
+  const validOrder = requestedOrder.filter((id, index) => availableTiles.has(id) && requestedOrder.indexOf(id) === index);
+  const finalOrder = [...validOrder, ...DEFAULT_GATEWAY_ORDER.filter(id => !validOrder.includes(id))];
+
+  finalOrder.forEach(id => {
+    const tile = availableTiles.get(id);
+    if (tile) gameTilesEl.appendChild(tile);
+  });
+}
+
+gatewayOrderRef.on(
+  "value",
+  snapshot => applyGatewayOrder(snapshot.val()),
+  error => {
+    console.warn("Using the default gateway order:", error);
+    applyGatewayOrder(DEFAULT_GATEWAY_ORDER);
+  }
+);
 
 const BLOCKED_WORDS = [
   // Profanity / crude language
