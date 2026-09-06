@@ -138,6 +138,13 @@ button:active { transform:scale(.985); }
 .stacker-tile::before { background:linear-gradient(90deg,transparent,#18deff,#ff3bc8,transparent); }
 .stacker-tile h3 { color:#fff; text-shadow:-2px 0 #ff35c5,2px 0 #17ddff,0 0 14px rgba(153,89,255,.5); }
 .stacker-tile .game-tile-copy>strong { color:#4eeaff; }
+.emoji-tile { border-color:rgba(255,138,53,.32); background:linear-gradient(135deg,rgba(255,132,38,.12),rgba(255,57,132,.07),rgba(18,12,15,.96)); }
+.emoji-tile::before { background:linear-gradient(90deg,transparent,#ff9b3d,#ff4c9a,transparent); }
+.emoji-art { position:relative; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:4px; padding:10px; border-color:rgba(255,155,61,.55); background:linear-gradient(145deg,#2e1608,#1a0815); font-family:inherit; font-size:24px; text-shadow:none; }
+.emoji-art span { display:grid; place-items:center; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:rgba(255,255,255,.06); }
+.emoji-art b { grid-column:1 / -1; display:grid; place-items:center; color:#fff4c7; border-radius:8px; background:linear-gradient(135deg,#f47427,#ee3c89); font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif; font-size:30px; box-shadow:0 0 14px rgba(255,93,92,.25); }
+.emoji-tile h3 { text-shadow:0 0 14px rgba(255,106,76,.28); }
+.emoji-tile .game-tile-copy>strong { color:#ffad62; }
 .back-to-games { width:max-content; min-height:35px; display:inline-flex; align-items:center; gap:7px; margin:-3px 0 12px; padding:7px 11px; border:1px solid rgba(255,255,255,.15); border-radius:999px; color:#dedad4; background:rgba(255,255,255,.065); font-size:10px; font-weight:950; letter-spacing:.1em; text-decoration:none; text-transform:uppercase; box-shadow:0 7px 16px rgba(0,0,0,.18); transition:border-color .18s ease,color .18s ease,background .18s ease; }
 .back-to-games span { color:var(--phone-accent); font-size:16px; line-height:1; }
 .back-to-games:active { color:#fff; border-color:var(--phone-accent); background:rgb(var(--phone-accent-rgb) / .12); }

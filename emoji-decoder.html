@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grumpy's Emoji Decoder</title>
+  <link rel="stylesheet" href="play.css?v=hub4" />
+  <link rel="stylesheet" href="emoji-decoder.css?v=game1" />
+</head>
+<body>
+  <div class="phone-atmosphere" aria-hidden="true"><div class="phone-glow phone-glow-top"></div><div class="phone-glow phone-glow-bottom"></div></div>
+  <main class="phone">
+    <section id="loginGate" class="card decoder-gate hidden">
+      <header class="mobile-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>DECODER</h1></div></header>
+      <div class="section-kicker">PLAYER LOGIN NEEDED</div><h2>Choose your player first.</h2><p>Use the main game entrance to sign in before decoding.</p>
+      <a class="primary-btn gate-link" href="play.html">Go to Game Login <span>›</span></a>
+    </section>
+
+    <section id="decoderView" class="card decoder-card hidden">
+      <header class="mobile-brand game-brand"><img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><span class="brand-kicker"><i></i> QUICK PLAY</span><h1>EMOJI<br>DECODER</h1></div><div class="player-chip"><small>PLAYING AS</small><strong id="decoderPlayerName">Player</strong></div></header>
+      <a class="back-to-games" href="play.html"><span aria-hidden="true">⌂</span> Game Menu</a>
+
+      <section id="startScreen" class="decoder-screen start-screen">
+        <div class="decoder-hero"><div class="hero-emojis" aria-hidden="true">🎬 📺 🎵</div><div class="section-kicker">CAN YOU CRACK THE CLUES?</div><h2>Decode 10 titles.</h2><p>The faster you solve each emoji puzzle, the more points you keep.</p></div>
+        <div class="how-strip"><div><span>👀</span><b>See the emojis</b></div><i>›</i><div><span>⌨️</span><b>Type your guess</b></div><i>›</i><div><span>⚡</span><b>Beat the clock</b></div></div>
+        <div class="mode-label">Choose a category</div>
+        <div id="modePicker" class="mode-picker">
+          <button type="button" class="mode-chip selected" data-mode="Mixed">✨ Mixed</button>
+          <button type="button" class="mode-chip" data-mode="Movie">🎬 Movies</button>
+          <button type="button" class="mode-chip" data-mode="TV Show">📺 TV</button>
+          <button type="button" class="mode-chip" data-mode="Song">🎵 Songs</button>
+        </div>
+        <button id="startDecoderBtn" class="decoder-primary" type="button"><span>▶</span> Start Decoding</button>
+        <div class="start-note">20 seconds each · hints cost 250 points · close spellings count</div>
+      </section>
+
+      <section id="gameScreen" class="decoder-screen game-screen hidden">
+        <div class="decoder-score-row"><div><small>Score</small><strong id="decoderScore">0</strong></div><div><small>Streak</small><strong id="decoderStreak">0</strong></div><div><small>Puzzle</small><strong id="decoderProgress">1/10</strong></div></div>
+        <div class="timer-line"><div id="decoderTimerFill"></div></div>
+        <div class="puzzle-card">
+          <div class="puzzle-top"><span id="decoderCategory">MOVIE</span><small id="decoderPoints">1,000 PTS</small></div>
+          <div id="decoderEmojis" class="decoder-emojis" role="img" aria-label="Emoji clue">🚢 🧊 💔</div>
+          <div id="decoderHintText" class="hint-text">What title do these emojis describe?</div>
+        </div>
+        <form id="decoderForm" class="decoder-form">
+          <label for="decoderAnswer">Your answer</label>
+          <div class="answer-row"><input id="decoderAnswer" autocomplete="off" autocapitalize="words" maxlength="60" placeholder="Type the title…" /><button type="submit">Submit</button></div>
+        </form>
+        <div class="puzzle-actions"><button id="decoderHintBtn" type="button">💡 Hint −250</button><button id="decoderSkipBtn" type="button">Skip ›</button></div>
+        <div id="decoderFeedback" class="decoder-feedback" aria-live="polite">The clock starts when the puzzle appears.</div>
+      </section>
+
+      <section id="resultScreen" class="decoder-screen result-screen hidden">
+        <div class="result-burst">🏆</div><div class="section-kicker">GAME COMPLETE</div><h2 id="resultHeadline">Nicely decoded!</h2>
+        <div class="final-score"><small>FINAL SCORE</small><strong id="resultScore">0</strong><span id="resultBestNote">PERSONAL BEST</span></div>
+        <div class="result-stats"><div><small>Correct</small><strong id="resultCorrect">0/10</strong></div><div><small>Best Streak</small><strong id="resultStreak">0</strong></div><div><small>Fastest</small><strong id="resultFastest">—</strong></div></div>
+        <button id="playAgainBtn" class="decoder-primary" type="button"><span>↻</span> Play Again</button>
+        <a class="result-menu-link" href="play.html">Return to Game Menu</a>
+      </section>
+
+      <section id="decoderLeaderboard" class="decoder-leaderboard"><div class="decoder-board-title"><span>Top Decoders</span><small>BEST 10-PUZZLE GAME</small></div><div id="decoderLeaders" class="decoder-leaders"><div class="decoder-leader-row"><span>—</span><b>Waiting for scores</b><strong>0</strong></div></div></section>
+    </section>
+  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="emoji-decoder.js?v=game1"></script>
+</body>
+</html>
