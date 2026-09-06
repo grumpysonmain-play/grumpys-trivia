@@ -45,6 +45,7 @@ let currentQuestionStartedAt = null;
 let tvPointsInterval = null;
 let nextRoundExpectedAt = null;
 let finalStageTimeouts = [];
+let finalBoardAnimations = [];
 
 function applyRoundTheme(roundKey) {
   const key = String(roundKey || "grumpys");
@@ -98,6 +99,39 @@ function setPhase(phase) {
 function clearFinalStageTimeouts() {
   finalStageTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
   finalStageTimeouts = [];
+  finalBoardAnimations.forEach(animation => animation.cancel());
+  finalBoardAnimations = [];
+}
+
+function startFinalBoardScroll(stageName) {
+  finalBoardAnimations.forEach(animation => animation.cancel());
+  finalBoardAnimations = [];
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const stage = answersEl.querySelector(`[data-final-stage="${stageName}"].is-active`);
+    const viewport = stage?.querySelector(".scoreboard-scroll");
+    const list = viewport?.querySelector(".placement-list");
+
+    if (!viewport || !list || !screenEl.classList.contains("phase-final")) return;
+
+    const overflow = Math.max(0, list.scrollHeight - viewport.clientHeight);
+
+    if (overflow < 2) return;
+
+    const duration = stageName === "round" ? 9000 : 21000;
+    const animation = list.animate([
+      { transform: "translateY(0)" },
+      { transform: "translateY(0)", offset: .12 },
+      { transform: `translateY(-${overflow}px)`, offset: .9 },
+      { transform: `translateY(-${overflow}px)` }
+    ], {
+      duration,
+      easing: "linear",
+      fill: "forwards"
+    });
+
+    finalBoardAnimations.push(animation);
+  }));
 }
 
 function decodeHtml(text) {
@@ -634,7 +668,6 @@ async function showFinalScreen() {
   const allTimeLeaders = await getAllTimeLeaders();
   const winnerName = roundLeaders[0]?.name || "Nobody yet";
   const winnerScore = roundLeaders[0]?.score || 0;
-  const roundBoardColumns = Math.min(4, Math.max(1, Math.ceil(allRoundPlayers.length / 9)));
 
   nextRoundExpectedAt = Date.now() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
 
@@ -660,9 +693,11 @@ async function showFinalScreen() {
         <div class="final-board round-board full-board">
           <h3>Final Round Standings</h3>
           <div class="board-subtitle">Every player • Final placement</div>
-          <ol class="placement-list${allRoundPlayers.length > 36 ? " is-long" : ""}" style="--placement-columns:${roundBoardColumns}">
-            ${makeBoardList(allRoundPlayers)}
-          </ol>
+          <div class="scoreboard-scroll">
+            <ol class="placement-list${allRoundPlayers.length > 16 ? " is-long" : ""}">
+              ${makeBoardList(allRoundPlayers)}
+            </ol>
+          </div>
         </div>
       </section>
 
@@ -670,9 +705,11 @@ async function showFinalScreen() {
         <div class="final-board all-time-board full-board">
           <h3>All-Time Leaderboard</h3>
           <div class="board-subtitle">Career points • Returning players</div>
-          <ol class="placement-list all-time-list">
-            ${makeBoardList(allTimeLeaders)}
-          </ol>
+          <div class="scoreboard-scroll">
+            <ol class="placement-list all-time-list">
+              ${makeBoardList(allTimeLeaders)}
+            </ol>
+          </div>
         </div>
       </section>
     </div>
@@ -690,6 +727,7 @@ async function showFinalScreen() {
       messageEl.textContent = "Every player from this round, in finishing order.";
       roundProgressEl.textContent = "Round scoreboard • 10 seconds";
       answersEl.querySelector(".final-confetti")?.classList.add("is-finished");
+      startFinalBoardScroll("round");
       return;
     }
 
@@ -699,6 +737,7 @@ async function showFinalScreen() {
       setTvQuestionText("Grumpy's Hall of Fame");
       messageEl.textContent = "Career totals for players with a saved nickname + PIN.";
       roundProgressEl.textContent = "All-time scoreboard";
+      startFinalBoardScroll("all-time");
     }
   };
 
