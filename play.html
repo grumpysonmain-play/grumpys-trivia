@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Play Grumpy's Trivia</title>
-  <link rel="stylesheet" href="play.css?v=hub5" />
+  <link rel="stylesheet" href="play.css?v=hub6" />
 </head>
 <body>
   <div class="phone-atmosphere" aria-hidden="true">
@@ -46,7 +46,7 @@
       <header class="mobile-brand game-brand">
         <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
         <div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div>
-        <div class="player-chip"><small>PLAYING AS</small><strong id="menuPlayerName">Player</strong></div>
+        <button id="profileBtn" class="player-chip profile-button" type="button" aria-haspopup="dialog"><small>PLAYING AS</small><strong id="menuPlayerName">Player</strong><span>View stats ›</span></button>
       </header>
 
       <div class="menu-intro"><div class="section-kicker">CHOOSE A GAME</div><h2>What are you playing?</h2><p>Live trivia is the main event. The arcade games are always open.</p></div>
@@ -156,9 +156,31 @@
     </section>
   </main>
 
+  <div id="profileModal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <button id="profileBackdrop" class="profile-backdrop" type="button" aria-label="Close player profile"></button>
+    <section class="profile-sheet">
+      <header class="profile-header">
+        <div><span class="section-kicker">PLAYER PROFILE</span><h2 id="profileTitle">Your Stats</h2></div>
+        <button id="closeProfileBtn" class="profile-close" type="button" aria-label="Close player profile">×</button>
+      </header>
+      <div class="profile-identity"><img class="seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><small>PLAYING AS</small><strong id="profilePlayerName">Player</strong><span id="profileTriviaRank">Trivia rank —</span></div></div>
+      <div id="profileLoading" class="profile-loading">Loading your records…</div>
+      <div id="profileContent" class="hidden">
+        <div class="profile-stat-grid">
+          <div class="profile-stat trivia-profile-stat"><small>TRIVIA SCORE</small><strong id="profileTriviaScore">0</strong><span id="profileTriviaGames">0 games · 0 wins</span></div>
+          <div class="profile-stat higher-profile-stat"><small>HIGHER OR LOWER</small><strong id="profileHigherScore">0</strong><span>Best streak</span></div>
+          <div class="profile-stat stacker-profile-stat"><small>STACKER</small><strong id="profileStackerScore">0</strong><span>Highest level</span></div>
+          <div class="profile-stat emoji-profile-stat"><small>EMOJI DECODER</small><strong id="profileEmojiScore">0</strong><span>Best score</span></div>
+        </div>
+        <div class="profile-leaderboard-head"><div><span class="section-kicker">ALL-TIME</span><h3>Trivia Leaderboard</h3></div><small>TOP 10</small></div>
+        <div id="profileLeaderboard" class="profile-leaderboard"></div>
+      </div>
+    </section>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="play.js?v=hub4"></script>
+  <script src="play.js?v=hub6"></script>
 </body>
 </html>

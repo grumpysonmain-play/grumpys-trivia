@@ -2,6 +2,9 @@ const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
 const gatewayOrderRef = db.ref("settings/gatewayOrder");
+const higherLowerPlayersRef = db.ref("higherLower/players");
+const stackerPlayersRef = db.ref("stacker/players");
+const emojiDecoderPlayersRef = db.ref("emojiDecoder/players");
 const DEFAULT_GATEWAY_ORDER = ["trivia", "higher-lower", "stacker", "emoji-decoder"];
 
 const joinView = document.getElementById("joinView");
@@ -39,6 +42,15 @@ const triviaPhaseText = document.getElementById("triviaPhaseText");
 const triviaMenuStatus = document.getElementById("triviaMenuStatus");
 const triviaActionText = document.getElementById("triviaActionText");
 const gameTilesEl = document.getElementById("gameTiles");
+const profileBtn = document.getElementById("profileBtn");
+const profileModal = document.getElementById("profileModal");
+const profileBackdrop = document.getElementById("profileBackdrop");
+const closeProfileBtn = document.getElementById("closeProfileBtn");
+const profilePlayerName = document.getElementById("profilePlayerName");
+const profileTriviaRank = document.getElementById("profileTriviaRank");
+const profileLoading = document.getElementById("profileLoading");
+const profileContent = document.getElementById("profileContent");
+const profileLeaderboard = document.getElementById("profileLeaderboard");
 const routeParams = new URLSearchParams(window.location.search);
 const isTriviaRoute = routeParams.get("game") === "trivia";
 const isPlayerPreview = routeParams.get("preview") === "1";
@@ -177,6 +189,90 @@ gatewayOrderRef.on(
     applyGatewayOrder(DEFAULT_GATEWAY_ORDER);
   }
 );
+
+function formatProfileNumber(value) {
+  return Number(value || 0).toLocaleString();
+}
+
+function escapeProfileHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getProfileMedal(rank) {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  return `#${rank}`;
+}
+
+function closePlayerProfile() {
+  profileModal.classList.add("hidden");
+  document.body.classList.remove("profile-open");
+  profileBtn?.focus();
+}
+
+function getLocalArcadeScore(prefix, fallbackId = "guest") {
+  return Number(localStorage.getItem(`${prefix}_${playerId || fallbackId}`)) || 0;
+}
+
+async function openPlayerProfile() {
+  profilePlayerName.textContent = playerName || "Player";
+  profileTriviaRank.textContent = "Loading trivia rank…";
+  profileLoading.textContent = "Loading your records…";
+  profileLoading.classList.remove("hidden");
+  profileContent.classList.add("hidden");
+  profileModal.classList.remove("hidden");
+  document.body.classList.add("profile-open");
+  closeProfileBtn.focus();
+
+  try {
+    const [allTriviaSnap, higherSnap, stackerSnap, emojiSnap] = await Promise.all([
+      claimedNamesRef.once("value"),
+      playerId && !isGuest ? higherLowerPlayersRef.child(playerId).once("value") : Promise.resolve(null),
+      playerId && !isGuest ? stackerPlayersRef.child(playerId).once("value") : Promise.resolve(null),
+      playerId && !isGuest ? emojiDecoderPlayersRef.child(playerId).once("value") : Promise.resolve(null)
+    ]);
+
+    const allTriviaProfiles = allTriviaSnap.val() || {};
+    const rankedTrivia = Object.entries(allTriviaProfiles).map(([nameKey, profile]) => ({
+      nameKey,
+      name: profile.displayName || nameKey,
+      totalScore: Number(profile.totalScore) || 0,
+      wins: Number(profile.wins) || 0,
+      gamesPlayed: Number(profile.gamesPlayed) || 0
+    })).sort((a, b) => b.totalScore - a.totalScore || b.wins - a.wins || a.name.localeCompare(b.name));
+
+    const triviaProfile = !isGuest && playerNameKey ? allTriviaProfiles[playerNameKey] || {} : {};
+    const triviaRank = !isGuest && playerNameKey ? rankedTrivia.findIndex(profile => profile.nameKey === playerNameKey) + 1 : 0;
+    const higherProfile = higherSnap?.val?.() || {};
+    const stackerProfile = stackerSnap?.val?.() || {};
+    const emojiProfile = emojiSnap?.val?.() || {};
+
+    document.getElementById("profileTriviaScore").textContent = formatProfileNumber(triviaProfile.totalScore);
+    document.getElementById("profileTriviaGames").textContent = `${formatProfileNumber(triviaProfile.gamesPlayed)} games · ${formatProfileNumber(triviaProfile.wins)} wins`;
+    document.getElementById("profileHigherScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("higherLowerBest") : higherProfile.bestStreak);
+    document.getElementById("profileStackerScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("stackerBest") : stackerProfile.bestLevel);
+    document.getElementById("profileEmojiScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("emojiDecoderBest") : emojiProfile.bestScore);
+    profileTriviaRank.textContent = triviaRank > 0 ? `All-time Trivia rank #${triviaRank}` : isGuest ? "Guest scores stay on this device" : "No Trivia rank yet";
+
+    profileLeaderboard.innerHTML = rankedTrivia.length ? rankedTrivia.slice(0, 10).map((profile, index) => {
+      const rank = index + 1;
+      const isCurrentPlayer = !isGuest && profile.nameKey === playerNameKey;
+      return `<div class="profile-rank-row${isCurrentPlayer ? " is-player" : ""}"><span class="profile-rank${rank <= 3 ? " medal" : ""}">${getProfileMedal(rank)}</span><span class="profile-rank-name">${escapeProfileHtml(profile.name)}</span><strong class="profile-rank-score">${formatProfileNumber(profile.totalScore)}</strong></div>`;
+    }).join("") : '<div class="profile-empty">No all-time scores yet.</div>';
+
+    profileLoading.classList.add("hidden");
+    profileContent.classList.remove("hidden");
+  } catch (error) {
+    console.error("Player profile could not be loaded:", error);
+    profileLoading.textContent = "Your stats could not be loaded. Try again in a moment.";
+  }
+}
 
 const BLOCKED_WORDS = [
   // Profanity / crude language
@@ -1470,6 +1566,14 @@ async function renderGame(game) {
 
 joinBtn.addEventListener("click", joinGame);
 guestBtn.addEventListener("click", joinAsGuest);
+profileBtn.addEventListener("click", openPlayerProfile);
+profileBackdrop.addEventListener("click", closePlayerProfile);
+closeProfileBtn.addEventListener("click", closePlayerProfile);
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !profileModal.classList.contains("hidden")) {
+    closePlayerProfile();
+  }
+});
 [nameInput, pinInput].forEach(input => {
   input.addEventListener("keydown", event => {
     if (event.key === "Enter") joinGame();

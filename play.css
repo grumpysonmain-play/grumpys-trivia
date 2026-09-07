@@ -135,6 +135,16 @@ button:active { transform:scale(.985); }
 .game-tile-copy>strong { display:flex; align-items:center; gap:7px; margin-top:auto; padding-top:10px; color:var(--phone-accent-hot); font-size:12px; font-weight:950; letter-spacing:.06em; text-transform:uppercase; }
 .game-tile-copy>strong span { font-size:21px; line-height:0; }
 .higher-lower-tile .game-tile-copy>strong { color:var(--phone-green); }
+.game-tile:not(.trivia-tile) { min-height:142px; grid-template-columns:72px minmax(0,1fr); gap:13px; padding:13px; }
+.game-tile:not(.trivia-tile) .game-tile-art { width:72px; }
+.game-tile:not(.trivia-tile) h3 { margin-top:7px; font-size:25px; }
+.game-tile:not(.trivia-tile) p { font-size:11px; line-height:1.3; }
+.game-tile:not(.trivia-tile) .game-tile-copy>strong { padding-top:7px; font-size:10px; }
+.game-tile:not(.trivia-tile) .higher-lower-art { font-size:28px; }
+.game-tile:not(.trivia-tile) .stacker-art span:nth-child(1) { width:50px; }
+.game-tile:not(.trivia-tile) .stacker-art span:nth-child(2) { width:40px; }
+.game-tile:not(.trivia-tile) .stacker-art span:nth-child(3) { width:30px; }
+.game-tile:not(.trivia-tile) .stacker-art span:nth-child(4) { width:20px; }
 .stacker-tile { border-color:rgba(26,221,255,.32); background:linear-gradient(135deg,rgba(10,181,255,.09),rgba(255,34,199,.07),rgba(14,10,20,.96)); }
 .stacker-tile::before { background:linear-gradient(90deg,transparent,#18deff,#ff3bc8,transparent); }
 .stacker-tile h3 { color:#fff; text-shadow:-2px 0 #ff35c5,2px 0 #17ddff,0 0 14px rgba(153,89,255,.5); }
@@ -156,6 +166,43 @@ button:active { transform:scale(.985); }
 .player-chip { min-width:0; margin-left:auto; text-align:right; }
 .player-chip small { display:block; color:#77736e; font-size:8px; font-weight:900; letter-spacing:.12em; }
 .player-chip strong { display:block; max-width:135px; overflow:hidden; color:var(--phone-accent-hot); font-size:13px; text-overflow:ellipsis; white-space:nowrap; }
+.profile-button { min-height:48px; padding:6px 9px; border:1px solid rgba(255,255,255,.12); border-radius:12px; color:#fff; background:rgba(255,255,255,.045); cursor:pointer; transition:border-color .18s ease,background .18s ease,transform .18s ease; }
+.profile-button span { display:block; margin-top:2px; color:var(--phone-accent); font-size:7px; font-weight:950; letter-spacing:.08em; text-transform:uppercase; }
+.profile-button:active { transform:scale(.97); border-color:var(--phone-accent); background:rgb(var(--phone-accent-rgb) / .1); }
+
+.profile-modal { position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding:14px; }
+.profile-backdrop { position:absolute; inset:0; width:100%; min-height:100%; border:0; border-radius:0; background:rgba(0,0,0,.76); backdrop-filter:blur(9px); }
+.profile-sheet { position:relative; width:min(520px,100%); max-height:calc(100svh - 28px); overflow-y:auto; padding:22px; border:1px solid rgba(255,255,255,.14); border-radius:25px; background:linear-gradient(155deg,rgba(29,26,27,.99),rgba(8,8,9,.995)); box-shadow:0 28px 90px rgba(0,0,0,.68),inset 0 1px rgba(255,255,255,.06); animation:profileIn .25s ease; }
+.profile-sheet::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,transparent,var(--phone-accent),var(--phone-accent-hot),transparent); }
+.profile-header { display:flex; align-items:flex-start; justify-content:space-between; gap:15px; }
+.profile-header h2 { margin:4px 0 0; font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif; font-size:38px; line-height:.92; letter-spacing:.025em; text-transform:uppercase; }
+.profile-close { width:40px; min-height:40px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.12); border-radius:50%; color:#fff; background:rgba(255,255,255,.06); font-size:25px; line-height:1; }
+.profile-identity { display:flex; align-items:center; gap:12px; margin:17px 0; padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:16px; background:rgba(0,0,0,.22); }
+.profile-identity img { width:55px; height:55px; flex:0 0 auto; object-fit:contain; }
+.profile-identity small { display:block; color:#77736e; font-size:7px; font-weight:950; letter-spacing:.14em; }
+.profile-identity strong { display:block; margin:2px 0; color:#fff; font-size:18px; }
+.profile-identity span { display:block; color:var(--phone-accent-hot); font-size:10px; font-weight:850; }
+.profile-loading { padding:35px 10px; color:#918c85; text-align:center; font-size:12px; font-weight:800; }
+.profile-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.profile-stat { position:relative; min-height:105px; overflow:hidden; padding:13px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(0,0,0,.22); }
+.profile-stat::before { content:""; position:absolute; inset:0 0 auto; height:2px; background:var(--stat-color); }
+.profile-stat small { display:block; color:var(--stat-color); font-size:7px; font-weight:950; letter-spacing:.12em; }
+.profile-stat strong { display:block; margin:10px 0 2px; color:#fff; font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif; font-size:32px; letter-spacing:.04em; }
+.profile-stat span { color:#827d77; font-size:9px; font-weight:750; }
+.trivia-profile-stat { --stat-color:var(--phone-accent); }.higher-profile-stat { --stat-color:var(--phone-green); }.stacker-profile-stat { --stat-color:#3ce3f5; }.emoji-profile-stat { --stat-color:#ff9c45; }
+.profile-leaderboard-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:22px 2px 10px; }
+.profile-leaderboard-head h3 { margin:3px 0 0; font-family:Impact,Haettenschweiler,"Arial Narrow Bold",sans-serif; font-size:25px; letter-spacing:.025em; text-transform:uppercase; }
+.profile-leaderboard-head>small { color:#76716c; font-size:7px; font-weight:950; letter-spacing:.14em; }
+.profile-leaderboard { display:grid; gap:6px; }
+.profile-rank-row { display:grid; grid-template-columns:31px minmax(0,1fr) auto; align-items:center; gap:8px; min-height:42px; padding:7px 10px; border:1px solid rgba(255,255,255,.075); border-radius:10px; background:rgba(255,255,255,.035); }
+.profile-rank-row.is-player { border-color:rgb(var(--phone-accent-rgb) / .42); background:rgb(var(--phone-accent-rgb) / .1); }
+.profile-rank { color:#8d8882; font-size:11px; font-weight:950; }
+.profile-rank.medal { font-size:18px; }
+.profile-rank-name { overflow:hidden; font-size:11px; font-weight:850; text-overflow:ellipsis; white-space:nowrap; }
+.profile-rank-score { color:var(--phone-accent-hot); font-size:11px; font-weight:950; }
+.profile-empty { padding:22px; color:#77736e; text-align:center; font-size:11px; }
+body.profile-open { overflow:hidden; }
+@keyframes profileIn { from { opacity:0; transform:translateY(16px) scale(.98); } to { opacity:1; transform:none; } }
 
 .top-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
 .top-row>div { position:relative; overflow:hidden; padding:12px 14px; border:1px solid rgba(255,255,255,.1); border-radius:15px; background:rgba(0,0,0,.26); }
@@ -248,6 +295,10 @@ button:active { transform:scale(.985); }
   .game-tile-art { width:76px; font-size:51px; }
   .higher-lower-art { font-size:29px; }
   .game-tile h3 { font-size:27px; }
+  .game-tile:not(.trivia-tile) { min-height:132px; grid-template-columns:65px minmax(0,1fr); gap:11px; padding:11px; }
+  .game-tile:not(.trivia-tile) .game-tile-art { width:65px; font-size:24px; }
+  .game-tile:not(.trivia-tile) h3 { font-size:23px; }
+  .profile-sheet { padding:18px; border-radius:21px; }
 }
 
 @media (min-width:700px) and (max-height:650px) {
