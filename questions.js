@@ -3,12 +3,12 @@
 const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
-    "question": "Which two teams played in the first-ever National Hockey League (NHL) game?",
-    "correct_answer": "Montreal Canadiens and Ottawa Senators.",
+    "question": "On the NHL's opening night in 1917, which team did the Montreal Canadiens defeat?",
+    "correct_answer": "Ottawa Senators",
     "incorrect_answers": [
-      "Montreal Wanderers and Toronto Arenas",
-      "Toronto Maple Leafs and Boston Bruins",
-      "Detroit Red Wings and New York Rangers"
+      "Toronto Arenas",
+      "Montreal Wanderers",
+      "Quebec Bulldogs"
     ]
   },
   {
@@ -34,11 +34,11 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who holds the record for the most career goals in the NHL?",
-    "correct_answer": "Wayne Gretzky",
+    "correct_answer": "Alexander Ovechkin",
     "incorrect_answers": [
       "Gordie Howe",
       "Jaromir Jagr",
-      "Alexander Ovechkin"
+      "Wayne Gretzky"
     ]
   },
   {
@@ -53,8 +53,8 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Who was the first European-born player to score 50 goals in an NHL season?",
-    "correct_answer": "Teemu Selanne.",
+    "question": "Which Finnish player set the NHL rookie record with 76 goals in the 1992–93 season?",
+    "correct_answer": "Teemu Selanne",
     "incorrect_answers": [
       "Jari Kurri",
       "Peter Stastny",
@@ -74,9 +74,9 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Which team won the Stanley Cup in the National Hockey League’s inaugural season?",
-    "correct_answer": "The Montreal Canadiens.",
+    "correct_answer": "Toronto Arenas",
     "incorrect_answers": [
-      "Toronto Arenas",
+      "Montreal Canadiens",
       "Ottawa Senators",
       "Montreal Wanderers"
     ]
@@ -113,7 +113,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Which NHL team has won the most Presidents’ Trophies (awarded to the team wit...",
+    "question": "Which NHL team has won the most Presidents’ Trophies since the award was introduced in 1986?",
     "correct_answer": "Detroit Red Wings",
     "incorrect_answers": [
       "Montreal Canadiens",
@@ -134,36 +134,36 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Which team won the longest game in NHL history?",
-    "correct_answer": "Montreal Canadiens",
+    "correct_answer": "Detroit Red Wings",
     "incorrect_answers": [
-      "Detroit Red Wings",
+      "Montreal Canadiens",
       "Toronto Maple Leafs",
       "Philadelphia Flyers"
     ]
   },
   {
     "category": "NHL",
-    "question": "Who was the first goaltender to score a goal in an NHL game?",
-    "correct_answer": "Ron Hextall.",
+    "question": "Who was the first goaltender officially credited with a goal in an NHL game?",
+    "correct_answer": "Billy Smith",
     "incorrect_answers": [
       "Martin Brodeur",
-      "Billy Smith",
+      "Ron Hextall",
       "Patrick Roy"
     ]
   },
   {
     "category": "NHL",
-    "question": "Which NHL team lost four consecutive Stanley Cup Finals in the early 1980s?",
-    "correct_answer": "Boston Bruins",
+    "question": "Which NHL team won four consecutive Stanley Cups from 1980 through 1983?",
+    "correct_answer": "New York Islanders",
     "incorrect_answers": [
-      "New York Islanders",
+      "Boston Bruins",
       "Philadelphia Flyers",
       "Vancouver Canucks"
     ]
   },
   {
     "category": "NHL",
-    "question": "Who holds the record for the most goals scored by a rookie in a single NHL se...",
+    "question": "Who holds the record for the most goals scored by a rookie in a single NHL season?",
     "correct_answer": "Teemu Selanne",
     "incorrect_answers": [
       "Alexander Ovechkin",
@@ -204,19 +204,19 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who holds the record for the most penalty minutes in a single NHL season?",
-    "correct_answer": "Dave Williams",
+    "correct_answer": "Dave Schultz",
     "incorrect_answers": [
-      "Tiger Williams",
+      "Dave “Tiger” Williams",
       "Marty McSorley",
       "Tie Domi"
     ]
   },
   {
     "category": "NHL",
-    "question": "Which ice hockey team holds the record for the most consecutive NHL playoff a...",
-    "correct_answer": "Detroit Red Wings",
+    "question": "Which team holds the record for the most consecutive NHL playoff appearances?",
+    "correct_answer": "Boston Bruins",
     "incorrect_answers": [
-      "Boston Bruins",
+      "Detroit Red Wings",
       "St. Louis Blues",
       "Chicago Blackhawks"
     ]
@@ -273,12 +273,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Which team won the first-ever NHL expansion team?",
-    "correct_answer": "Los Angeles Kings.",
+    "question": "Which team was NOT part of the NHL's six-team expansion in 1967?",
+    "correct_answer": "Anaheim Ducks",
     "incorrect_answers": [
+      "Los Angeles Kings",
       "Philadelphia Flyers",
-      "Minnesota North Stars",
-      "St. Louis Blues"
+      "Minnesota North Stars"
     ]
   },
   {
@@ -303,7 +303,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Who scored the game-winning goal for Canada in the gold medal game of the 201...",
+    "question": "Who scored the game-winning goal for Canada in the gold medal game of the 2010 Winter Olympics?",
     "correct_answer": "Sidney Crosby.",
     "incorrect_answers": [
       "Jonathan Toews",
@@ -313,7 +313,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Who is the oldest player to ever skate in a National Hockey League game at ag...",
+    "question": "Who is the oldest player ever to skate in an NHL game, playing at age 52?",
     "correct_answer": "Gordie Howe",
     "incorrect_answers": [
       "Chris Chelios",
@@ -323,7 +323,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Which National Hockey League team was founded by The Walt Disney Company in 1...",
+    "question": "Which NHL team was founded by The Walt Disney Company in 1993?",
     "correct_answer": "Anaheim Ducks",
     "incorrect_answers": [
       "Florida Panthers",
@@ -493,12 +493,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "Who did the Minnesota Wild trade in the Quinn Hughes Trade",
-    "correct_answer": "Macro Rossi, Zeev Buium, Liam Ogren, 1st round pick",
+    "question": "Who did the Minnesota Wild select ninth overall in the 2020 NHL Draft?",
+    "correct_answer": "Marco Rossi",
     "incorrect_answers": [
-      "3 first round pick",
-      "Marco Rossi, Hunter Haight, 1st round pick",
-      "Zeev Buium, Macro Rossi, 1st round pick, 2nd round pick"
+      "Matt Boldy",
+      "Jesper Wallstedt",
+      "Joel Eriksson Ek"
     ]
   },
   {
@@ -513,7 +513,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NHL",
-    "question": "What player did the wild get back in the Kevin Fiala trade?",
+    "question": "Which player did the Wild receive as part of the Kevin Fiala trade?",
     "correct_answer": "Brock Faber",
     "incorrect_answers": [
       "Matt Boldy",
@@ -524,7 +524,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NFL",
     "question": "When was the first Super Bowl played?",
-    "correct_answer": "january 15, 1967.",
+    "correct_answer": "January 15, 1967",
     "incorrect_answers": [
       "January 12, 1969",
       "February 1, 1967",
@@ -533,7 +533,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "Who won the first Super Bowl",
+    "question": "Who won the first Super Bowl?",
     "correct_answer": "Green Bay Packers",
     "incorrect_answers": [
       "Kansas City Chiefs",
@@ -543,32 +543,32 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "Who was the first team to win three consecutive Super Bowls?",
-    "correct_answer": "The Miami Dolphins",
+    "question": "Which team completed the NFL's only perfect season by winning Super Bowl VII?",
+    "correct_answer": "Miami Dolphins",
     "incorrect_answers": [
-      "Pittsburgh Steelers",
-      "San Francisco 49ers",
-      "Green Bay Packers"
+      "New England Patriots",
+      "Green Bay Packers",
+      "Pittsburgh Steelers"
     ]
   },
   {
     "category": "NFL",
-    "question": "Who was the first team to win four Super Bowls in a row?",
-    "correct_answer": "San Francisco 49ers",
+    "question": "Which team won four Super Bowls in six seasons during the 1970s?",
+    "correct_answer": "Pittsburgh Steelers",
     "incorrect_answers": [
-      "Pittsburgh Steelers",
       "Dallas Cowboys",
-      "New England Patriots"
+      "Miami Dolphins",
+      "Minnesota Vikings"
     ]
   },
   {
     "category": "NFL",
-    "question": "What is the largest NFL stadium?",
-    "correct_answer": "Metlife Stadium",
+    "question": "Which NFL stadium is famously nicknamed the Frozen Tundra?",
+    "correct_answer": "Lambeau Field",
     "incorrect_answers": [
-      "AT&T Stadium",
-      "SoFi Stadium",
-      "Lambeau Field"
+      "Soldier Field",
+      "Arrowhead Stadium",
+      "Highmark Stadium"
     ]
   },
   {
@@ -613,7 +613,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "What quarterback holds the Minnesota Vikings single game record for passing y...",
+    "question": "Which quarterback holds the Minnesota Vikings single-game record for passing yards?",
     "correct_answer": "Tommy Kramer",
     "incorrect_answers": [
       "Fran Tarkenton",
@@ -663,7 +663,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "What was the nickname of the Vikings' defensive line from the late 1960s to t...",
+    "question": "What was the nickname of the Vikings' defensive line from the late 1960s through the 1970s?",
     "correct_answer": "Purple People Eaters",
     "incorrect_answers": [
       "Purple Storm",
@@ -673,7 +673,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "Which Vikings player recovered a fumble and returned it 66 yards in the wrong...",
+    "question": "Which Vikings player famously recovered a fumble and ran 66 yards in the wrong direction?",
     "correct_answer": "Jim Marshall",
     "incorrect_answers": [
       "Carl Eller",
@@ -713,7 +713,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NFL",
-    "question": "Which Minnesota Viking served as an associate justice of the Minnesota Suprem...",
+    "question": "Which former Minnesota Viking later served as an associate justice of the Minnesota Supreme Court?",
     "correct_answer": "Alan Page",
     "incorrect_answers": [
       "Fran Tarkenton",
@@ -823,12 +823,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NBA",
-    "question": "Who is the all-time leader in free throws made in the NBA?",
-    "correct_answer": "Karl Malone",
+    "question": "How many points is a successful free throw worth in the NBA?",
+    "correct_answer": "1 point",
     "incorrect_answers": [
-      "Kobe Bryant",
-      "LeBron James",
-      "Dirk Nowitzki"
+      "2 points",
+      "3 points",
+      "4 points"
     ]
   },
   {
@@ -963,8 +963,8 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NBA",
-    "question": "Who is the Timberwolves' career leader in points, blocks, assists, steals, an...",
-    "correct_answer": "Kevin Garnet",
+    "question": "Who is the Timberwolves' career leader in points, rebounds, blocks, assists, and steals?",
+    "correct_answer": "Kevin Garnett",
     "incorrect_answers": [
       "Kevin Love",
       "Karl-Anthony Towns",
@@ -973,7 +973,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NBA",
-    "question": "How many consecutive seasons did the Timberwolves make the playoffs after acq...",
+    "question": "How many consecutive seasons did the Timberwolves make the playoffs after acquiring Kevin Garnett?",
     "correct_answer": "8",
     "incorrect_answers": [
       "5",
@@ -1033,8 +1033,8 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "NBA",
-    "question": "Who was the first Minnesota Timberwolf to win the NBA Most Valuable Player Aw...",
-    "correct_answer": "Kevin Garnet",
+    "question": "Who was the first Minnesota Timberwolf to win the NBA Most Valuable Player Award?",
+    "correct_answer": "Kevin Garnett",
     "incorrect_answers": [
       "Kevin Love",
       "Karl-Anthony Towns",
@@ -1063,12 +1063,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "What year was Major League Baseball officially founded?",
-    "correct_answer": "1869",
+    "question": "Which club became baseball's first openly professional team in 1869?",
+    "correct_answer": "Cincinnati Red Stockings",
     "incorrect_answers": [
-      "1876",
-      "1903",
-      "1845"
+      "Boston Red Stockings",
+      "New York Mutuals",
+      "Chicago White Stockings"
     ]
   },
   {
@@ -1153,7 +1153,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "What’s the distance between each base on a standard baseball diamond",
+    "question": "What is the distance between bases on a standard MLB diamond?",
     "correct_answer": "90 feet.",
     "incorrect_answers": [
       "80 feet",
@@ -1203,12 +1203,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "In which city was the first baseball stadium?",
-    "correct_answer": "Brooklyn, New York.",
+    "question": "In which city did MLB's first domed stadium open?",
+    "correct_answer": "Houston, Texas",
     "incorrect_answers": [
-      "Cooperstown, New York",
-      "Cincinnati, Ohio",
-      "Boston, Massachusetts"
+      "Minneapolis, Minnesota",
+      "Seattle, Washington",
+      "St. Petersburg, Florida"
     ]
   },
   {
@@ -1243,8 +1243,8 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "Who was the first player inducted into the Baseball Hall of Fame?",
-    "correct_answer": "Ty Cobb.",
+    "question": "Which player received the most votes in the first Baseball Hall of Fame election in 1936?",
+    "correct_answer": "Ty Cobb",
     "incorrect_answers": [
       "Babe Ruth",
       "Walter Johnson",
@@ -1263,7 +1263,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "What team was sanctioned for its sign stealing scandal during the 2017 and 20...",
+    "question": "Which team was sanctioned for its sign-stealing scheme during the 2017 and 2018 seasons?",
     "correct_answer": "Houston Astros.",
     "incorrect_answers": [
       "Boston Red Sox",
@@ -1293,12 +1293,12 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "What are the Minnesota Twins named after?",
-    "correct_answer": "Minneapolis and St. Paul.",
+    "question": "What does the “Twins” in Minnesota Twins refer to?",
+    "correct_answer": "The Twin Cities of Minneapolis and St. Paul",
     "incorrect_answers": [
-      "Minnesota lakes",
-      "Twin Cities",
-      "The Mississippi River"
+      "Twin brothers who founded the team",
+      "The team's original two stadiums",
+      "Minnesota's two largest lakes"
     ]
   },
   {
@@ -1323,7 +1323,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "Which Minnesota Twin is the only catcher in MLB history to win three batting ...",
+    "question": "Which Minnesota Twin became the first catcher in MLB history to win three batting titles?",
     "correct_answer": "Joe Mauer",
     "incorrect_answers": [
       "Mike Piazza",
@@ -1343,7 +1343,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "Which Twins player also played professional basketball with the Los Angeles L...",
+    "question": "Which Twins player also played professional basketball with the Los Angeles Lakers?",
     "correct_answer": "Cotton Nash",
     "incorrect_answers": [
       "Dave Winfield",
@@ -1353,7 +1353,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "MLB",
-    "question": "What year did the Twins become the first MLB team to hit 300 home runs in a s...",
+    "question": "In what year did the Twins become the first MLB team to hit 300 home runs in a season?",
     "correct_answer": "2019",
     "incorrect_answers": [
       "2018",
@@ -2553,7 +2553,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "US History",
-    "question": "Which document was signed in 1787 and created the current U.S. government str...",
+    "question": "Which document was signed in 1787 and created the current structure of the U.S. government?",
     "correct_answer": "U.S. Constitution",
     "incorrect_answers": [
       "Articles of Confederation",
@@ -2613,7 +2613,7 @@ const CUSTOM_QUESTIONS = [
   },
   {
     "category": "US History",
-    "question": "Which American patriot is known for the midnight ride warning that the Britis...",
+    "question": "Which American patriot is known for a midnight ride warning that British troops were approaching?",
     "correct_answer": "Paul Revere",
     "incorrect_answers": [
       "Samuel Adams",
@@ -3440,5 +3440,425 @@ const CUSTOM_QUESTIONS = [
       "Nathan Hale",
       "Daniel Boone"
     ]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the chemical symbol for gold?",
+    "correct_answer": "Au",
+    "incorrect_answers": ["Ag", "Gd", "Go"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Who wrote the novel Pride and Prejudice?",
+    "correct_answer": "Jane Austen",
+    "incorrect_answers": ["Charlotte Brontë", "Mary Shelley", "George Eliot"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which artist painted The Starry Night?",
+    "correct_answer": "Vincent van Gogh",
+    "incorrect_answers": ["Claude Monet", "Pablo Picasso", "Salvador Dalí"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "In which layer of Earth's atmosphere does most weather occur?",
+    "correct_answer": "Troposphere",
+    "incorrect_answers": ["Stratosphere", "Mesosphere", "Thermosphere"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the capital of New Zealand?",
+    "correct_answer": "Wellington",
+    "incorrect_answers": ["Auckland", "Christchurch", "Queenstown"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the world's smallest independent country by area?",
+    "correct_answer": "Vatican City",
+    "incorrect_answers": ["Monaco", "San Marino", "Liechtenstein"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many faces does a dodecahedron have?",
+    "correct_answer": "12",
+    "incorrect_answers": ["8", "10", "20"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the longest river in Europe?",
+    "correct_answer": "Volga River",
+    "incorrect_answers": ["Danube River", "Rhine River", "Dnieper River"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which blood type is commonly called the universal red-blood-cell donor?",
+    "correct_answer": "O negative",
+    "incorrect_answers": ["O positive", "AB negative", "AB positive"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the largest internal organ in the human body?",
+    "correct_answer": "Liver",
+    "incorrect_answers": ["Lungs", "Brain", "Small intestine"]
+  },
+  {
+    "category": "US History",
+    "question": "Who was the first U.S. president to live in the White House?",
+    "correct_answer": "John Adams",
+    "incorrect_answers": ["George Washington", "Thomas Jefferson", "James Madison"]
+  },
+  {
+    "category": "US History",
+    "question": "Where was the first transcontinental railroad completed in 1869?",
+    "correct_answer": "Promontory Summit, Utah",
+    "incorrect_answers": ["Dodge City, Kansas", "Cheyenne, Wyoming", "Sacramento, California"]
+  },
+  {
+    "category": "US History",
+    "question": "Which site became the first U.S. national park in 1872?",
+    "correct_answer": "Yellowstone",
+    "incorrect_answers": ["Yosemite", "Grand Canyon", "Sequoia"]
+  },
+  {
+    "category": "US History",
+    "question": "Who was the first woman to serve on the U.S. Supreme Court?",
+    "correct_answer": "Sandra Day O'Connor",
+    "incorrect_answers": ["Ruth Bader Ginsburg", "Sonia Sotomayor", "Elena Kagan"]
+  },
+  {
+    "category": "US History",
+    "question": "What was the main purpose of the Marshall Plan after World War II?",
+    "correct_answer": "Rebuild European economies",
+    "incorrect_answers": ["Create NASA", "Build the interstate highway system", "Purchase Alaska"]
+  },
+  {
+    "category": "US History",
+    "question": "Which Apollo 11 astronaut remained in lunar orbit while the other two walked on the Moon?",
+    "correct_answer": "Michael Collins",
+    "incorrect_answers": ["John Glenn", "Alan Shepard", "Jim Lovell"]
+  },
+  {
+    "category": "US History",
+    "question": "Which president established the Peace Corps in 1961?",
+    "correct_answer": "John F. Kennedy",
+    "incorrect_answers": ["Dwight D. Eisenhower", "Lyndon B. Johnson", "Richard Nixon"]
+  },
+  {
+    "category": "US History",
+    "question": "The Erie Canal originally connected the Hudson River with which Great Lake?",
+    "correct_answer": "Lake Erie",
+    "incorrect_answers": ["Lake Ontario", "Lake Michigan", "Lake Superior"]
+  },
+  {
+    "category": "NHL",
+    "question": "How many goals must one player score in a game to record a hat trick?",
+    "correct_answer": "3",
+    "incorrect_answers": ["2", "4", "5"]
+  },
+  {
+    "category": "NHL",
+    "question": "What is the marked area directly in front of a hockey goal called?",
+    "correct_answer": "The crease",
+    "incorrect_answers": ["The slot", "The point", "The neutral zone"]
+  },
+  {
+    "category": "NHL",
+    "question": "Which team was NOT one of the NHL's Original Six franchises?",
+    "correct_answer": "Pittsburgh Penguins",
+    "incorrect_answers": ["Boston Bruins", "New York Rangers", "Chicago Blackhawks"]
+  },
+  {
+    "category": "NFL",
+    "question": "How many points is a touchdown worth before any extra-point attempt?",
+    "correct_answer": "6",
+    "incorrect_answers": ["3", "7", "8"]
+  },
+  {
+    "category": "NFL",
+    "question": "What is the trophy awarded to the Super Bowl champion called?",
+    "correct_answer": "Vince Lombardi Trophy",
+    "incorrect_answers": ["George Halas Trophy", "Lamar Hunt Trophy", "Walter Payton Trophy"]
+  },
+  {
+    "category": "NFL",
+    "question": "In which Ohio city is the Pro Football Hall of Fame located?",
+    "correct_answer": "Canton",
+    "incorrect_answers": ["Cleveland", "Columbus", "Dayton"]
+  },
+  {
+    "category": "NBA",
+    "question": "Who scored an NBA-record 100 points in a single game in 1962?",
+    "correct_answer": "Wilt Chamberlain",
+    "incorrect_answers": ["Bill Russell", "Kareem Abdul-Jabbar", "Elgin Baylor"]
+  },
+  {
+    "category": "NBA",
+    "question": "During which season did the NBA introduce the three-point line?",
+    "correct_answer": "1979–80",
+    "incorrect_answers": ["1969–70", "1984–85", "1990–91"]
+  },
+  {
+    "category": "NBA",
+    "question": "What does a player record in a triple-double?",
+    "correct_answer": "Double-digit totals in three statistical categories",
+    "incorrect_answers": ["Three made three-pointers", "Thirty points in three quarters", "Three double-overtime wins"]
+  },
+  {
+    "category": "MLB",
+    "question": "What must happen for a pitcher to be credited with a perfect game?",
+    "correct_answer": "No opposing batter reaches base",
+    "incorrect_answers": ["The pitcher records 27 strikeouts", "The team wins without an error", "No opposing player gets a hit"]
+  },
+  {
+    "category": "MLB",
+    "question": "Which annual MLB award honors the best pitcher in each league?",
+    "correct_answer": "Cy Young Award",
+    "incorrect_answers": ["Gold Glove Award", "Silver Slugger Award", "Hank Aaron Award"]
+  },
+  {
+    "category": "MLB",
+    "question": "Which player's number 42 is retired across Major League Baseball?",
+    "correct_answer": "Jackie Robinson",
+    "incorrect_answers": ["Hank Aaron", "Willie Mays", "Babe Ruth"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the world's largest island that is not considered a continent?",
+    "correct_answer": "Greenland",
+    "incorrect_answers": ["New Guinea", "Borneo", "Madagascar"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which city is Switzerland's federal city and seat of government?",
+    "correct_answer": "Bern",
+    "incorrect_answers": ["Zurich", "Geneva", "Basel"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the chemical symbol for potassium?",
+    "correct_answer": "K",
+    "incorrect_answers": ["P", "Pt", "Po"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which gas makes up the largest share of Earth's atmosphere?",
+    "correct_answer": "Nitrogen",
+    "incorrect_answers": ["Oxygen", "Carbon dioxide", "Argon"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the smallest bone in the human body?",
+    "correct_answer": "Stapes",
+    "incorrect_answers": ["Patella", "Coccyx", "Ulna"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "On which planet is one rotation longer than one trip around the Sun?",
+    "correct_answer": "Venus",
+    "incorrect_answers": ["Mercury", "Mars", "Neptune"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the square root of 144?",
+    "correct_answer": "12",
+    "incorrect_answers": ["10", "14", "16"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which Roman numeral represents 50?",
+    "correct_answer": "L",
+    "incorrect_answers": ["C", "D", "X"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Who wrote The Hobbit?",
+    "correct_answer": "J.R.R. Tolkien",
+    "incorrect_answers": ["C.S. Lewis", "George R.R. Martin", "Terry Pratchett"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is Shakespeare's longest play?",
+    "correct_answer": "Hamlet",
+    "incorrect_answers": ["Macbeth", "Othello", "Romeo and Juliet"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which artist painted Guernica?",
+    "correct_answer": "Pablo Picasso",
+    "incorrect_answers": ["Salvador Dalí", "Joan Miró", "Henri Matisse"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "In Greek mythology, who is the god of the sea?",
+    "correct_answer": "Poseidon",
+    "incorrect_answers": ["Ares", "Hermes", "Apollo"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "In which city would you find the Colosseum?",
+    "correct_answer": "Rome",
+    "incorrect_answers": ["Athens", "Florence", "Naples"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "In which country is Machu Picchu located?",
+    "correct_answer": "Peru",
+    "incorrect_answers": ["Chile", "Bolivia", "Ecuador"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which river flows through Paris?",
+    "correct_answer": "Seine",
+    "incorrect_answers": ["Rhine", "Thames", "Danube"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which Great Lake is largest by surface area?",
+    "correct_answer": "Lake Superior",
+    "incorrect_answers": ["Lake Michigan", "Lake Huron", "Lake Erie"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which continent lies in all four hemispheres?",
+    "correct_answer": "Africa",
+    "incorrect_answers": ["Asia", "South America", "Australia"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which spice comes from the dried stigmas of a crocus flower?",
+    "correct_answer": "Saffron",
+    "incorrect_answers": ["Turmeric", "Paprika", "Cinnamon"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which Italian dessert is traditionally made with coffee, mascarpone, and ladyfingers?",
+    "correct_answer": "Tiramisu",
+    "incorrect_answers": ["Panna cotta", "Cannoli", "Gelato"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which plant is the traditional source of tequila?",
+    "correct_answer": "Blue agave",
+    "incorrect_answers": ["Sugarcane", "Barley", "Juniper"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which cheese is traditionally crumbled into a Greek salad?",
+    "correct_answer": "Feta",
+    "incorrect_answers": ["Brie", "Gouda", "Cheddar"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the browning of sugar through heat called?",
+    "correct_answer": "Caramelization",
+    "incorrect_answers": ["Fermentation", "Pasteurization", "Emulsification"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What does the Italian cooking term “al dente” mean?",
+    "correct_answer": "Firm to the bite",
+    "incorrect_answers": ["Cooked without salt", "Served cold", "Covered in sauce"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which element has the chemical symbol Fe?",
+    "correct_answer": "Iron",
+    "incorrect_answers": ["Fluorine", "Francium", "Fermium"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Approximately how fast does light travel in a vacuum?",
+    "correct_answer": "300,000 kilometers per second",
+    "incorrect_answers": ["30,000 kilometers per second", "3,000 kilometers per second", "3 million kilometers per second"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which cell structure is commonly called the powerhouse of the cell?",
+    "correct_answer": "Mitochondrion",
+    "incorrect_answers": ["Nucleus", "Ribosome", "Cell membrane"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What shape is the structure of a DNA molecule?",
+    "correct_answer": "Double helix",
+    "incorrect_answers": ["Single spiral", "Triple helix", "Flat ring"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many chambers are in the human heart?",
+    "correct_answer": "4",
+    "incorrect_answers": ["2", "3", "5"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is the scientific study of weather called?",
+    "correct_answer": "Meteorology",
+    "incorrect_answers": ["Seismology", "Ecology", "Astronomy"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which animals are the only mammals capable of true powered flight?",
+    "correct_answer": "Bats",
+    "incorrect_answers": ["Flying squirrels", "Sugar gliders", "Colugos"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many hearts does an octopus have?",
+    "correct_answer": "3",
+    "incorrect_answers": ["1", "2", "4"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "What is a group of crows commonly called?",
+    "correct_answer": "A murder",
+    "incorrect_answers": ["A parliament", "A crash", "A pride"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which country is generally credited with inventing paper?",
+    "correct_answer": "China",
+    "incorrect_answers": ["Egypt", "Greece", "India"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many interlocking rings appear in the Olympic symbol?",
+    "correct_answer": "5",
+    "incorrect_answers": ["4", "6", "7"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many pieces does each player begin with in a standard game of chess?",
+    "correct_answer": "16",
+    "incorrect_answers": ["12", "14", "18"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "How many suits are in a standard deck of playing cards?",
+    "correct_answer": "4",
+    "incorrect_answers": ["3", "5", "6"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which letter does not appear in the name of any U.S. state?",
+    "correct_answer": "Q",
+    "incorrect_answers": ["J", "X", "Z"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which language has the most native speakers worldwide?",
+    "correct_answer": "Mandarin Chinese",
+    "incorrect_answers": ["English", "Spanish", "Hindi"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Which musician recorded the song Purple Rain?",
+    "correct_answer": "Prince",
+    "incorrect_answers": ["David Bowie", "Michael Jackson", "Stevie Wonder"]
+  },
+  {
+    "category": "General Knowledge",
+    "question": "Who was the drummer for the Beatles?",
+    "correct_answer": "Ringo Starr",
+    "incorrect_answers": ["George Harrison", "Paul McCartney", "Pete Townshend"]
   }
 ];
