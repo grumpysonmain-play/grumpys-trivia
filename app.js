@@ -90,6 +90,7 @@ setSeasonalBranding();
 function setPhase(phase) {
   clearFinalStageTimeouts();
   screenEl.classList.remove("phase-join", "phase-question", "phase-reveal", "phase-final");
+  screenEl.classList.remove("final-board-active");
   screenEl.classList.remove("phase-enter");
   screenEl.classList.add(`phase-${phase}`);
   void screenEl.offsetWidth;
@@ -716,6 +717,8 @@ async function showFinalScreen() {
   `;
 
   const activateFinalStage = stageName => {
+    screenEl.classList.toggle("final-board-active", stageName !== "winner");
+
     answersEl.querySelectorAll(".final-stage").forEach(stage => {
       stage.classList.toggle("is-active", stage.dataset.finalStage === stageName);
     });
