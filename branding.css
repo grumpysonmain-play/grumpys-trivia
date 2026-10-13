@@ -1,0 +1,2 @@
+/* Keep Grumpy’s original artwork and colors legible in both themes. */
+.brand-logo,.mobile-logo,.control-brand img,.profile-identity img,.preview-brand img { filter:drop-shadow(0 5px 12px rgba(0,0,0,.35)); background:#fff8ee; padding:5px; border-radius:12px; }

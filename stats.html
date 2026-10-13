@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow" />
   <title>Grumpy's Games Control Room</title>
   <link rel="stylesheet" href="stats.css?v=control1" />
-</head>
+<link rel="stylesheet" href="appearance.css"><link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"></head>
 <body>
   <div class="dashboard-glow dashboard-glow-one" aria-hidden="true"></div>
   <div class="dashboard-glow dashboard-glow-two" aria-hidden="true"></div>
@@ -23,7 +23,7 @@
       <button class="dashboard-tab" data-panel="stacker" type="button"><span>▤</span> Stacker</button>
       <button class="dashboard-tab" data-panel="emoji" type="button"><span>☺</span> Emoji Decoder</button>
       <button class="dashboard-tab" data-panel="gateway" type="button"><span>☷</span> Gateway Order</button>
-    </nav>
+    <button class="dashboard-tab" data-panel="appearance" type="button"><span>◐</span> Appearance</button></nav>
 
     <main class="dashboard-main">
       <section class="dashboard-panel active" data-panel-content="overview">
@@ -76,11 +76,23 @@
           <aside class="panel-card gateway-preview-card"><div class="card-heading"><div><span class="eyebrow purple">LIVE PREVIEW</span><h3>Player View</h3></div></div><div class="phone-preview"><div class="preview-brand"><img src="assets/grumpys-logo.png" alt="" /><div><small>GRUMPY'S GAMES</small><strong>PLAY</strong></div></div><p>What are you playing?</p><div id="gatewayPreviewList" class="preview-list"></div></div></aside>
         </div>
       </section>
-    </main>
+
+<section class="dashboard-panel" data-panel-content="appearance">
+ <div class="page-heading"><div><span class="eyebrow orange">ALL GRUMPY’S SCREENS</span><h2>Appearance</h2><p>Choose one theme for the TV displays, player phones, arcade games, and control room.</p></div></div>
+ <article class="panel-card appearance-card">
+  <div class="card-heading"><div><span class="eyebrow">CURRENT THEME</span><h3 id="currentThemeLabel">Halloween</h3></div><span id="themeSaveStatus" class="save-status" role="status" aria-live="polite">Not changed</span></div>
+  <div class="theme-options" role="group" aria-label="Choose a theme">
+   <button class="appearance-choice" data-theme="regular" type="button" aria-pressed="false"><div class="theme-swatch regular-swatch"><span class="swatch-brand">GRUMPY’S TRIVIA</span><div class="swatch-answers"><i>A</i><i>B</i><i>C</i><i>D</i></div></div><div class="theme-choice-copy"><strong>Regular</strong><span>The original look with rotating round colors.</span></div></button>
+   <button class="appearance-choice" data-theme="halloween" type="button" aria-pressed="true"><div class="theme-swatch halloween-swatch"><span class="swatch-brand">GRUMPY’S TRIVIA</span><span class="swatch-pals"><svg viewBox="0 0 120 104" aria-hidden="true"><path d="M57 25Q55 7 70 5L78 12Q63 14 65 29" fill="#805136"/><g fill="#f57b16" stroke="#1b0d08" stroke-width="3"><ellipse cx="36" cy="61" rx="29" ry="37"/><ellipse cx="83" cy="61" rx="29" ry="37"/><ellipse cx="59" cy="62" rx="33" ry="39"/></g><g class="face" stroke="#201208" stroke-width="2.5" stroke-linejoin="round"><path d="M29 53L42 33L50 55ZM70 55L79 33L94 53ZM59 53L53 63L65 63ZM27 68L41 75L44 70L53 78L63 78L73 70L78 75L95 67Q85 92 72 88L67 83L53 83L48 88Q34 86 27 68Z"/></g></svg><svg class="ghost-icon" viewBox="0 0 64 84" aria-hidden="true"><path d="M8 73V31C8 0 56 0 56 31V73L45 65L34 76L23 65Z" fill="#f3eaff" stroke="#a667d1" stroke-width="3" stroke-linejoin="round"/><ellipse cx="24" cy="32" rx="4" ry="6" fill="#332140"/><ellipse cx="41" cy="32" rx="4" ry="6" fill="#332140"/><path d="M28 48Q33 55 38 48" fill="none" stroke="#332140" stroke-width="3" stroke-linecap="round"/></svg></span><div class="swatch-answers"><i>A</i><i>B</i><i>C</i><i>D</i></div></div><div class="theme-choice-copy"><strong>Halloween</strong><span>Orange and purple, little pumpkins, ghosts, and bats.</span></div></button>
+  </div>
+  <div class="appearance-footer"><p>Changing the theme updates everyone’s open screens. Scores, rounds, and player accounts stay the same.</p><button id="applyThemeBtn" class="primary-button" type="button" disabled>Apply to everyone</button></div>
+  <p id="appearanceHelp" class="appearance-help" role="status">Choose a theme, then apply it.</p>
+ </article>
+</section></main>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="stats.js?v=control1"></script>
-</body>
+<script src="shared-theme.js"></script></body>
 </html>
