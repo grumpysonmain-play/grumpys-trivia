@@ -321,7 +321,7 @@ function paintMenuChip() {
 
 function getNextRoundText() {
   if (!nextRoundTarget) return "Soon";
-  const seconds = Math.ceil((nextRoundTarget - Date.now()) / 1000);
+  const seconds = Math.ceil((nextRoundTarget - serverNow()) / 1000);
   return seconds > 0 ? formatTime(seconds) : "Soon";
 }
 
@@ -359,7 +359,7 @@ function renderSignInStrip(game = {}) {
     return;
   }
 
-  if (nextRoundTarget && nextRoundTarget > Date.now()) {
+  if (nextRoundTarget && nextRoundTarget > serverNow()) {
     setRich(signInLiveText, "Next trivia round in ", getNextRoundText());
     signInLiveCount.textContent = "";
     return;
@@ -1437,6 +1437,11 @@ function isPinValid(pin) {
   return /^[0-9]{4}$/.test(pin);
 }
 
+// Firebase's clock (from grumpys-auth.js): the same clock the TV and the answers use.
+function serverNow() {
+  return typeof window.grumpysServerNow === "function" ? window.grumpysServerNow() : Date.now();
+}
+
 function calculateLivePoints(game) {
   if (!game || !game.questionStartedAt) return 0;
 
@@ -1444,7 +1449,7 @@ function calculateLivePoints(game) {
   const questionSeconds = game.questionSeconds || 20;
   const graceSeconds = game.fullPointsGraceSeconds ?? 3;
 
-  const elapsedMs = Date.now() - game.questionStartedAt;
+  const elapsedMs = serverNow() - game.questionStartedAt;
   const graceMs = graceSeconds * 1000;
   const scoringMs = Math.max(1, (questionSeconds - graceSeconds) * 1000);
 
@@ -1492,8 +1497,10 @@ function makeGuestName() {
   return `Guest ${number}`;
 }
 
+// With sign-in switched on, a guest's id is tied to this phone so nobody else can answer for them.
 function makeGuestId() {
-  return `guest_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const uid = typeof window.grumpysUid === "function" ? window.grumpysUid() : null;
+  return uid ? `guest_${uid}` : `guest_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
 function clearGuestSession() {
@@ -1568,6 +1575,7 @@ function rememberCompletedRoundIfNeeded(game, player) {
 }
 
 async function addPlayerToCurrentRound(game) {
+  if (isPlayerPreview) return;
   if (!playerId || !playerName) return;
   if (!game || !game.roundId) return;
   if (game.phase === "waiting") return;
@@ -1577,6 +1585,16 @@ async function addPlayerToCurrentRound(game) {
   isAutoJoining = true;
 
   try {
+    if (window.grumpysAuthReady) await window.grumpysAuthReady;
+    if (isGuest) {
+      const guestId = makeGuestId();
+      if (guestId.startsWith("guest_") && window.grumpysUid?.() && playerId !== guestId) {
+        saveGuestLocally(guestId, playerName);
+      }
+    } else if (window.grumpysPlayerReady) {
+      await window.grumpysPlayerReady;
+    }
+
     const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
     const existingRoundPlayer = playerSnap.val();
 
@@ -1637,39 +1655,21 @@ async function joinGame() {
     return;
   }
 
-  const nameSnap = await claimedNamesRef.child(nameKey).once("value");
-  const existingProfile = nameSnap.val();
-
-  if (existingProfile && existingProfile.pin !== pin) {
-    setJoinError("That name is already taken. Use the correct PIN or pick a different name.");
+  joinBtn.disabled = true;
+  try {
+    const result = await claimNickname(nameKey, cleanedName, pin);
+    if (result.error) {
+      setJoinError(result.error);
+      return;
+    }
+    saveRegisteredLocally(result.playerId, cleanedName, nameKey, pin);
+  } catch (error) {
+    console.error("Sign in failed:", error);
+    setJoinError("Couldn't sign you in just now. Check your connection and try again.");
     return;
+  } finally {
+    joinBtn.disabled = false;
   }
-
-  let newPlayerId;
-
-  if (existingProfile) {
-    newPlayerId = existingProfile.playerId;
-  } else {
-    newPlayerId = `player_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-
-    await claimedNamesRef.child(nameKey).set({
-      playerId: newPlayerId,
-      displayName: cleanedName,
-      pin,
-      totalScore: 0,
-      gamesPlayed: 0,
-      wins: 0,
-      createdAt: Date.now(),
-      lastPlayed: Date.now()
-    });
-  }
-
-  saveRegisteredLocally(newPlayerId, cleanedName, nameKey, pin);
-
-  await claimedNamesRef.child(nameKey).update({
-    displayName: cleanedName,
-    lastPlayed: Date.now()
-  });
 
   const gameSnap = await gameRef.once("value");
   const game = gameSnap.val() || {};
@@ -1679,8 +1679,68 @@ async function joinGame() {
   renderGame((await gameRef.once("value")).val() || game);
 }
 
+// Checks the PIN and returns { playerId } or { error }.
+// With the secure Firebase rules the PIN is checked by Firebase and never shown to phones.
+async function claimNickname(nameKey, cleanedName, pin) {
+  const TAKEN = "That name is already taken. Use the correct PIN or pick a different name.";
+  const uid = window.grumpysAuthReady ? await window.grumpysAuthReady : null;
+  const existingProfile = (await claimedNamesRef.child(nameKey).once("value")).val();
+  const publicPin = existingProfile && existingProfile.pin !== undefined && existingProfile.pin !== null
+    ? String(existingProfile.pin)
+    : null;
+
+  if (existingProfile) {
+    if (publicPin !== null && publicPin !== pin) return { error: TAKEN };
+
+    if (uid) {
+      const ok = await window.grumpysClaimPlayer(nameKey, pin, existingProfile.playerId);
+      if (!ok) return { error: TAKEN };
+    } else if (publicPin === null) {
+      // The PIN lives in private storage and this phone couldn't sign in to check it.
+      return { error: "Couldn't check your PIN right now. Wait a moment and try again." };
+    }
+
+    // The TV saves the name as typed (capitals and all) when the round ends.
+    await claimedNamesRef.child(nameKey).update({ lastPlayed: Date.now() })
+      .catch(error => console.warn("Profile update skipped:", error));
+
+    return { playerId: existingProfile.playerId };
+  }
+
+  // With sign-in on, the id starts with this phone's sign-in id, so nobody can copy someone else's.
+  const idSeed = uid ? `${uid}_${Date.now().toString(36)}` : `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const newPlayerId = `player_${idSeed}`;
+  const profile = {
+    playerId: newPlayerId,
+    displayName: cleanedName,
+    totalScore: 0,
+    gamesPlayed: 0,
+    wins: 0,
+    createdAt: Date.now(),
+    lastPlayed: Date.now()
+  };
+
+  if (!uid) {
+    // Sign-in isn't switched on yet: the old way, with the PIN on the profile.
+    await claimedNamesRef.child(nameKey).set({ ...profile, pin });
+    return { playerId: newPlayerId };
+  }
+
+  // Lock the name to this PIN first, then make the profile and link this phone to it.
+  if (!(await window.grumpysClaimPlayer(nameKey, pin, null))) return { error: TAKEN };
+  try {
+    await claimedNamesRef.child(nameKey).set(profile);
+  } catch (error) {
+    // Someone made this profile a moment ago.
+    return { error: TAKEN };
+  }
+  await db.ref(`owners/${newPlayerId}/${uid}`).set(nameKey);
+  return { playerId: newPlayerId };
+}
+
 async function joinAsGuest() {
   setJoinError("");
+  if (window.grumpysAuthReady) await window.grumpysAuthReady;
 
   saveGuestLocally(makeGuestId(), makeGuestName());
 
@@ -1702,7 +1762,8 @@ async function submitAnswer(choiceIndex) {
 
   const answerData = {
     choiceIndex,
-    answeredAt: Date.now(),
+    // Firebase stamps the real time, so a phone's clock can't change the points.
+    answeredAt: serverNow(),
     pointsPossible: calculateLivePoints(currentGame),
     scored: false
   };
@@ -1713,7 +1774,10 @@ async function submitAnswer(choiceIndex) {
   renderQuestionScreen(currentGame, currentGame.players || {});
 
   try {
-    await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set(answerData);
+    await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set({
+      ...answerData,
+      answeredAt: firebase.database.ServerValue.TIMESTAMP
+    });
   } catch (error) {
     console.error("Answer submit failed:", error);
     delete localLockedAnswers[questionIndex];

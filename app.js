@@ -80,6 +80,11 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+// Firebase's clock (from grumpys-auth.js), so every screen and phone agrees on the time.
+function serverNow() {
+  return typeof window.grumpysServerNow === "function" ? window.grumpysServerNow() : Date.now();
+}
+
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -352,7 +357,7 @@ function getTvPointsEls() {
 function calculateLivePoints(startedAt = currentQuestionStartedAt) {
   if (!startedAt) return 0;
 
-  const elapsedMs = Date.now() - startedAt;
+  const elapsedMs = serverNow() - startedAt;
   const graceMs = FULL_POINTS_GRACE_SECONDS * 1000;
   const scoringMs = Math.max(1, (QUESTION_SECONDS - FULL_POINTS_GRACE_SECONDS) * 1000);
 
@@ -713,26 +718,29 @@ async function showQuestion(questionData, index) {
   ]).map(decodeHtml);
 
   correctAnswerIndex = choices.indexOf(decodeHtml(questionData.correct_answer));
-  const startedAt = Date.now();
-
-  renderQuestion(decodedCategory, decodedQuestion, choices, index, startedAt);
+  // The real start time is stamped by Firebase's server, the same clock that stamps answers.
+  renderQuestion(decodedCategory, decodedQuestion, choices, index, serverNow());
 
   await gameRef.update({
     roundId,
     phase: "question",
     questionIndex: index,
+    currentQuestionKey: String(index),
     questionCount: roundQuestionCount,
     category: decodedCategory,
     question: decodedQuestion,
     choices,
     correctAnswerIndex: null,
     timer: QUESTION_SECONDS,
-    questionStartedAt: startedAt,
+    questionStartedAt: firebase.database.ServerValue.TIMESTAMP,
     questionSeconds: QUESTION_SECONDS,
     maxPoints: MAX_POINTS,
     fullPointsGraceSeconds: FULL_POINTS_GRACE_SECONDS,
     finalSaved: false
   });
+
+  const stamped = (await gameRef.child("questionStartedAt").once("value")).val();
+  if (typeof stamped === "number") currentQuestionStartedAt = stamped;
 }
 
 async function showAnswerReveal(index) {
@@ -976,7 +984,7 @@ async function showFinalScreen() {
 
   const allTimeLeaders = await getAllTimeLeaders();
 
-  nextRoundExpectedAt = Date.now() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
+  nextRoundExpectedAt = serverNow() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
 
   if (allRoundPlayers.length === 0) {
     showHallOfFame(allTimeLeaders);
@@ -1189,7 +1197,7 @@ async function showQuestionBumper(questionData, index) {
   playBumper(category, index, roundQuestionCount);
 
   // Lets the second screen play the same bumper at the same moment.
-  gameRef.update({ bumperIndex: index, bumperCategory: category, bumperAt: Date.now(), questionCount: roundQuestionCount });
+  gameRef.update({ bumperIndex: index, bumperCategory: category, bumperAt: serverNow(), questionCount: roundQuestionCount });
 
   await wait(2450);
 }
@@ -1199,16 +1207,24 @@ async function runRound() {
   applyRoundTheme(roundId);
   nextRoundExpectedAt = null;
 
-  await gameRef.set({
-    roundId,
-    phase: "join",
-    timer: JOIN_SECONDS,
-    players: {},
-    finalSaved: false,
-    lastCompletedRoundId: null,
-    nextRoundExpectedAt: null,
-    waitingMessage: null
-  });
+  try {
+    await gameRef.set({
+      roundId,
+      phase: "join",
+      timer: JOIN_SECONDS,
+      players: {},
+      currentQuestionKey: null,
+      finalSaved: false,
+      lastCompletedRoundId: null,
+      nextRoundExpectedAt: null,
+      waitingMessage: null
+    });
+  } catch (error) {
+    // The secure Firebase rules only let the real host screen run the game.
+    console.warn("This screen is not allowed to run trivia:", error);
+    showHostSetupMessage();
+    return;
+  }
 
   showJoinScreen();
   await startCountdown(JOIN_SECONDS);
@@ -1226,7 +1242,7 @@ async function runRound() {
   await startCountdown(FINAL_SECONDS);
 
   const waitSeconds = nextRoundExpectedAt
-    ? Math.max(0, Math.ceil((nextRoundExpectedAt - Date.now()) / 1000))
+    ? Math.max(0, Math.ceil((nextRoundExpectedAt - serverNow()) / 1000))
     : NEXT_TRIVIA_WAIT_SECONDS;
 
   await gameRef.update({
@@ -1341,7 +1357,7 @@ function onViewerGame(game) {
   const bumperKey = game.bumperIndex !== undefined && game.bumperIndex !== null ? `${game.roundId}:${game.bumperIndex}` : null;
   if (bumperKey && bumperKey !== viewerState.bumperKey) {
     viewerState.bumperKey = bumperKey;
-    if (Date.now() - (game.bumperAt || 0) < 2500) playBumper(game.bumperCategory, game.bumperIndex, roundQuestionCount);
+    if (serverNow() - (game.bumperAt || 0) < 2500) playBumper(game.bumperCategory, game.bumperIndex, roundQuestionCount);
   }
 
   const key = `${game.roundId}:${game.phase}:${game.questionIndex ?? ""}`;
@@ -1369,14 +1385,14 @@ async function renderViewerPhase(game) {
   if (game.phase === "question") {
     viewerState.standingsAtQuestion = getSortedPlayers(players);
     correctAnswerIndex = -1;
-    renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], game.questionIndex || 0, game.questionStartedAt || Date.now());
+    renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], game.questionIndex || 0, game.questionStartedAt || serverNow());
     return;
   }
 
   if (game.phase === "reveal") {
     const index = game.questionIndex || 0;
     if (currentPhase !== "question" || currentQuestionIndex !== index) {
-      renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], index, game.questionStartedAt || Date.now());
+      renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], index, game.questionStartedAt || serverNow());
     }
     correctAnswerIndex = game.correctAnswerIndex;
     const previous = viewerState.standingsAtQuestion.length ? viewerState.standingsAtQuestion : getSortedPlayers(players);
@@ -1404,7 +1420,7 @@ async function renderViewerPhase(game) {
     phaseLabel.textContent = "Next Round";
     timerCaptionEl.textContent = "NEXT ROUND IN";
     const tick = () => {
-      const seconds = game.nextRoundExpectedAt ? Math.max(0, Math.ceil((game.nextRoundExpectedAt - Date.now()) / 1000)) : 0;
+      const seconds = game.nextRoundExpectedAt ? Math.max(0, Math.ceil((game.nextRoundExpectedAt - serverNow()) / 1000)) : 0;
       timerEl.textContent = formatTime(seconds);
     };
     tick();
@@ -1412,9 +1428,41 @@ async function renderViewerPhase(game) {
   }
 }
 
+// Shown when this screen isn't the host (no host key, or the key doesn't match).
+function showHostSetupMessage() {
+  setPhase("join");
+  hideTvPointsBar();
+  phaseLabel.textContent = "Setup";
+  timerEl.textContent = "--:--";
+  timerCaptionEl.textContent = "NOT RUNNING";
+  categoryEl.textContent = "Host setup needed";
+  questionCounterEl.textContent = "";
+  questionEl.classList.remove("join-phrase");
+  setTvQuestionText("This screen isn't set up to run trivia.");
+  answersEl.innerHTML = `
+    <div class="host-setup">
+      <p>Only the main trivia TV can run the game. To make this screen the host, add your host key to the end of its web address:</p>
+      <code>…/index.html?host=YOUR-HOST-KEY</code>
+      <p>The other screens and the phones are not affected.</p>
+    </div>
+  `;
+  messageEl.textContent = "";
+  roundProgressEl.textContent = "";
+}
+
 async function init() {
   hideTvPointsBar();
   setQrCode();
+
+  if (!IS_VIEWER && window.grumpysHostReady) {
+    const isHost = await window.grumpysHostReady;
+    // Tidy-up job for the secure rules: move any PINs off the public profiles.
+    if (isHost && window.grumpysMigratePins) {
+      window.grumpysMigratePins()
+        .then(moved => { if (moved) console.info(`Moved ${moved} PINs to private storage.`); })
+        .catch(error => console.warn("PIN move failed:", error));
+    }
+  }
 
   if (IS_VIEWER) {
     startViewer();

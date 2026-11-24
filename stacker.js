@@ -117,6 +117,7 @@ async function saveBestLevel() {
   localStorage.setItem(bestKey,String(bestLevel));
   if (isGuest || !playerId) return;
   try {
+    if (window.grumpysPlayerReady) await window.grumpysPlayerReady;
     await stackerPlayersRef.child(playerId).transaction(profile => {
       const existing = profile || {};
       return {...existing,name:playerName || "Player",bestLevel:Math.max(Number(existing.bestLevel) || 0,bestLevel),updatedAt:Date.now()};

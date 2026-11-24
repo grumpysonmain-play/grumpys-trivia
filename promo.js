@@ -167,7 +167,8 @@ function renderBetween(game) {
       betweenTimerEl.textContent = "Soon";
       return;
     }
-    const seconds = Math.ceil((target - Date.now()) / 1000);
+    const now = typeof window.grumpysServerNow === "function" ? window.grumpysServerNow() : Date.now();
+    const seconds = Math.ceil((target - now) / 1000);
     betweenTimerEl.textContent = seconds > 0 ? formatTime(seconds) : "Soon";
   };
 

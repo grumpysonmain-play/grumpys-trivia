@@ -257,7 +257,7 @@ async function saveGatewayOrder() {
   } catch (error) {
     console.error("Gateway order save failed:", error);
     setOrderStatus("Save failed", "changed");
-    alert("The order could not be saved. Add the settings/gatewayOrder permission to your Firebase rules, then try again.");
+    alert("The order could not be saved. Open this page with your host key on the end of the address (stats.html?host=YOUR-KEY), then try again.");
   } finally {
     saveOrderBtn.disabled = false;
   }
@@ -278,7 +278,7 @@ async function renamePlayer(nameKey, currentName) {
     if (Object.keys(updates).length) await gameRef.update(updates);
   } catch (error) {
     console.error("Rename failed:", error);
-    alert("Rename failed. Try again.");
+    alert(isPermissionError(error) ? "Rename not allowed. Open this page with your host key on the end of the address (stats.html?host=YOUR-KEY), then try again." : "Rename failed. Try again.");
   }
 }
 
@@ -326,3 +326,32 @@ emojiPlayersRef.on("value", snapshot => renderArcadeStats({ prefix: "emoji", sco
 gatewayOrderRef.on("value", snapshot => { gatewayOrderDraft = sanitizeGatewayOrder(snapshot.val()); renderGatewayOrder(); setOrderStatus(snapshot.exists() ? "Saved live" : "Using default", snapshot.exists() ? "saved" : ""); }, error => { console.warn("Gateway order could not be loaded:", error); gatewayOrderDraft = [...DEFAULT_GATEWAY_ORDER]; renderGatewayOrder(); setOrderStatus("Rules needed", "changed"); });
 
 renderGatewayOrder();
+
+// ---------- Admin access ----------
+function isPermissionError(error) {
+  return /permission/i.test(String(error && (error.code || error.message)));
+}
+
+function showAdminStatus(isAdmin) {
+  const actions = document.querySelector(".top-actions");
+  if (!actions) return;
+  const color = isAdmin ? "var(--green)" : "#ffb347";
+  const pill = document.createElement("span");
+  pill.className = "connection-pill admin-pill";
+  pill.title = isAdmin ? "Changes on this page are saved for everyone." : "Add ?host=YOUR-KEY to the address to make changes.";
+  pill.innerHTML = `<i style="background:${color};box-shadow:0 0 12px ${color}"></i>${isAdmin ? "ADMIN" : "VIEW ONLY"}`;
+  actions.prepend(pill);
+}
+
+if (window.grumpysHostReady) {
+  window.grumpysHostReady.then(isAdmin => {
+    // Before sign-in is switched on in Firebase, everything still works the old way.
+    showAdminStatus(isAdmin || !window.grumpysUid?.());
+    // Move any PINs still on public profiles into private storage.
+    if (isAdmin && window.grumpysMigratePins) {
+      window.grumpysMigratePins()
+        .then(moved => { if (moved) console.info(`Moved ${moved} PINs to private storage.`); })
+        .catch(error => console.warn("PIN move failed:", error));
+    }
+  });
+}

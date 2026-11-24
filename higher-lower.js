@@ -118,6 +118,7 @@ async function saveBestStreak() {
   if (isGuest || !playerId || previewMode) return;
 
   try {
+    if (window.grumpysPlayerReady) await window.grumpysPlayerReady;
     const playerRef = higherLowerPlayersRef.child(playerId);
     await playerRef.transaction(profile => {
       const existing = profile || {};

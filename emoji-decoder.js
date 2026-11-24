@@ -293,6 +293,7 @@ async function savePersonalBest() {
   localStorage.setItem(bestKey,String(personalBest));
   if (isGuest || !playerId) return;
   try {
+    if (window.grumpysPlayerReady) await window.grumpysPlayerReady;
     await decoderPlayersRef.child(playerId).transaction(profile => {
       const existing = profile || {};
       return {...existing,name:playerName || "Player",bestScore:Math.max(Number(existing.bestScore) || 0,personalBest),updatedAt:Date.now()};
