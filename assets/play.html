@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play Grumpy's Trivia</title>
+  <link rel="stylesheet" href="play.css?v=hub7" />
+<link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"></head>
+<body>
+  <div class="phone-atmosphere" aria-hidden="true">
+    <div class="phone-glow phone-glow-top"></div>
+    <div class="phone-glow phone-glow-bottom"></div>
+  </div>
+
+  <main class="phone">
+    <section id="joinView" class="card join-card">
+      <header class="mobile-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div>
+      </header>
+
+      <div class="join-intro">
+        <div class="section-kicker">ONE LOGIN · EVERY GAME</div>
+        <h2>Pick your player name.</h2>
+        <p>A nickname and four-digit PIN keep your trivia scores, streaks, wins, and rankings together.</p>
+      </div>
+
+      <div class="join-fields">
+        <label class="field-label" for="nameInput"><span>Nickname</span></label>
+        <input id="nameInput" maxlength="18" autocomplete="username" autocapitalize="words" placeholder="Example: Trivia King" />
+        <label class="field-label" for="pinInput"><span>Four-digit PIN</span><small>Remember this</small></label>
+        <input id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="••••" aria-describedby="pinHelp" />
+      </div>
+
+      <button id="joinBtn" type="button" class="primary-btn">Continue to Games <span aria-hidden="true">›</span></button>
+
+      <div class="guest-divider">or</div>
+
+      <button id="guestBtn" type="button" class="guest-btn">Continue as a Guest</button>
+
+      <div id="joinError" class="join-error" role="alert"></div>
+      <div id="pinHelp" class="join-note">Returning player? Use the same nickname and PIN. Guest records are only saved on this device.</div>
+    </section>
+
+    <section id="menuView" class="card game-menu hidden">
+      <header class="mobile-brand game-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> GRUMPY'S GAMES</span><h1>PLAY</h1></div>
+        <button id="profileBtn" class="player-chip profile-button" type="button" aria-haspopup="dialog"><small>PLAYING AS</small><strong id="menuPlayerName">Player</strong><span>View stats ›</span></button>
+      </header>
+
+      <div class="menu-intro"><div class="section-kicker">CHOOSE A GAME</div><h2>What are you playing?</h2><p>Live trivia is the main event. The arcade games are always open.</p></div>
+
+      <div id="gameTiles" class="game-tiles">
+      <a class="game-tile trivia-tile" data-game-id="trivia" href="play.html?game=trivia">
+        <div class="game-tile-art" aria-hidden="true"><span>?</span></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span id="triviaLiveBadge" class="tile-badge">TRIVIA</span><small id="triviaPhaseText">CHECKING STATUS</small></div>
+          <h3>Live Trivia</h3>
+          <p id="triviaMenuStatus">Checking the current round…</p>
+          <strong id="triviaActionText">Open Trivia <span>›</span></strong>
+        </div>
+      </a>
+
+      <a class="game-tile higher-lower-tile" data-game-id="higher-lower" href="higher-lower.html">
+        <div class="game-tile-art higher-lower-art" aria-hidden="true"><span>↑</span><span>↓</span></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>STREAK GAME</small></div>
+          <h3>Higher or Lower</h3>
+          <p>Guess the next value and build the longest correct-answer streak.</p>
+          <strong>Play Now <span>›</span></strong>
+        </div>
+      </a>
+
+      <a class="game-tile stacker-tile" data-game-id="stacker" href="stacker.html">
+        <div class="game-tile-art stacker-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>TIMING GAME</small></div>
+          <h3>Stacker</h3>
+          <p>Stop the moving blocks, line up every level, and build as high as you can.</p>
+          <strong>Play Now <span>›</span></strong>
+        </div>
+      </a>
+
+      <a class="game-tile emoji-tile" data-game-id="emoji-decoder" href="emoji-decoder.html">
+        <div class="game-tile-art emoji-art" aria-hidden="true"><span>🎬</span><span>🎵</span><b>?</b></div>
+        <div class="game-tile-copy">
+          <div class="game-tile-top"><span class="tile-badge always-open">ALWAYS OPEN</span><small>WORD GAME</small></div>
+          <h3>Emoji Decoder</h3>
+          <p>Crack the emoji clues and type the movie, TV show, or song before time runs out.</p>
+          <strong>Play Now <span>›</span></strong>
+        </div>
+      </a>
+      </div>
+
+    </section>
+
+    <section id="gameView" class="card hidden">
+      <header class="mobile-brand game-brand">
+        <img class="mobile-logo seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" />
+        <div><span class="brand-kicker"><i></i> GRUMPY'S</span><h1>TRIVIA</h1></div>
+        <div class="player-chip"><small>PLAYING AS</small><strong id="playerNameText">Player</strong></div>
+      </header>
+
+      <a class="back-to-games" href="play.html"><span aria-hidden="true">⌂</span> Game Menu</a>
+
+      <div class="top-row">
+        <div>
+          <div class="label">Your Score</div>
+          <div id="scoreText" class="score">0</div>
+        </div>
+        <div>
+          <div class="label">Timer</div>
+          <div id="timerText" class="timer">0:00</div>
+        </div>
+      </div>
+
+      <div id="statusText" class="status" aria-live="polite">Waiting for the next question...</div>
+
+      <div id="playerStats" class="player-stats">
+        <div>
+          <div class="stat-label">All-Time Score</div>
+          <div id="allTimeScoreText" class="stat-value">0</div>
+        </div>
+        <div>
+          <div class="stat-label">All-Time Rank</div>
+          <div id="rankText" class="stat-value">—</div>
+        </div>
+        <div>
+          <div class="stat-label">Wins</div>
+          <div id="winsText" class="stat-value">0</div>
+        </div>
+        <div>
+          <div class="stat-label">Games</div>
+          <div id="gamesText" class="stat-value">0</div>
+        </div>
+      </div>
+
+      <div id="pointsBox" class="points-box">
+        <div class="points-top">
+          <span id="pointsLabel">Points Available</span>
+          <strong id="pointsText">1000</strong>
+        </div>
+        <div class="points-bar">
+          <div id="pointsFill" class="points-fill"></div>
+        </div>
+      </div>
+
+      <div class="question-heading">
+        <div id="categoryText" class="category">Trivia</div>
+        <div id="questionProgressText" class="question-progress">GET READY</div>
+      </div>
+      <h2 id="questionText">Waiting for question...</h2>
+
+      <div id="choices" class="choices"></div>
+    </section>
+  </main>
+
+  <div id="profileModal" class="profile-modal hidden" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <button id="profileBackdrop" class="profile-backdrop" type="button" aria-label="Close player profile"></button>
+    <section class="profile-sheet">
+      <header class="profile-header">
+        <div><span class="section-kicker">PLAYER PROFILE</span><h2 id="profileTitle">Your Stats</h2></div>
+        <button id="closeProfileBtn" class="profile-close" type="button" aria-label="Close player profile">×</button>
+      </header>
+      <div class="profile-identity"><img class="seasonal-phone-logo" src="assets/grumpys-logo.png" alt="Grumpy's St. Boni logo" /><div><small>PLAYING AS</small><strong id="profilePlayerName">Player</strong><span id="profileTriviaRank">Trivia rank —</span></div></div>
+      <div id="profileLoading" class="profile-loading">Loading your records…</div>
+      <div id="profileContent" class="hidden">
+        <div class="profile-stat-grid">
+          <div class="profile-stat trivia-profile-stat"><small>TRIVIA SCORE</small><strong id="profileTriviaScore">0</strong><span id="profileTriviaGames">0 games · 0 wins</span></div>
+          <div class="profile-stat higher-profile-stat"><small>HIGHER OR LOWER</small><strong id="profileHigherScore">0</strong><span>Best streak</span></div>
+          <div class="profile-stat stacker-profile-stat"><small>STACKER</small><strong id="profileStackerScore">0</strong><span>Highest level</span></div>
+          <div class="profile-stat emoji-profile-stat"><small>EMOJI DECODER</small><strong id="profileEmojiScore">0</strong><span>Best score</span></div>
+        </div>
+        <div class="profile-leaderboard-head"><div><span class="section-kicker">ALL-TIME</span><h3>Trivia Leaderboard</h3></div><small>TOP 10</small></div>
+        <div id="profileLeaderboard" class="profile-leaderboard"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="round-themes.js?v=2"></script>
+  <script src="play.js?v=hub7"></script>
+<script src="shared-theme.js"></script></body>
+</html>
