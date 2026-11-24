@@ -29,11 +29,8 @@ button { -webkit-tap-highlight-color:transparent; }
   overflow:hidden;
   pointer-events:none;
   background:
-    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
     linear-gradient(145deg,rgb(var(--phone-accent-rgb) / .18),transparent 42%),
     #060506;
-  background-size:44px 44px,44px 44px,auto,auto;
   transition:background 1s ease;
 }
 .phone-atmosphere::after {

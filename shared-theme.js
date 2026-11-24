@@ -4,7 +4,7 @@ const ICONS={"pumpkin": "<svg viewBox=\"0 0 120 104\" aria-hidden=\"true\"><path
  const preview=window.GRUMPYS_THEME_PREVIEW===true;
  const key=preview?'grumpys-appearance-preview':'grumpys-appearance';
  const listeners=new Set();
- let current='halloween', ref=null, readError=null;
+ let current='regular', ref=null, readError=null;
  const valid=v=>v==='halloween'?'halloween':'regular';
  try { const saved=localStorage.getItem(key); if(saved)current=valid(saved); } catch {}
  if(preview&&new URLSearchParams(location.search).get('theme')==='original')current='regular';
@@ -36,7 +36,7 @@ const ICONS={"pumpkin": "<svg viewBox=\"0 0 120 104\" aria-hidden=\"true\"><path
  addEventListener('storage',e=>{if(e.key===key)apply(e.newValue||'regular');});
  if(!preview&&typeof db!=='undefined'){
   ref=db.ref('settings/appearance');
-  ref.on('value',snap=>{readError=null;apply(snap.val()?.theme||'halloween');},error=>{readError=error;const help=document.getElementById('appearanceHelp');if(help){help.textContent='The shared theme could not be loaded. Check the theme setting permission and try again.';help.classList.add('theme-save-error');}});
+  ref.on('value',snap=>{readError=null;apply(snap.val()?.theme||'regular');},error=>{readError=error;const help=document.getElementById('appearanceHelp');if(help){help.textContent='The shared theme could not be loaded. Check the theme setting permission and try again.';help.classList.add('theme-save-error');}});
  }
  const button=document.getElementById('applyThemeBtn');if(!button)return;
  const choices=[...document.querySelectorAll('.appearance-choice')],label=document.getElementById('currentThemeLabel'),status=document.getElementById('themeSaveStatus'),help=document.getElementById('appearanceHelp');

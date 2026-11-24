@@ -55,13 +55,8 @@ const routeParams = new URLSearchParams(window.location.search);
 const isTriviaRoute = routeParams.get("game") === "trivia";
 const isPlayerPreview = routeParams.get("preview") === "1";
 
-const PHONE_ROUND_THEMES = [
-  { accent: "#ff4255", hot: "#ff9eaa", rgb: "255 66 85" },
-  { accent: "#4aa8ff", hot: "#a7d7ff", rgb: "74 168 255" },
-  { accent: "#42d987", hot: "#a5f3c8", rgb: "66 217 135" },
-  { accent: "#ff8a35", hot: "#ffc28f", rgb: "255 138 53" },
-  { accent: "#9d73ff", hot: "#d5c3ff", rgb: "157 115 255" }
-];
+// Shared with the TV and promo screen (round-themes.js) so the colors always match.
+const PHONE_ROUND_THEMES = window.GRUMPYS_ROUND_THEMES.map(({ accent, hot, rgb }) => ({ accent, hot, rgb }));
 
 // Clear old guest data from the older version that used localStorage.
 // Guests should only live for the current browser session.
@@ -916,7 +911,7 @@ function renderMiniLeaderboard(playersObj = {}) {
       ${players
         .map((player, index) => `
           <div class="mini-row ${player.id === playerId ? "mini-you" : ""}">
-            <span class="mini-name"><span class="mini-medal" aria-label="${index + 1 === 1 ? "First" : index + 1 === 2 ? "Second" : "Third"} place">${["🥇", "🥈", "🥉"][index]}</span><span>${player.name || "Player"}</span>${player.id === playerId ? '<span class="you-pill">YOU</span>' : ""}</span>
+            <span class="mini-name"><span class="mini-medal" aria-label="${index + 1 === 1 ? "First" : index + 1 === 2 ? "Second" : "Third"} place">${["🥇", "🥈", "🥉"][index]}</span><span>${escapeProfileHtml(player.name || "Player")}</span>${player.id === playerId ? '<span class="you-pill">YOU</span>' : ""}</span>
             <strong>${(player.score || 0).toLocaleString()}</strong>
           </div>
         `)

@@ -124,7 +124,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who is known as “Mr. Hockey”?",
-    "correct_answer": "Gordie Howe.",
+    "correct_answer": "Gordie Howe",
     "incorrect_answers": [
       "Bobby Orr",
       "Maurice Richard",
@@ -174,7 +174,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who was the first NHL player to have scored 50 goals in 50 games?",
-    "correct_answer": "Maurice Richard.",
+    "correct_answer": "Maurice Richard",
     "incorrect_answers": [
       "Wayne Gretzky",
       "Mike Bossy",
@@ -184,7 +184,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Which team featured the famous “Miracle on Ice” at the 1980 Winter Olympics?",
-    "correct_answer": "The United States.",
+    "correct_answer": "The United States",
     "incorrect_answers": [
       "Canada",
       "Soviet Union",
@@ -194,7 +194,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who scored the winning goal in the “Miracle on Ice” game?",
-    "correct_answer": "Mike Eruzione.",
+    "correct_answer": "Mike Eruzione",
     "incorrect_answers": [
       "Mark Johnson",
       "Jim Craig",
@@ -224,7 +224,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who was the first overall pick in the 2005 NHL Entry Draft?",
-    "correct_answer": "Sidney Crosby.",
+    "correct_answer": "Sidney Crosby",
     "incorrect_answers": [
       "Alexander Ovechkin",
       "Carey Price",
@@ -244,7 +244,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Which team won the first-ever Winter Classic outdoor game in the NHL?",
-    "correct_answer": "The Pittsburgh Penguins.",
+    "correct_answer": "The Pittsburgh Penguins",
     "incorrect_answers": [
       "Buffalo Sabres",
       "Edmonton Oilers",
@@ -304,7 +304,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NHL",
     "question": "Who scored the game-winning goal for Canada in the gold medal game of the 2010 Winter Olympics?",
-    "correct_answer": "Sidney Crosby.",
+    "correct_answer": "Sidney Crosby",
     "incorrect_answers": [
       "Jonathan Toews",
       "Jarome Iginla",
@@ -984,7 +984,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NBA",
     "question": "Which coach led the Timberwolves to their first division championship?",
-    "correct_answer": "Flip Saunders.",
+    "correct_answer": "Flip Saunders",
     "incorrect_answers": [
       "Tom Thibodeau",
       "Rick Adelman",
@@ -1044,7 +1044,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "NBA",
     "question": "Which player did the Timberwolves trade for Kevin Garnett in 2015?",
-    "correct_answer": "Thaddeus Young.",
+    "correct_answer": "Thaddeus Young",
     "incorrect_answers": [
       "Andrew Wiggins",
       "Zach LaVine",
@@ -1074,7 +1074,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "Who was the first Major League player to reach 500 home runs?",
-    "correct_answer": "Babe Ruth.",
+    "correct_answer": "Babe Ruth",
     "incorrect_answers": [
       "Hank Aaron",
       "Willie Mays",
@@ -1084,9 +1084,9 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What is the name of the MLB championship series?",
-    "correct_answer": "The World Series.",
+    "correct_answer": "The World Series",
     "incorrect_answers": [
-      "The Fall Classic",
+      "The Diamond Classic",
       "The Pennant Series",
       "The Championship Cup"
     ]
@@ -1094,7 +1094,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "Which MLB team has the most World Series titles?",
-    "correct_answer": "New York Yankees.",
+    "correct_answer": "New York Yankees",
     "incorrect_answers": [
       "St. Louis Cardinals",
       "Boston Red Sox",
@@ -1104,7 +1104,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "Which pitcher threw the only perfect game in World Series history?",
-    "correct_answer": "Don Larsen.",
+    "correct_answer": "Don Larsen",
     "incorrect_answers": [
       "Sandy Koufax",
       "Bob Gibson",
@@ -1124,7 +1124,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What Japanese player has the most career MLB hits?",
-    "correct_answer": "Ichiro Suzuki.",
+    "correct_answer": "Ichiro Suzuki",
     "incorrect_answers": [
       "Hideki Matsui",
       "Shohei Ohtani",
@@ -1154,7 +1154,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What is the distance between bases on a standard MLB diamond?",
-    "correct_answer": "90 feet.",
+    "correct_answer": "90 feet",
     "incorrect_answers": [
       "80 feet",
       "100 feet",
@@ -1194,7 +1194,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What is the oldest active MLB ballpark?",
-    "correct_answer": "Fenway Park.",
+    "correct_answer": "Fenway Park",
     "incorrect_answers": [
       "Wrigley Field",
       "Dodger Stadium",
@@ -1214,7 +1214,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What is the name of the wall in left field of Fenway Park?",
-    "correct_answer": "The Green Monster.",
+    "correct_answer": "The Green Monster",
     "incorrect_answers": [
       "The Big Wall",
       "The Monster Wall",
@@ -1254,7 +1254,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "When was the first MLB game played?",
-    "correct_answer": "May 4, 1871.",
+    "correct_answer": "May 4, 1871",
     "incorrect_answers": [
       "April 22, 1876",
       "June 19, 1846",
@@ -1264,7 +1264,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "Which team was sanctioned for its sign-stealing scheme during the 2017 and 2018 seasons?",
-    "correct_answer": "Houston Astros.",
+    "correct_answer": "Houston Astros",
     "incorrect_answers": [
       "Boston Red Sox",
       "New York Yankees",
@@ -1274,7 +1274,7 @@ const CUSTOM_QUESTIONS = [
   {
     "category": "MLB",
     "question": "What is the award given to the league’s best fielders at the end of the season?",
-    "correct_answer": "Gold Glove Award.",
+    "correct_answer": "Gold Glove Award",
     "incorrect_answers": [
       "Silver Slugger Award",
       "Cy Young Award",

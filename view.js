@@ -35,16 +35,19 @@ function getPlayUrl() {
   return `${window.location.origin}${window.location.pathname.replace("view.html", "")}play.html`;
 }
 
+// Grumpy's tracked QR code (https://grumpysonmain.com/qr/trivia), so scans are counted.
 function setQrCode() {
-  const playUrl = getPlayUrl();
-  const encodedPlayUrl = encodeURIComponent(playUrl);
+  qrCodeEl.innerHTML = `<img alt="Scan to play Grumpy's Trivia" src="assets/trivia-qr.png">`;
+}
 
-  qrCodeEl.innerHTML = `
-    <img 
-      alt="Scan to play Grumpy's Trivia" 
-      src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodedPlayUrl}"
-    >
-  `;
+// Player names come from phones, so never put them into the page as HTML.
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function setQuestionText(text) {
@@ -88,7 +91,7 @@ function renderLeaderboard(playersObj = {}) {
   leaderboardList.innerHTML = players
     .map(player => `
       <li>
-        <span>${player.name || "Player"}</span>
+        <span>${escapeHtml(player.name || "Player")}</span>
         <strong>${(player.score || 0).toLocaleString()}</strong>
       </li>
     `)
@@ -160,7 +163,7 @@ function renderAnswers(game = {}) {
 
       return `
         <div class="${className}">
-          ${String.fromCharCode(65 + index)}. ${choice}
+          ${String.fromCharCode(65 + index)}. ${escapeHtml(choice)}
         </div>
       `;
     })

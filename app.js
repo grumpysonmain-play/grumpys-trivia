@@ -5,13 +5,8 @@ const FINAL_SECONDS = 42;
 const MAX_POINTS = 1000;
 const FULL_POINTS_GRACE_SECONDS = 3;
 
-const ROUND_THEMES = [
-  { accent: "#ff4255", accentHot: "#ff9eaa", accentRgb: "255 66 85" },
-  { accent: "#4aa8ff", accentHot: "#a7d7ff", accentRgb: "74 168 255" },
-  { accent: "#42d987", accentHot: "#a5f3c8", accentRgb: "66 217 135" },
-  { accent: "#ff8a35", accentHot: "#ffc28f", accentRgb: "255 138 53" },
-  { accent: "#9d73ff", accentHot: "#d5c3ff", accentRgb: "157 115 255" }
-];
+// The ten round colors live in round-themes.js, shared with the phones and promo screen.
+const ROUND_THEMES = window.GRUMPYS_ROUND_THEMES;
 
 const NEXT_TRIVIA_WAIT_SECONDS = 630; // 10 minutes 30 seconds
 
@@ -46,16 +41,72 @@ let tvPointsInterval = null;
 let nextRoundExpectedAt = null;
 let finalStageTimeouts = [];
 let finalBoardAnimations = [];
+let revealTimeouts = [];
+let currentPhase = "join";
+let revealBoardActive = false;
+let knownPlayerIds = null;
+let latestPlayers = {};
+let toastQueue = [];
+let toastTimer = null;
+
+const timerCaptionEl = document.getElementById("timerCaption");
+const answeredCountEl = document.getElementById("answeredCount");
+const revealStatsEl = document.getElementById("revealStats");
+const qrKickerEl = document.getElementById("qrKicker");
+const leaderboardTitleEl = document.getElementById("leaderboardTitle");
+const toastsEl = document.getElementById("tvToasts");
+const bumperEl = document.getElementById("questionBumper");
+
+const TIMER_CAPTIONS = {
+  join: "UNTIL THE ROUND STARTS",
+  question: "SECONDS LEFT",
+  reveal: "NEXT QUESTION",
+  final: "ROUND WRAP-UP"
+};
+const REVEAL_BOARD_SIZE = 8;
+const MOVE_ICON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l5 8H1z" fill="currentColor"/></svg>';
+
+// Player names come from phones, so never put them into the page as HTML.
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function applyRoundTheme(roundKey) {
-  const key = String(roundKey || "grumpys");
-  const themeIndex = [...key].reduce((total, character) => total + character.charCodeAt(0), 0) % ROUND_THEMES.length;
-  const theme = ROUND_THEMES[themeIndex];
+  applyTheme(window.pickGrumpysRoundTheme(roundKey));
+}
+
+function applyTheme(theme) {
   const rootStyle = document.documentElement.style;
 
   rootStyle.setProperty("--accent", theme.accent);
-  rootStyle.setProperty("--accent-hot", theme.accentHot);
-  rootStyle.setProperty("--accent-rgb", theme.accentRgb);
+  rootStyle.setProperty("--accent-hot", theme.hot);
+  rootStyle.setProperty("--accent-rgb", theme.rgb);
+  rootStyle.setProperty("--accent2-rgb", theme.rgb2);
+}
+
+// A one-off wash of color across the background (green for the answer, gold for the winner).
+function backgroundBurst(rgb) {
+  const burst = document.getElementById("bgBurst");
+  if (!burst) return;
+  burst.style.setProperty("--burst-rgb", rgb);
+  burst.classList.remove("is-bursting");
+  void burst.offsetWidth;
+  burst.classList.add("is-bursting");
+}
+
+// During a question the background warms toward red as the points drain away.
+function setBackgroundHeat(amount) {
+  const heat = document.getElementById("heatGlow");
+  if (heat) heat.style.opacity = Math.max(0, Math.min(1, amount)).toFixed(3);
 }
 
 function setSeasonalBranding(date = new Date()) {
@@ -89,12 +140,34 @@ setSeasonalBranding();
 
 function setPhase(phase) {
   clearFinalStageTimeouts();
+  clearRevealTimeouts();
+  currentPhase = phase;
+  revealBoardActive = false;
+  document.body.dataset.phase = phase;
   screenEl.classList.remove("phase-join", "phase-question", "phase-reveal", "phase-final");
-  screenEl.classList.remove("final-board-active");
+  screenEl.classList.remove("final-board-active", "final-seconds", "hof-mode");
   screenEl.classList.remove("phase-enter");
   screenEl.classList.add(`phase-${phase}`);
   void screenEl.offsetWidth;
   screenEl.classList.add("phase-enter");
+
+  timerCaptionEl.textContent = TIMER_CAPTIONS[phase] || "TIME REMAINING";
+  qrKickerEl.textContent = phase === "question" ? "LATE? SCAN TO JOIN" : "JOIN THE GAME";
+  leaderboardTitleEl.textContent = phase === "reveal" ? "Leaderboard" : "Top 5";
+  if (phase !== "join") {
+    toastQueue = [];
+    toastsEl.replaceChildren();
+  }
+
+  answersEl.classList.remove("reveal-votes");
+  revealStatsEl.classList.remove("is-in");
+  revealStatsEl.innerHTML = "";
+  updateAnsweredCount();
+}
+
+function clearRevealTimeouts() {
+  revealTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+  revealTimeouts = [];
 }
 
 function clearFinalStageTimeouts() {
@@ -119,7 +192,7 @@ function startFinalBoardScroll(stageName) {
 
     if (overflow < 2) return;
 
-    const duration = stageName === "round" ? 9000 : 21000;
+    const duration = stageName === "round" ? 15000 : 13000;
     const animation = list.animate([
       { transform: "translateY(0)" },
       { transform: "translateY(0)", offset: .12 },
@@ -218,14 +291,16 @@ function getPlayUrl() {
   return `${window.location.origin}${window.location.pathname.replace("index.html", "")}play.html`;
 }
 
-function setQrCode() {
-  const playUrl = getPlayUrl();
-  const encodedPlayUrl = encodeURIComponent(playUrl);
+// Grumpy's tracked QR code (https://grumpysonmain.com/qr/trivia), so scans are counted.
+function getQrImageUrl() {
+  return "assets/trivia-qr.png";
+}
 
+function setQrCode() {
   qrCodeEl.innerHTML = `
     <img 
       alt="Scan to play" 
-      src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=12&data=${encodedPlayUrl}"
+      src="${getQrImageUrl()}"
       style="width:100%;height:100%;object-fit:contain;border-radius:14px;"
     >
   `;
@@ -235,12 +310,14 @@ function startCountdown(seconds) {
   let remaining = seconds;
   timerEl.textContent = formatTime(remaining);
   timerEl.classList.toggle("is-urgent", remaining <= 5);
+  updateFinalSeconds(remaining);
 
   return new Promise(resolve => {
     const interval = setInterval(async () => {
       remaining--;
       timerEl.textContent = formatTime(Math.max(remaining, 0));
       timerEl.classList.toggle("is-urgent", remaining <= 5);
+      updateFinalSeconds(remaining);
 
       await gameRef.update({
         timer: Math.max(remaining, 0)
@@ -253,6 +330,11 @@ function startCountdown(seconds) {
       }
     }, 1000);
   });
+}
+
+// The last five seconds of a question make the whole screen edge pulse.
+function updateFinalSeconds(remaining) {
+  screenEl.classList.toggle("final-seconds", currentPhase === "question" && remaining > 0 && remaining <= 5);
 }
 
 function getTvPointsEls() {
@@ -298,6 +380,7 @@ function updateTvPointsBar(points) {
   box.style.borderColor = `hsl(${hue} 86% 56% / 0.42)`;
 
   box.classList.remove("hidden", "tv-points-low");
+  setBackgroundHeat(currentPhase === "question" ? 1 - safePoints / MAX_POINTS : 0);
 
   if (safePoints <= MAX_POINTS * 0.25) {
     box.classList.add("tv-points-low");
@@ -323,6 +406,7 @@ function stopTvPointsBar() {
 
 function hideTvPointsBar() {
   stopTvPointsBar();
+  setBackgroundHeat(0);
 
   const { box } = getTvPointsEls();
 
@@ -360,22 +444,32 @@ function getSortedPlayers(playersObj = {}) {
 }
 
 function renderLeaderboard(playersObj = {}) {
+  // During the answer reveal the leaderboard animates on its own schedule.
+  if (revealBoardActive) return;
+
   const players = getSortedPlayers(playersObj).slice(0, 5);
   const leaderboardList = document.getElementById("leaderboardList");
 
   if (players.length === 0) {
     leaderboardList.innerHTML = `<li><span>Waiting...</span><strong>0</strong></li>`;
+    leaderboardList.dataset.html = "";
     return;
   }
 
-  leaderboardList.innerHTML = players
-    .map(player => `<li><span>${player.name}</span><strong>${(player.score || 0).toLocaleString()}</strong></li>`)
+  const html = players
+    .map(player => `<li><span>${escapeHtml(player.name)}</span><strong>${(player.score || 0).toLocaleString()}</strong></li>`)
     .join("");
+
+  // Answers arrive constantly during a question; only redraw when the Top 5 changes.
+  if (leaderboardList.dataset.html === html) return;
+  leaderboardList.dataset.html = html;
+  leaderboardList.innerHTML = html;
 }
 
-function renderJoinTicker(playersObj = {}) {
+function renderJoinTicker(playersObj = {}, newIds = new Set()) {
   const players = getSortedPlayers(playersObj);
   const names = players.map(player => player.name || "Player");
+  const newNames = new Set(players.filter(player => newIds.has(player.id)).map(player => player.name || "Player"));
 
   joinPlayerCountEl.textContent = names.length;
   joinTickerTrackEl.replaceChildren();
@@ -393,6 +487,7 @@ function renderJoinTicker(playersObj = {}) {
   tickerNames.forEach(name => {
     const item = document.createElement("span");
     item.textContent = name;
+    if (newNames.has(name)) item.classList.add("is-new");
     joinTickerTrackEl.appendChild(item);
   });
 
@@ -409,7 +504,7 @@ function makeBoardList(players) {
       const name = player.name || player.displayName || "Player";
       const score = player.score ?? player.totalScore ?? 0;
 
-      return `<li><span>${name}</span><strong>${score.toLocaleString()}</strong></li>`;
+      return `<li><span>${escapeHtml(name)}</span><strong>${Number(score || 0).toLocaleString()}</strong></li>`;
     })
     .join("");
 }
@@ -573,6 +668,7 @@ function showJoinScreen() {
         <div><span class="join-step-kicker">STEP 4 OF 4</span><strong>Be quick</strong><small>Fast correct answers earn up to 1,000 points.</small></div>
       </div>
     </div>
+    <div class="join-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   `;
 
   renderLeaderboard({});
@@ -606,7 +702,7 @@ async function showQuestion(questionData, index) {
   correctAnswerIndex = choices.indexOf(decodeHtml(questionData.correct_answer));
 
   answersEl.innerHTML = choices
-    .map((choice, i) => `<div class="answer" data-index="${i}"><span class="answer-letter">${String.fromCharCode(65 + i)}</span><span class="answer-copy">${choice}</span></div>`)
+    .map((choice, i) => `<div class="answer" data-index="${i}"><span class="answer-letter">${String.fromCharCode(65 + i)}</span><span class="answer-copy">${escapeHtml(choice)}</span></div>`)
     .join("");
 
   await gameRef.update({
@@ -626,27 +722,48 @@ async function showQuestion(questionData, index) {
   });
 
   startTvPointsBar();
+  updateAnsweredCount();
 }
 
 async function showAnswerReveal(index) {
+  const beforeSnap = await gameRef.child("players").once("value");
+  const beforePlayers = beforeSnap.val() || {};
+  const previousStandings = getSortedPlayers(beforePlayers);
+  const stats = getAnswerStats(beforePlayers, index);
+
   setPhase("reveal");
   stopTvPointsBar();
   hideTvPointsBar();
+  revealBoardActive = true;
 
   phaseLabel.textContent = "Answer";
+  timerCaptionEl.textContent = index === questions.length - 1 ? "RESULTS IN" : "NEXT QUESTION";
   questionCounterEl.textContent = `ANSWER ${index + 1} / ${questions.length}`;
-  messageEl.textContent = "Correct answer revealed • Current Top 5 updated";
-  roundProgressEl.textContent = `Top 5 after Question ${index + 1}`;
+  messageEl.textContent = "Correct answer revealed • Leaderboard updated";
+  roundProgressEl.textContent = `Leaderboard after Question ${index + 1}`;
 
+  // How the room voted: a bar and a count on every answer.
   document.querySelectorAll(".answer").forEach((answer, i) => {
-    if (i === correctAnswerIndex) {
-      answer.classList.add("correct");
-    } else {
-      answer.classList.add("dim");
-    }
+    const count = stats.votes[i] || 0;
+    const percent = stats.answered ? Math.round((count / stats.answered) * 100) : 0;
+    answer.style.setProperty("--vote-pct", `${percent}%`);
+    answer.insertAdjacentHTML("afterbegin", '<span class="vote-fill"></span>');
+    answer.insertAdjacentHTML("beforeend", `<span class="vote-count"><b>${count}</b><small>${count === 1 ? "vote" : "votes"}</small></span>`);
   });
 
+  renderRevealStats(stats);
+  // After the first question everyone starts from zero, so the rows simply drop in.
+  if (index === 0) {
+    document.getElementById("leaderboardList").replaceChildren();
+  } else {
+    renderRevealBoard(previousStandings);
+  }
+
   await scoreQuestion();
+
+  const afterSnap = await gameRef.child("players").once("value");
+  const afterPlayers = afterSnap.val() || {};
+  const newStandings = getSortedPlayers(afterPlayers);
 
   await gameRef.update({
     roundId,
@@ -654,6 +771,177 @@ async function showAnswerReveal(index) {
     correctAnswerIndex,
     timer: REVEAL_SECONDS
   });
+
+  // The reveal plays in stages: votes, then the answer, then stats, then the shuffle.
+  requestAnimationFrame(() => answersEl.classList.add("reveal-votes"));
+
+  revealTimeouts.push(setTimeout(() => {
+    document.querySelectorAll(".answer").forEach((answer, i) => {
+      answer.classList.add(i === correctAnswerIndex ? "correct" : "dim");
+    });
+    backgroundBurst("70 229 138");
+  }, 1200));
+
+  revealTimeouts.push(setTimeout(() => revealStatsEl.classList.add("is-in"), 1900));
+  revealTimeouts.push(setTimeout(() => shuffleRevealBoard(previousStandings, newStandings, afterPlayers, index), 2600));
+}
+
+function getAnswerStats(playersObj, index) {
+  const players = Object.values(playersObj);
+  const choiceCount = answersEl.querySelectorAll(".answer").length || 4;
+  const votes = new Array(choiceCount).fill(0);
+  let answered = 0;
+  let correct = 0;
+  let fastest = null;
+
+  players.forEach(player => {
+    const answer = player.answers?.[index];
+    if (!answer || typeof answer.choiceIndex !== "number") return;
+
+    answered++;
+    if (answer.choiceIndex >= 0 && answer.choiceIndex < choiceCount) votes[answer.choiceIndex]++;
+
+    if (answer.choiceIndex === correctAnswerIndex) {
+      correct++;
+      const seconds = Math.max(0, ((answer.answeredAt || 0) - currentQuestionStartedAt) / 1000);
+      if (!fastest || seconds < fastest.seconds) fastest = { name: player.name || "Player", seconds };
+    }
+  });
+
+  return { total: players.length, answered, correct, votes, fastest };
+}
+
+function renderRevealStats(stats) {
+  const percent = stats.total ? Math.round((stats.correct / stats.total) * 100) : 0;
+  const rightText = stats.total ? `${stats.correct} of ${stats.total} <em>· ${percent}%</em>` : "No players yet";
+  const fastestText = stats.fastest
+    ? `${escapeHtml(stats.fastest.name)} <em>· ${stats.fastest.seconds.toFixed(1)} s</em>`
+    : "Nobody this time";
+
+  revealStatsEl.innerHTML = `
+    <div class="reveal-stat good"><span>GOT IT RIGHT</span><strong>${rightText}</strong></div>
+    <div class="reveal-stat"><span>FASTEST CORRECT</span><strong>${fastestText}</strong></div>
+  `;
+}
+
+function makeLeaderboardRow(player, rank) {
+  const row = document.createElement("li");
+  row.className = "lb-row";
+  row.dataset.pid = player.id || player.name || "";
+  row.innerHTML = '<span class="lb-rank"></span><span class="lb-move"></span><span class="lb-name"></span><span class="lb-gain"></span><strong class="lb-score"></strong>';
+  row.querySelector(".lb-rank").textContent = rank;
+  row.querySelector(".lb-name").textContent = player.name || "Player";
+  row.querySelector(".lb-score").textContent = (player.score || 0).toLocaleString();
+  return row;
+}
+
+// Standings as they were before this question was scored.
+function renderRevealBoard(standings) {
+  const list = document.getElementById("leaderboardList");
+  list.classList.remove("lb-shuffled");
+  delete list.dataset.html;
+
+  if (standings.length === 0) {
+    list.innerHTML = `<li><span>Waiting...</span><strong>0</strong></li>`;
+    return;
+  }
+
+  list.replaceChildren(...standings.slice(0, REVEAL_BOARD_SIZE).map((player, i) => makeLeaderboardRow(player, i + 1)));
+}
+
+// Rows slide from their old place to their new one while the scores count up.
+function shuffleRevealBoard(previousStandings, newStandings, afterPlayers, index) {
+  const list = document.getElementById("leaderboardList");
+  if (newStandings.length === 0 || currentPhase !== "reveal") return;
+
+  const previousRank = new Map(previousStandings.map((player, i) => [player.id, i]));
+  const previousScore = new Map(previousStandings.map(player => [player.id, player.score || 0]));
+  const existingRows = new Map([...list.querySelectorAll(".lb-row")].map(row => [row.dataset.pid, row]));
+  const firstTops = new Map([...existingRows].map(([id, row]) => [id, row.getBoundingClientRect().top]));
+
+  const rows = newStandings.slice(0, REVEAL_BOARD_SIZE).map((player, i) => {
+    const row = existingRows.get(player.id) || makeLeaderboardRow({ ...player, score: previousScore.get(player.id) || 0 }, i + 1);
+    row.querySelector(".lb-rank").textContent = i + 1;
+    row.classList.remove("climbed");
+
+    const move = row.querySelector(".lb-move");
+    const before = previousRank.has(player.id) ? previousRank.get(player.id) : null;
+    move.className = "lb-move";
+    move.innerHTML = "";
+
+    if (index > 0 && before !== null) {
+      if (before > i) {
+        move.classList.add("up");
+        move.innerHTML = `${MOVE_ICON}${before - i}`;
+        row.classList.add("climbed");
+      } else if (before < i) {
+        move.classList.add("down");
+        move.innerHTML = `${MOVE_ICON}${i - before}`;
+      } else {
+        move.classList.add("same");
+        move.textContent = "–";
+      }
+    }
+
+    const earned = afterPlayers[player.id]?.answers?.[index]?.pointsEarned || 0;
+    const gain = row.querySelector(".lb-gain");
+    gain.textContent = `+${earned.toLocaleString()}`;
+    gain.classList.toggle("zero", !earned);
+
+    return row;
+  });
+
+  list.replaceChildren(...rows);
+
+  rows.forEach(row => {
+    const firstTop = firstTops.get(row.dataset.pid);
+    const lastTop = row.getBoundingClientRect().top;
+    row.style.transition = "none";
+
+    if (firstTop === undefined) {
+      row.style.transform = `translateY(${row.offsetHeight * 1.5}px)`;
+      row.style.opacity = "0";
+    } else {
+      row.style.transform = `translateY(${firstTop - lastTop}px)`;
+      row.style.zIndex = firstTop > lastTop ? "2" : "1";
+    }
+  });
+
+  void list.offsetWidth;
+
+  rows.forEach((row, i) => {
+    row.style.transition = `transform .95s cubic-bezier(.2,.85,.25,1) ${i * 0.04}s, opacity .5s ease ${i * 0.04}s`;
+    row.style.transform = "";
+    row.style.opacity = "";
+  });
+
+  list.classList.add("lb-shuffled");
+
+  rows.forEach(row => {
+    const player = newStandings.find(item => item.id === row.dataset.pid);
+    countUp(row.querySelector(".lb-score"), previousScore.get(row.dataset.pid) || 0, player?.score || 0, 1200);
+  });
+}
+
+function countUp(element, from, to, durationMs) {
+  if (!element) return;
+
+  if (from === to) {
+    element.textContent = to.toLocaleString();
+    return;
+  }
+
+  const startedAt = performance.now();
+
+  const step = now => {
+    const progress = Math.min(1, (now - startedAt) / durationMs);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    element.textContent = Math.round(from + (to - from) * eased).toLocaleString();
+
+    if (progress < 1) requestAnimationFrame(step);
+  };
+
+  requestAnimationFrame(step);
 }
 
 async function showFinalScreen() {
@@ -662,32 +950,62 @@ async function showFinalScreen() {
 
   const snap = await gameRef.child("players").once("value");
   const allRoundPlayers = getSortedPlayers(snap.val() || {});
-  const roundLeaders = allRoundPlayers.slice(0, 5);
 
   await addRoundScoresToAllTime(allRoundPlayers);
 
   const allTimeLeaders = await getAllTimeLeaders();
-  const winnerName = roundLeaders[0]?.name || "Nobody yet";
-  const winnerScore = roundLeaders[0]?.score || 0;
 
   nextRoundExpectedAt = Date.now() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
+
+  if (allRoundPlayers.length === 0) {
+    showHallOfFame(allTimeLeaders);
+  } else {
+    showPodium(allRoundPlayers, allTimeLeaders);
+  }
+
+  await gameRef.update({
+    roundId,
+    phase: "final",
+    timer: FINAL_SECONDS,
+    finalSaved: true,
+    lastCompletedRoundId: roundId,
+    nextRoundExpectedAt
+  });
+}
+
+function makePodiumColumn(player, place) {
+  if (!player) return `<div class="podium-col place-${place}" aria-hidden="true"></div>`;
+
+  return `
+    <div class="podium-col place-${place}" data-place="${place}">
+      ${place === 1 ? '<div class="podium-trophy" aria-hidden="true">🏆</div><div class="podium-wait" aria-hidden="true">?</div>' : ""}
+      <div class="podium-name">${escapeHtml(player.name || "Player")}</div>
+      <div class="podium-score">${(player.score || 0).toLocaleString()} PTS</div>
+      <div class="podium-block">${place}</div>
+    </div>
+  `;
+}
+
+function showPodium(allRoundPlayers, allTimeLeaders) {
+  const [first, second, third] = allRoundPlayers;
 
   phaseLabel.textContent = "Winner";
   categoryEl.textContent = "Round Complete";
   questionCounterEl.textContent = "ROUND COMPLETE";
   setTvQuestionText("And the winner is…");
-  messageEl.textContent = "Celebrating this round's champion.";
-  roundProgressEl.textContent = "Winner • 10 seconds";
+  messageEl.textContent = "Drumroll, please…";
+  roundProgressEl.textContent = "Winner";
 
   answersEl.innerHTML = `
     ${makeFinalConfetti()}
 
     <div class="final-sequence" aria-live="polite">
       <section class="final-stage winner-stage is-active" data-final-stage="winner">
-        <div class="winner-trophy" aria-hidden="true">🏆</div>
-        <div class="winner-banner">${winnerName}</div>
-        <div class="winner-score">${winnerScore.toLocaleString()} POINTS</div>
-        <div class="winner-kicker">THIS ROUND'S CHAMPION</div>
+        <div class="podium">
+          ${makePodiumColumn(second, 2)}
+          ${makePodiumColumn(first, 1)}
+          ${makePodiumColumn(third, 3)}
+        </div>
       </section>
 
       <section class="final-stage standings-stage" data-final-stage="round">
@@ -716,6 +1034,23 @@ async function showFinalScreen() {
     </div>
   `;
 
+  const podium = answersEl.querySelector(".podium");
+  const raise = place => answersEl.querySelector(`.podium-col.place-${place}`)?.classList.add("is-up");
+
+  // Third, then second, then a drumroll, then the winner.
+  let at = 700;
+  if (third) { finalStageTimeouts.push(setTimeout(() => raise(3), at)); at += 1500; }
+  if (second) { finalStageTimeouts.push(setTimeout(() => raise(2), at)); at += 1400; }
+  finalStageTimeouts.push(setTimeout(() => podium?.classList.add("drumroll"), at));
+  at += 1700;
+  finalStageTimeouts.push(setTimeout(() => {
+    podium?.classList.remove("drumroll");
+    raise(1);
+    backgroundBurst("255 196 64");
+    answersEl.querySelector(".final-confetti")?.classList.add("is-live");
+    messageEl.textContent = `Congratulations, ${first?.name || "Player"}!`;
+  }, at));
+
   const activateFinalStage = stageName => {
     screenEl.classList.toggle("final-board-active", stageName !== "winner");
 
@@ -728,7 +1063,7 @@ async function showFinalScreen() {
       categoryEl.textContent = "This Round";
       setTvQuestionText("Where everyone placed");
       messageEl.textContent = "Every player from this round, in finishing order.";
-      roundProgressEl.textContent = "Round scoreboard • 10 seconds";
+      roundProgressEl.textContent = "Round scoreboard";
       answersEl.querySelector(".final-confetti")?.classList.add("is-finished");
       startFinalBoardScroll("round");
       return;
@@ -744,19 +1079,48 @@ async function showFinalScreen() {
     }
   };
 
-  finalStageTimeouts = [
-    setTimeout(() => activateFinalStage("round"), 10000),
-    setTimeout(() => activateFinalStage("all-time"), 20000)
-  ];
+  finalStageTimeouts.push(setTimeout(() => activateFinalStage("round"), at + 7000));
+  finalStageTimeouts.push(setTimeout(() => activateFinalStage("all-time"), at + 23000));
+}
 
-  await gameRef.update({
-    roundId,
-    phase: "final",
-    timer: FINAL_SECONDS,
-    finalSaved: true,
-    lastCompletedRoundId: roundId,
-    nextRoundExpectedAt
-  });
+// Nobody played this round: show the regulars and invite people in.
+function showHallOfFame(allTimeLeaders) {
+  screenEl.classList.add("final-board-active", "hof-mode");
+
+  phaseLabel.textContent = "Hall of Fame";
+  categoryEl.textContent = "Hall of Fame";
+  questionCounterEl.textContent = "";
+  setTvQuestionText("Grumpy's Hall of Fame");
+  messageEl.textContent = "";
+  roundProgressEl.textContent = "Hall of Fame";
+
+  const rows = allTimeLeaders.slice(0, 10).map((player, i) => `
+    <li style="animation-delay:${(i * 0.09).toFixed(2)}s">
+      <span class="hof-rank">${i + 1}</span>
+      <span class="hof-name">${escapeHtml(player.name || "Player")}</span>
+      <span class="hof-wins">${Number(player.wins || 0).toLocaleString()}</span>
+      <span class="hof-points">${Number(player.totalScore || 0).toLocaleString()}</span>
+    </li>
+  `).join("");
+
+  answersEl.innerHTML = `
+    <div class="final-sequence">
+      <section class="final-stage hof-stage is-active" data-final-stage="hof">
+        <div class="hof-board">
+          <h3>Grumpy's Hall of Fame</h3>
+          ${rows ? `
+            <div class="hof-head"><span>#</span><span>PLAYER</span><span>WINS</span><span>POINTS</span></div>
+            <ol class="hof-list">${rows}</ol>
+          ` : '<div class="hof-empty">No names yet. Be the first one up here.</div>'}
+        </div>
+        <div class="hof-cta">
+          <div class="hof-cta-title">Get your name<br>up here</div>
+          <div class="hof-qr"><img alt="Scan to play" src="${getQrImageUrl()}"></div>
+          <div class="hof-cta-sub">Scan now, pick a nickname + PIN,<br>and you're in the next round.</div>
+        </div>
+      </section>
+    </div>
+  `;
 }
 
 function getQuestionsByCategory(category) {
@@ -785,6 +1149,21 @@ async function loadQuestions() {
   markQuestionsUsed(questions);
 }
 
+// "QUESTION 3" flashes across the screen so the room looks up.
+// It plays before the question's timer starts, so nobody loses answer time.
+async function showQuestionBumper(questionData, index) {
+  document.getElementById("bumperKicker").textContent = decodeHtml(questionData.category || "Trivia");
+  document.getElementById("bumperTitle").textContent = `Question ${index + 1}`;
+  document.getElementById("bumperSub").textContent = index === questions.length - 1 ? "LAST ONE!" : `OF ${questions.length}`;
+
+  bumperEl.classList.remove("is-showing");
+  void bumperEl.offsetWidth;
+  bumperEl.classList.add("is-showing");
+  setTimeout(() => bumperEl.classList.remove("is-showing"), 2900);
+
+  await wait(2450);
+}
+
 async function runRound() {
   roundId = Date.now().toString();
   applyRoundTheme(roundId);
@@ -805,6 +1184,7 @@ async function runRound() {
   await startCountdown(JOIN_SECONDS);
 
   for (let i = 0; i < questions.length; i++) {
+    await showQuestionBumper(questions[i], i);
     await showQuestion(questions[i], i);
     await startCountdown(QUESTION_SECONDS);
 
@@ -833,10 +1213,77 @@ async function runRound() {
   timerEl.textContent = "0:00";
 }
 
+function updateAnsweredCount(playersObj = latestPlayers) {
+  if (currentPhase !== "question") {
+    answeredCountEl.textContent = "";
+    delete answeredCountEl.dataset.count;
+    return;
+  }
+
+  const players = Object.values(playersObj || {});
+  const answered = players.filter(player => player.answers?.[currentQuestionIndex]).length;
+  const previous = answeredCountEl.dataset.count;
+
+  answeredCountEl.innerHTML = `<b>${answered} of ${players.length}</b> answered`;
+  answeredCountEl.dataset.count = answered;
+
+  if (previous !== undefined && Number(previous) !== answered) {
+    answeredCountEl.classList.remove("bump");
+    void answeredCountEl.offsetWidth;
+    answeredCountEl.classList.add("bump");
+  }
+}
+
+function queueJoinToast(name) {
+  if (!name) return;
+  toastQueue.push(name);
+  if (!toastTimer) showNextToast();
+}
+
+function showNextToast() {
+  const name = toastQueue.shift();
+
+  if (!name || currentPhase !== "join") {
+    toastQueue = [];
+    toastTimer = null;
+    return;
+  }
+
+  while (toastsEl.children.length >= 2) toastsEl.firstElementChild.remove();
+
+  const toast = document.createElement("div");
+  const dot = document.createElement("i");
+  const who = document.createElement("b");
+  toast.className = "tv-toast";
+  who.textContent = name;
+  toast.append(dot, who, document.createTextNode(" joined!"));
+  toastsEl.appendChild(toast);
+  setTimeout(() => toast.remove(), 2700);
+
+  toastTimer = setTimeout(showNextToast, toastQueue.length > 3 ? 350 : 800);
+}
+
 gameRef.child("players").on("value", snap => {
   const players = snap.val() || {};
+  const ids = Object.keys(players);
+  const newIds = new Set();
+
+  if (knownPlayerIds) {
+    ids.forEach(id => {
+      if (!knownPlayerIds.has(id)) newIds.add(id);
+    });
+  }
+
+  knownPlayerIds = new Set(ids);
+  latestPlayers = players;
+
+  if (currentPhase === "join") {
+    newIds.forEach(id => queueJoinToast(players[id]?.name));
+  }
+
   renderLeaderboard(players);
-  renderJoinTicker(players);
+  renderJoinTicker(players, newIds);
+  updateAnsweredCount(players);
 });
 
 async function init() {

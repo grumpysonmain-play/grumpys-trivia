@@ -9,13 +9,8 @@ const liveBadge = document.getElementById("liveBadge");
 const promoBrandLogo = document.getElementById("promoBrandLogo");
 const promoHeadline = document.getElementById("promoHeadline");
 
-const PROMO_ROUND_THEMES = [
-  { accent: "#ff4255", hot: "#ff9eaa", rgb: "255 66 85" },
-  { accent: "#4aa8ff", hot: "#a7d7ff", rgb: "74 168 255" },
-  { accent: "#42d987", hot: "#a5f3c8", rgb: "66 217 135" },
-  { accent: "#ff8a35", hot: "#ffc28f", rgb: "255 138 53" },
-  { accent: "#9d73ff", hot: "#d5c3ff", rgb: "157 115 255" }
-];
+// Shared with the TV and phones (round-themes.js) so the colors always match.
+const PROMO_ROUND_THEMES = window.GRUMPYS_ROUND_THEMES.map(({ accent, hot, rgb }) => ({ accent, hot, rgb }));
 
 let currentGame = {};
 let promoCountdownInterval = null;
@@ -86,16 +81,9 @@ function getPlayUrl() {
   return `${window.location.origin}${window.location.pathname.replace("promo.html", "")}play.html`;
 }
 
+// Grumpy's tracked QR code (https://grumpysonmain.com/qr/trivia), so scans are counted.
 function setQrCode() {
-  const playUrl = getPlayUrl();
-  const encodedPlayUrl = encodeURIComponent(playUrl);
-
-  promoQrCode.innerHTML = `
-    <img 
-      alt="Scan to play Grumpy's Trivia" 
-      src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=12&data=${encodedPlayUrl}"
-    >
-  `;
+  promoQrCode.innerHTML = `<img alt="Scan to play Grumpy's Trivia" src="assets/trivia-qr.png">`;
 }
 
 function getSortedPlayers(playersObj = {}) {

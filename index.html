@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Grumpy's Trivia</title>
   <link rel="stylesheet" href="style.css?v=tvfinal4" />
+  <link rel="stylesheet" href="tv-refresh.css?v=1" />
 <link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"></head>
 <body>
   <div class="atmosphere" aria-hidden="true">
@@ -12,6 +13,9 @@
     <div class="glow glow-red"></div>
     <div class="light-beam beam-left"></div>
     <div class="light-beam beam-right"></div>
+    <div class="aurora"><i></i><i></i><i></i></div>
+    <div id="heatGlow" class="heat-glow"></div>
+    <div id="bgBurst" class="bg-burst"></div>
     <div class="noise"></div>
   </div>
 
@@ -31,7 +35,7 @@
           <div id="phaseLabel">Starting Soon</div>
         </div>
         <div id="timer">4:00</div>
-        <div class="timer-caption">TIME REMAINING</div>
+        <div id="timerCaption" class="timer-caption">TIME REMAINING</div>
       </div>
     </header>
 
@@ -54,18 +58,21 @@
           <div class="tv-points-top">
             <span>Points Available</span>
             <strong id="tvPointsText">1000</strong>
+            <em id="answeredCount" class="answered-count"></em>
           </div>
           <div class="tv-points-bar">
             <div id="tvPointsFill" class="tv-points-fill"></div>
           </div>
         </div>
 
+        <div id="revealStats" class="reveal-stats" aria-live="polite"></div>
+
         <div id="message" class="message">Scan the QR code to join the next round.</div>
       </div>
 
       <aside class="side-panel">
         <div class="qr-box">
-          <div class="panel-kicker">JOIN THE GAME</div>
+          <div id="qrKicker" class="panel-kicker">JOIN THE GAME</div>
           <div id="qrCode" class="qr-placeholder">QR</div>
           <div class="qr-text">Scan to Play <span>›</span></div>
           <div class="qr-subtext">No app needed</div>
@@ -75,7 +82,7 @@
           <div class="leaderboard-head">
             <div>
               <div class="panel-kicker">LIVE RANKINGS</div>
-              <h2>Top 5</h2>
+              <h2 id="leaderboardTitle">Top 5</h2>
             </div>
             <span class="live-pill"><i></i> LIVE</span>
           </div>
@@ -96,12 +103,21 @@
       </div>
       <div id="roundProgress" class="round-progress">Round loading...</div>
     </footer>
+
+    <div id="tvToasts" class="tv-toasts" aria-live="polite"></div>
+
+    <div id="questionBumper" class="question-bumper" aria-hidden="true">
+      <div id="bumperKicker" class="bumper-kicker"></div>
+      <div id="bumperTitle" class="bumper-title"></div>
+      <div id="bumperSub" class="bumper-sub"></div>
+    </div>
   </main>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="questions.js"></script>
-  <script src="app.js?v=tvfinal2"></script>
+  <script src="questions.js?v=2"></script>
+  <script src="round-themes.js?v=2"></script>
+  <script src="app.js?v=tvrefresh2"></script>
 <script src="shared-theme.js"></script></body>
 </html>
