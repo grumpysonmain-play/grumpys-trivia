@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
   <title>Grumpy's Games Control Room</title>
-  <link rel="stylesheet" href="stats.css?v=control1" />
+  <link rel="stylesheet" href="stats.css?v=names1" />
 <link rel="stylesheet" href="appearance.css"><link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"></head>
 <body>
   <div class="dashboard-glow dashboard-glow-one" aria-hidden="true"></div>
@@ -45,7 +45,7 @@
         <div class="metric-grid six-up"><div class="metric-card"><small>NAMED PLAYERS</small><strong id="namedPlayersCount">0</strong></div><div class="metric-card"><small>WITH A SCORE</small><strong id="scoredPlayersCount">0</strong></div><div class="metric-card"><small>SAVED ROUNDS</small><strong id="savedRoundsCount">0</strong></div><div class="metric-card"><small>LIVE PLAYERS</small><strong id="triviaLivePlayersCount">0</strong></div><div class="metric-card"><small>GUEST PLAYS</small><strong id="guestPlaysCount">0</strong></div><div class="metric-card"><small>NAMED PLAYS</small><strong id="namedPlaysCount">0</strong></div></div>
         <article class="panel-card table-card">
           <div class="card-heading"><div><span class="eyebrow red">PLAYER RECORDS</span><h3>Trivia Leaderboard</h3></div><span id="leaderboardCount" class="count-pill">0 players</span></div>
-          <div class="player-filters"><button class="player-filter-btn active" data-filter="all" type="button">All-Time</button><button class="player-filter-btn" data-filter="recent" type="button">Recent</button><button class="player-filter-btn" data-filter="inactive" type="button">Inactive</button></div>
+          <div class="player-filters"><button class="player-filter-btn active" data-filter="all" type="button">All-Time</button><button class="player-filter-btn" data-filter="recent" type="button">Recent</button><button class="player-filter-btn" data-filter="inactive" type="button">Inactive</button><button class="player-filter-btn" data-filter="flagged" type="button">Flagged</button></div>
           <div class="toolbar"><label class="search-field"><span>⌕</span><input id="leaderboardSearch" type="search" placeholder="Search player name…" /></label><select id="sortSelect" aria-label="Sort trivia players"><option value="score">Total Score</option><option value="wins">Wins</option><option value="games">Games Played</option><option value="average">Average Score</option><option value="recent">Last Played</option><option value="name">Name</option></select><select id="sortDirection" aria-label="Sort direction"><option value="desc">High to Low</option><option value="asc">Low to High</option></select></div>
           <div class="table-scroll"><table><thead><tr><th>Rank</th><th>Name</th><th>Total Score</th><th>Wins</th><th>Games</th><th>Avg/Game</th><th>Last Played</th><th>Action</th></tr></thead><tbody id="leaderboardBody"><tr><td colspan="8" class="empty-state">Loading leaderboard…</td></tr></tbody></table></div>
         </article>
@@ -95,6 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="grumpys-auth.js?v=1"></script>
-  <script src="stats.js?v=secure1"></script>
+  <script src="name-filter.js?v=1"></script>
+  <script src="stats.js?v=names1"></script>
 <script src="shared-theme.js"></script></body>
 </html>

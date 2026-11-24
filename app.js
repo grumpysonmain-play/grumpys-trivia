@@ -531,8 +531,11 @@ async function getAllTimeLeaders() {
     wins: profile.wins || 0
   }));
 
+  // Names that break the nickname rules stay off the TV until they're renamed on the stats page.
+  const nameIsBlocked = name => Boolean(window.GrumpysNameFilter && window.GrumpysNameFilter.isBlocked(name));
+
   return profiles
-    .filter(profile => profile.totalScore > 0)
+    .filter(profile => profile.totalScore > 0 && !nameIsBlocked(profile.name))
     .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
     .slice(0, 15);
 }

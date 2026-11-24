@@ -419,6 +419,7 @@ async function loadPlayerStats(force = false) {
     const snap = await claimedNamesRef.once("value");
     const profiles = Object.entries(snap.val() || {})
       .map(([key, profile]) => ({ key, ...profile }))
+      .filter(profile => !isHardBlockedName(profile.displayName || profile.key))
       .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 
     const index = profiles.findIndex(profile => profile.key === playerNameKey);
@@ -1052,7 +1053,7 @@ async function openPlayerProfile() {
       totalScore: Number(profile.totalScore) || 0,
       wins: Number(profile.wins) || 0,
       gamesPlayed: Number(profile.gamesPlayed) || 0
-    })).sort((a, b) => b.totalScore - a.totalScore || b.wins - a.wins || a.name.localeCompare(b.name));
+    })).filter(profile => !isHardBlockedName(profile.name)).sort((a, b) => b.totalScore - a.totalScore || b.wins - a.wins || a.name.localeCompare(b.name));
 
     const mine = !isGuest && playerNameKey ? rankedTrivia.find(profile => profile.nameKey === playerNameKey) : null;
     const triviaRank = mine && mine.totalScore > 0 ? rankedTrivia.indexOf(mine) + 1 : 0;
@@ -1155,165 +1156,9 @@ function formatProfileNumber(value) {
   return Number(value || 0).toLocaleString();
 }
 
-const BLOCKED_WORDS = [
-  // Profanity / crude language
-  "fuck", "fucker", "fucking", "shit", "shitty", "bitch", "asshole", "ass",
-  "dick", "cock", "pussy", "cunt", "cum", "jizz", "porn", "sex",
-  "slut", "whore", "horny", "nude", "nudes",
-
-  // Sexual / creepy joke names
-  "daddy", "mommy", "mama", "papi", "stepdad", "stepmom",
-  "milf", "dilf", "sugarbaby", "sugar", "baby",
-  "suck", "sucks", "sucker", "lick", "licker", "spank",
-  "sexy", "thicc", "gyatt", "onlyfans", "simp", "cougar", "hoe", "hoes",
-
-  // Bathroom / gross names
-  "fart", "farter", "farting", "poop", "pooper", "poopy",
-  "pee", "piss", "butt", "booty", "balls", "nuts", "booger",
-  "toilet", "diarrhea", "diarrhoea", "crap", "turd", "shart",
-  "barf", "vomit", "stinky", "smelly", "boob", "boobs",
-
-  // Hate / slurs / violent content
-  "rape", "rapist", "molest", "pedo", "pedophile",
-  "nigger", "nigga", "fag", "faggot", "retard", "spic", "chink", "kike",
-  "hitler", "nazi", "kkk", "isis", "terrorist",
-
-  // Admin/staff impersonation
-  "admin", "administrator", "owner", "staff", "employee", "manager",
-  "host", "triviahost", "grumpysowner", "grumpysstaff", "grumpysmanager",
-  "ceo", "president", "mod", "moderator", "security", "bartender",
-  "server", "cook", "chef", "dj", "announcer",
-
-  // Political bait names
-  "trump", "biden", "obama", "maga", "liberal", "conservative",
-
-  // Drug / bar-inappropriate joke names
-  "weed", "stoner", "drunk", "wasted",
-
-  // Common troll / fake names
-  "skibidi", "ohio", "chungus", "yeet", "sus", "imposter",
-  "amongus", "npc", "bot", "trash", "loser", "anonymous",
-  "unknown", "none", "null", "undefined", "test",
-
-  // “Your mom” type names
-  "yourmom", "yourdad", "urmom", "urdad", "yomama"
-];
-
-const BLOCKED_EXACT_NAMES = [
-  "admin",
-  "administrator",
-  "owner",
-  "staff",
-  "manager",
-  "employee",
-  "grumpys",
-  "grumpysowner",
-  "grumpysstaff",
-  "grumpysmanager",
-  "triviahost",
-  "host",
-
-  "daddy",
-  "mommy",
-  "mama",
-  "papi",
-  "farter",
-  "fart",
-  "pooper",
-  "poop",
-  "butt",
-  "booty",
-
-  "trump",
-  "biden",
-  "obama",
-  "maga",
-
-  "guest",
-  "player",
-  "winner",
-  "loser",
-  "anonymous",
-  "unknown",
-  "test"
-];
-
-function normalizeNameForFilter(name) {
-  return String(name || "")
-    .toLowerCase()
-    .replace(/0/g, "o")
-    .replace(/1/g, "i")
-    .replace(/!/g, "i")
-    .replace(/3/g, "e")
-    .replace(/4/g, "a")
-    .replace(/@/g, "a")
-    .replace(/5/g, "s")
-    .replace(/\$/g, "s")
-    .replace(/7/g, "t")
-    .replace(/\+/g, "t")
-    .replace(/8/g, "b")
-    .replace(/9/g, "g")
-    .replace(/[^a-z0-9]/g, "");
-}
-
+// Rude, joke, political and staff names: see name-filter.js (shared with the stats page).
 function isHardBlockedName(name) {
-  const raw = String(name || "").toLowerCase();
-
-  // Removes spaces, dots, hyphens, apostrophes, underscores, etc.
-  // Example: "T-r.u m p" becomes "trump"
-  const compact = raw.replace(/[^a-z0-9]/g, "");
-
-  // Example: "6 9", "6-9", "6.9" all become "69"
-  const compactNumbers = raw.replace(/[^0-9]/g, "");
-
-  const hardBlocked = [
-    "trump",
-    "biden",
-    "obama",
-    "maga",
-
-    "daddy",
-    "mommy",
-    "mama",
-    "papi",
-
-    "fart",
-    "farter",
-    "poop",
-    "pooper",
-    "pee",
-    "piss",
-    "butt",
-    "booty",
-
-    "admin",
-    "administrator",
-    "owner",
-    "manager",
-    "staff",
-    "employee",
-    "host",
-    "grumpys",
-    "grumpy",
-
-    "fuck",
-    "shit",
-    "bitch",
-    "asshole",
-    "dick",
-    "pussy",
-    "cunt",
-    "sex",
-    "porn",
-    "hitler",
-    "nazi"
-  ];
-
-  if (compactNumbers.includes("69") || compactNumbers.includes("420")) {
-    return true;
-  }
-
-  return hardBlocked.some(word => compact.includes(word));
+  return Boolean(window.GrumpysNameFilter && window.GrumpysNameFilter.isBlocked(name));
 }
 
 function formatTime(seconds) {
@@ -1342,11 +1187,6 @@ function makeNameKey(name) {
 function isNameAllowed(name) {
   const cleaned = cleanName(name);
   const key = makeNameKey(cleaned);
-  const normalized = normalizeNameForFilter(cleaned);
-
-  // Reduces extra repeats for checking.
-  // Example: "Dadddddy" gets checked closer to "Dadddy".
-  const reducedRepeats = normalized.replace(/(.)\1{3,}/g, "$1$1$1");
 
   const words = cleaned.split(" ").filter(Boolean);
 
@@ -1393,44 +1233,7 @@ function isNameAllowed(name) {
     return false;
   }
 
-  // Ban exact fake/admin/troll names
-  if (BLOCKED_EXACT_NAMES.includes(normalized) || BLOCKED_EXACT_NAMES.includes(reducedRepeats)) {
-    return false;
-  }
-
-  // Ban guest-style names for registered users
-  if (normalized.includes("guest")) {
-    return false;
-  }
-
-  // Ban Grumpy's impersonation names
-  if (normalized.includes("grumpys") || normalized.includes("grumpy")) {
-    return false;
-  }
-
-  // Ban “your mom” variants even with spaces/punctuation
-  if (
-    normalized.includes("yourmom") ||
-    normalized.includes("yourdad") ||
-    normalized.includes("urmom") ||
-    normalized.includes("urdad") ||
-    normalized.includes("yomama")
-  ) {
-    return false;
-  }
-
-  // Ban obvious bad words, including versions with spaces, periods, hyphens, or number swaps
-  const blocked = BLOCKED_WORDS.some(word => {
-    const badWord = normalizeNameForFilter(word);
-
-    return normalized.includes(badWord) || reducedRepeats.includes(badWord);
-  });
-
-  if (blocked) {
-    return false;
-  }
-
-  return true;
+  return !isHardBlockedName(cleaned);
 }
 
 function isPinValid(pin) {
@@ -1851,6 +1654,16 @@ document.addEventListener("keydown", event => {
     if (event.key === "Enter") joinGame();
   });
 });
+
+// A nickname saved on this phone before the name filter got stricter has to be changed.
+if (!isGuest && !isPlayerPreview && playerName && isHardBlockedName(playerName)) {
+  ["grumpysTriviaPlayerId", "grumpysTriviaPlayerName", "grumpysTriviaNameKey", "grumpysTriviaPin"].forEach(key => localStorage.removeItem(key));
+  playerId = null;
+  playerName = null;
+  playerNameKey = null;
+  savedPin = null;
+  setJoinError("That nickname isn't allowed anymore. Please pick a new one.");
+}
 
 if (playerName && !isGuest) nameInput.value = playerName;
 if (savedPin && !isGuest) pinInput.value = savedPin;

@@ -112,12 +112,30 @@ function sortTriviaPlayers(players) {
   });
 }
 
+// Names that the nickname filter (name-filter.js) would refuse today.
+function isFlaggedName(name) {
+  return Boolean(window.GrumpysNameFilter && window.GrumpysNameFilter.isBlocked(name));
+}
+
+function flagPill(name) {
+  return isFlaggedName(name) ? ' <span class="flag-pill" title="This name breaks the nickname rules. Rename it.">Flagged</span>' : "";
+}
+
+function updateFlaggedButton() {
+  const button = document.querySelector('.player-filter-btn[data-filter="flagged"]');
+  if (!button) return;
+  const count = allPlayers.filter(player => isFlaggedName(player.name)).length;
+  button.textContent = count ? `Flagged (${count})` : "Flagged";
+  button.classList.toggle("has-flags", count > 0);
+}
+
 function renderTriviaLeaderboard() {
   const search = leaderboardSearchEl.value.trim().toLowerCase();
   const ranked = getRankedTrivia();
   let players = allPlayers.filter(player => {
     if (currentFilter === "recent" && !player.lastPlayed) return false;
     if (currentFilter === "inactive" && player.gamesPlayed && player.totalScore) return false;
+    if (currentFilter === "flagged" && !isFlaggedName(player.name)) return false;
     return !search || player.name.toLowerCase().includes(search);
   });
   players = sortTriviaPlayers(players);
@@ -128,12 +146,13 @@ function renderTriviaLeaderboard() {
   }
   leaderboardBodyEl.innerHTML = players.map(player => {
     const rank = ranked.findIndex(item => item.nameKey === player.nameKey) + 1;
-    return `<tr><td class="rank-cell">#${rank}</td><td>${escapeHtml(player.name)}</td><td class="score-cell">${formatNumber(player.totalScore)}</td><td>${formatNumber(player.wins)}</td><td>${formatNumber(player.gamesPlayed)}</td><td>${formatNumber(getAvgScore(player))}</td><td class="muted">${formatDate(player.lastPlayed)}</td><td><button class="rename-btn" data-name-key="${escapeHtml(player.nameKey)}" data-current-name="${escapeHtml(player.name)}" type="button">Rename</button></td></tr>`;
+    return `<tr><td class="rank-cell">#${rank}</td><td>${escapeHtml(player.name)}${flagPill(player.name)}</td><td class="score-cell">${formatNumber(player.totalScore)}</td><td>${formatNumber(player.wins)}</td><td>${formatNumber(player.gamesPlayed)}</td><td>${formatNumber(getAvgScore(player))}</td><td class="muted">${formatDate(player.lastPlayed)}</td><td><button class="rename-btn" data-name-key="${escapeHtml(player.nameKey)}" data-current-name="${escapeHtml(player.name)}" type="button">Rename</button></td></tr>`;
   }).join("");
 }
 
 function renderTriviaPlayers(playersObj = {}) {
   allPlayers = getTriviaPlayers(playersObj);
+  updateFlaggedButton();
   byId("namedPlayersCount").textContent = formatNumber(allPlayers.length);
   byId("scoredPlayersCount").textContent = formatNumber(allPlayers.filter(player => player.totalScore > 0).length);
   byId("overviewTriviaPlayers").textContent = pluralize(allPlayers.length, "player");
@@ -213,7 +232,7 @@ function renderArcadeStats(config, playersObj = {}) {
   byId(config.overviewBest).textContent = config.overviewLabel(topScore);
   byId(config.overviewPlayers).textContent = pluralize(players.length, "player");
   const body = byId(`${config.prefix}Body`);
-  body.innerHTML = players.length ? players.map((player, index) => `<tr><td class="rank-cell">#${index + 1}</td><td>${escapeHtml(player.name)}</td><td class="score-cell">${formatNumber(player.score)}</td><td class="muted">${formatDate(player.updatedAt)}</td></tr>`).join("") : '<tr><td colspan="4" class="empty-state">No saved scores yet.</td></tr>';
+  body.innerHTML = players.length ? players.map((player, index) => `<tr><td class="rank-cell">#${index + 1}</td><td>${escapeHtml(player.name)}${flagPill(player.name)}</td><td class="score-cell">${formatNumber(player.score)}</td><td class="muted">${formatDate(player.updatedAt)}</td></tr>`).join("") : '<tr><td colspan="4" class="empty-state">No saved scores yet.</td></tr>';
   updateTimestamp();
 }
 
@@ -269,6 +288,7 @@ async function renamePlayer(nameKey, currentName) {
   if (rawName === null) return;
   const newName = cleanDisplayName(rawName);
   if (newName.length < 2) return alert("Name must be at least 2 characters.");
+  if (isFlaggedName(newName)) return alert(`"${newName}" breaks the nickname rules. Pick a different name.`);
   if (!confirm(`Change display name from "${currentName}" to "${newName}"?`)) return;
   try {
     await claimedNamesRef.child(nameKey).update({ displayName: newName, renamedAt: Date.now() });
