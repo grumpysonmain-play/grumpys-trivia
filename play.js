@@ -178,6 +178,13 @@ const LAST_COMPLETED_ROUND_KEY = "grumpysTriviaLastCompletedRoundId";
 
 // ---------- Round colors (shared with the TV and promo screen) ----------
 
+// christmas.js calls this when the theme switches, so the round picks up the right colors.
+window.grumpysReapplyRoundTheme = () => {
+  const key = currentPhoneThemeKey;
+  currentPhoneThemeKey = null;
+  applyPhoneRoundTheme(key);
+};
+
 function applyPhoneRoundTheme(roundKey) {
   const key = String(roundKey || "grumpys");
   if (key === currentPhoneThemeKey) return;
@@ -215,7 +222,9 @@ const ICONS = {
   clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>',
   up: '<svg viewBox="0 0 12 12" aria-hidden="true" class="up"><path d="M6 2l5 8H1z"></path></svg>',
   down: '<svg viewBox="0 0 12 12" aria-hidden="true" class="down"><path d="M6 2l5 8H1z"></path></svg>',
-  saved: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>'
+  saved: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  // A lump of coal, for wrong answers at Christmas.
+  coal: '<svg viewBox="0 0 64 64" aria-hidden="true" class="coal"><path d="M9 40 L13 24 L26 13 L43 12 L55 24 L58 40 L49 53 L30 57 L15 52 Z" fill="#33333a" stroke="#0b0b0d" stroke-width="3.5" stroke-linejoin="round"></path><path d="M26 13 L43 12 L39 25 L24 26 Z" fill="#55555f" stroke="none"></path><path d="M43 12 L55 24 L46 31 L39 25 Z" fill="#44444d" stroke="none"></path><path d="M15 52 L30 57 L49 53 L41 45 L22 46 Z" fill="#1f1f24" stroke="none"></path><circle cx="30" cy="19" r="2.6" fill="#fff" opacity=".85" stroke="none"></circle><path d="M49 19 l1.4 3.2 3.2 1.4 -3.2 1.4 -1.4 3.2 -1.4 -3.2 -3.2 -1.4 3.2 -1.4z" fill="#fff" opacity=".9" stroke="none"></path><circle cx="25" cy="37" r="4.6" fill="#fff" stroke="none"></circle><circle cx="39" cy="37" r="4.6" fill="#fff" stroke="none"></circle><circle cx="26" cy="38" r="2.2" fill="#111" stroke="none"></circle><circle cx="38" cy="38" r="2.2" fill="#111" stroke="none"></circle><path d="M19 30 L29 33 M45 30 L35 33" stroke="#0b0b0d" stroke-width="3" stroke-linecap="round" fill="none"></path><path d="M26 49 Q32 44 38 49" stroke="#0b0b0d" stroke-width="2.6" stroke-linecap="round" fill="none"></path></svg>'
 };
 
 function ordinal(n) {
@@ -714,7 +723,7 @@ function renderRevealScreen(game, playersObj) {
     const earned = Number(answer.pointsEarned ?? answer.pointsPossible) || 0;
     resultCard.classList.add("good");
     resultIcon.innerHTML = ICONS.check;
-    resultTitle.textContent = "Correct!";
+    resultTitle.textContent = window.GrumpysChristmas?.isActive() ? "Nice!" : "Correct!";
     resultPoints.textContent = `+${earned.toLocaleString()}`;
     resultAnswer.textContent = "";
     setWash("good");
@@ -725,8 +734,9 @@ function renderRevealScreen(game, playersObj) {
     }
   } else {
     resultCard.classList.add(answer ? "miss" : "none");
-    resultIcon.innerHTML = answer ? ICONS.cross : ICONS.clock;
-    resultTitle.textContent = answer ? "Not this time" : "Time's up";
+    const christmas = window.GrumpysChristmas?.isActive();
+    resultIcon.innerHTML = christmas ? ICONS.coal : answer ? ICONS.cross : ICONS.clock;
+    resultTitle.textContent = christmas ? (answer ? "Coal!" : "Too slow for Santa") : answer ? "Not this time" : "Time's up";
     resultPoints.textContent = "";
     setRich(resultAnswer, "The answer was ", rightText);
     setWash("miss");
@@ -1101,7 +1111,8 @@ async function openPlayerProfile() {
 function setPhoneSeasonalBranding(date = new Date()) {
   const month = date.getMonth();
   const day = date.getDate();
-  const isChristmasSeason = month === 11 || (month === 0 && day === 1);
+  // The Christmas logo comes and goes with the Christmas theme (christmas.js).
+  const isChristmasSeason = false;
   const isPatrioticSeason =
     (month === 6 && day >= 1 && day <= 7) ||
     (month === 4 && day >= 23) ||

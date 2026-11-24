@@ -34,6 +34,13 @@ let championPendingFor = null;
 const CHAMPION_DELAY_MS = 8000;
 
 // Round colors are shared with the TV and phones (round-themes.js).
+// christmas.js calls this when the theme switches, so the round picks up the right colors.
+window.grumpysReapplyRoundTheme = () => {
+  const key = currentThemeKey;
+  currentThemeKey = null;
+  applyRoundTheme(key);
+};
+
 function applyRoundTheme(roundKey) {
   const key = String(roundKey || "grumpys");
   if (key === currentThemeKey) return;
@@ -50,7 +57,8 @@ function applyRoundTheme(roundKey) {
 function setSeasonalBranding(date = new Date()) {
   const month = date.getMonth();
   const day = date.getDate();
-  const isChristmasSeason = month === 11 || (month === 0 && day === 1);
+  // The Christmas logo comes and goes with the Christmas theme (christmas.js).
+  const isChristmasSeason = false;
   const isPatrioticSeason =
     (month === 6 && day >= 1 && day <= 7) ||
     (month === 4 && day >= 23) ||

@@ -1,0 +1,288 @@
+/* ==========================================================================
+   Grumpy's Christmas theme. Everything here only applies with body.theme-christmas
+   (turned on by shared-theme.js, from the day after Thanksgiving through Dec 26).
+   The round colors come from christmas.js; this file adds the night sky, snow,
+   string lights, the "QUESTION 3" pop-ups and the Nice List podium.
+   ========================================================================== */
+
+body.theme-christmas { background: #040d09; --u: min(calc(100vw / 1920), calc(100vh / 1080)); }
+body.theme-christmas .atmosphere { background-color: #040d09; }
+body.theme-christmas .glow-red { background: #1f7a4a; }
+
+/* Cards get a faint pine tint and a frosty edge. */
+body.theme-christmas .question-card,
+body.theme-christmas .qr-box,
+body.theme-christmas .leaderboard,
+body.theme-christmas .round-info,
+body.theme-christmas .qr-card,
+body.theme-christmas .main-panel {
+  background-color: rgba(7, 24, 16, .82);
+  border-color: rgba(210, 235, 255, .16);
+}
+
+/* ---------- Snow (drawn by christmas.js) -------------------------------- */
+.xmas-snow { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+body.theme-christmas .pv-app { position: relative; z-index: 1; }
+body.theme-christmas .promo-screen { z-index: 1; }
+
+/* ---------- String lights ----------------------------------------------- */
+.xmas-lights { pointer-events: none; line-height: 0; }
+.xmas-lights svg { display: block; overflow: visible; }
+.xmas-lights-tv, .xmas-lights-promo { position: absolute; top: 0; left: 0; right: 0; z-index: 6; }
+.xmas-lights-phone { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 60; }
+body.theme-christmas main.screen { padding-top: calc(clamp(22px, 2.2vw, 42px) + 40 * var(--u)); }
+body.theme-christmas main.promo-screen { padding-top: calc(96 * var(--u)); }
+body.theme-christmas.pv .pv-app { padding-top: 30px; }
+
+.xmas-bulb .glow { opacity: .3; filter: blur(7px); animation: bulbGlow 2.4s ease-in-out infinite; animation-delay: var(--d); }
+.xmas-bulb .glass { animation: bulbGlass 2.4s ease-in-out infinite; animation-delay: var(--d); }
+@keyframes bulbGlow { 0%, 100% { opacity: .55; } 45% { opacity: .12; } 55% { opacity: .1; } }
+@keyframes bulbGlass { 0%, 100% { opacity: 1; } 45%, 55% { opacity: .55; } }
+
+/* ---------- Special round colors ---------------------------------------- */
+/* Candy Cane rounds: striped trim on the timer box and the points bar. */
+html[data-xmas-palette="candy"] body.theme-christmas .round-info { position: relative; overflow: hidden; }
+html[data-xmas-palette="candy"] body.theme-christmas .round-info::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(10 * var(--u));
+  background: repeating-linear-gradient(-45deg, #ff3b52 0 calc(14 * var(--u)), #fff calc(14 * var(--u)) calc(28 * var(--u)));
+}
+/* Tree Lights rounds: the background glow slowly cycles through bulb colors. */
+html[data-xmas-palette="lights"] body.theme-christmas .aurora,
+html[data-xmas-palette="lights"] body.theme-christmas .glow { animation: treeLightsHue 12s linear infinite; }
+@keyframes treeLightsHue { to { filter: hue-rotate(360deg); } }
+
+/* Points bars become candy canes (TV and phones). The stripes slide on their own layer
+   (cheap for the TV to draw), and the bar width follows the points with no delay. */
+body.theme-christmas #tvPointsFill,
+body.theme-christmas #pointsFill {
+  position: relative; overflow: hidden; background: #ff3b52 !important;
+  transition: box-shadow .14s linear !important;
+}
+body.theme-christmas #tvPointsFill::before,
+body.theme-christmas #pointsFill::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -30px; right: 0;
+  background: repeating-linear-gradient(-45deg, #ff3b52 0 10px, #fff 10px 20px);
+  animation: caneSlide 1.8s linear infinite; will-change: transform;
+}
+@keyframes caneSlide { from { transform: translateX(0); } to { transform: translateX(28.28px); } }
+
+/* ---------- "QUESTION 3" pop-ups --------------------------------------- */
+/* Five versions; christmas.js picks one per question, the same on both TVs. */
+body.theme-christmas .question-bumper { background: radial-gradient(ellipse at 50% 42%, rgba(18, 58, 36, .97), rgba(3, 9, 6, .985) 70%); overflow: hidden; }
+.xmas-bumper-art { display: none; }
+body.theme-christmas .xmas-bumper-art { display: block; position: absolute; inset: 0; pointer-events: none; }
+.xmas-bumper-art > span { position: absolute; display: none; }
+
+/* 1. Ornaments: the band drops in and bounces; ornaments swing on either side. */
+.question-bumper[data-xmas="ornament"].is-showing .bumper-title { animation: ornDrop 2.8s cubic-bezier(.3, 1.45, .55, 1) both; }
+@keyframes ornDrop { 0%, 4% { transform: translateY(-110vh); } 20%, 86% { transform: none; } 100% { transform: translateY(-110vh); } }
+.question-bumper[data-xmas="ornament"] .xmas-bumper-art > span {
+  display: block; top: 0; width: calc(170 * var(--u)); height: calc(360 * var(--u)); transform-origin: 50% 0;
+  background:
+    linear-gradient(#e9c36a, #b98a2c) 50% 0 / calc(4 * var(--u)) calc(196 * var(--u)) no-repeat,
+    linear-gradient(#f3d27c, #a77a22) 50% calc(100% - calc(166 * var(--u))) / calc(44 * var(--u)) calc(26 * var(--u)) no-repeat;
+  animation: ornSwing 2.8s ease-in-out both;
+}
+.question-bumper[data-xmas="ornament"] .xmas-bumper-art > span::after {
+  content: ""; position: absolute; left: 0; bottom: 0; width: calc(170 * var(--u)); height: calc(170 * var(--u)); border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgba(255,255,255,.85) 0 7%, var(--ball-hot) 12%, var(--ball) 48%, rgba(0,0,0,.55) 100%);
+  box-shadow: 0 0 calc(50 * var(--u)) var(--ball);
+}
+.xmas-bumper-art .o1 { left: 7%; --ball: #e8273f; --ball-hot: #ff8a98; }
+.xmas-bumper-art .o2 { right: 7%; --ball: #e6b33a; --ball-hot: #ffe7a0; animation-delay: -.4s !important; }
+.xmas-bumper-art .o3 { left: 22%; --ball: #23b866; --ball-hot: #9df0c0; height: calc(250 * var(--u)) !important; animation-delay: -.9s !important; }
+.question-bumper[data-xmas="ornament"] .xmas-bumper-art .o3 { background-size: calc(4 * var(--u)) calc(86 * var(--u)), calc(44 * var(--u)) calc(26 * var(--u)); }
+@keyframes ornSwing {
+  0%, 6% { transform: translateY(-110%) rotate(0); }
+  20% { transform: translateY(0) rotate(7deg); }
+  34% { transform: rotate(-5deg); } 48% { transform: rotate(3deg); } 62% { transform: rotate(-2deg); }
+  86% { transform: rotate(0); }
+  100% { transform: translateY(-110%); }
+}
+
+/* 2. Gift tag: a light tag on a red ribbon, swinging. */
+.question-bumper[data-xmas="tag"] .bumper-title {
+  width: calc(1560 * var(--u)); padding-left: calc(120 * var(--u)); font-size: calc(190 * var(--u)); white-space: nowrap;
+  clip-path: polygon(calc(110 * var(--u)) 0, 100% 0, 100% 100%, calc(110 * var(--u)) 100%, 0 50%);
+  background:
+    radial-gradient(circle at calc(96 * var(--u)) 50%, #0b0909 0 calc(20 * var(--u)), #f5e9cf calc(22 * var(--u)) calc(28 * var(--u)), transparent calc(29 * var(--u))),
+    linear-gradient(90deg, #fff6e2, #f0dfba);
+  box-shadow: none; color: #9e1426;
+}
+.question-bumper[data-xmas="tag"].is-showing .bumper-title { animation: tagSwing 2.8s cubic-bezier(.3, 1.3, .5, 1) both; transform-origin: 6% 50%; }
+@keyframes tagSwing {
+  0%, 4% { opacity: 0; transform: translateY(-60vh) rotate(-14deg); }
+  18% { opacity: 1; transform: translateY(0) rotate(4deg); }
+  30% { transform: rotate(-2deg); } 42% { transform: rotate(1deg); } 86% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-40vh) rotate(-10deg); }
+}
+.question-bumper[data-xmas="tag"] .xmas-bumper-art .o1 {
+  display: block; left: calc(50% - calc(640 * var(--u))); top: 0; width: calc(10 * var(--u)); height: 47%;
+  background: linear-gradient(#ff3b52, #b5122a); transform-origin: 50% 0; animation: ribbonDrop 2.8s ease both;
+}
+@keyframes ribbonDrop { 0%, 4% { transform: scaleY(0); } 18%, 86% { transform: scaleY(1); } 100% { transform: scaleY(0); } }
+
+/* 3. Present: the box rises, the lid pops off, the question comes out. */
+.question-bumper[data-xmas="gift"] .bumper-title {
+  width: calc(1500 * var(--u));
+  background:
+    linear-gradient(90deg, transparent calc(50% - calc(46 * var(--u))), var(--xmas-ribbon, #e8192c) calc(50% - calc(46 * var(--u))) calc(50% + calc(46 * var(--u))), transparent 0),
+    linear-gradient(180deg, var(--accent-hot), var(--accent));
+}
+.question-bumper[data-xmas="gift"].is-showing .bumper-title { animation: giftRise 2.8s cubic-bezier(.2, 1.2, .4, 1) both; }
+@keyframes giftRise { 0%, 4% { transform: translateY(70vh); } 16%, 86% { transform: none; } 100% { transform: translateY(70vh); } }
+.question-bumper[data-xmas="gift"] .bumper-title { position: relative; margin-top: calc(130 * var(--u)); }
+/* The lid (with its bow) sits on top of the box, then pops off. */
+.question-bumper[data-xmas="gift"] .bumper-title::before {
+  content: ""; position: absolute; left: -2%; right: -2%; top: calc(-66 * var(--u)); height: calc(70 * var(--u));
+  border-radius: calc(10 * var(--u));
+  background:
+    linear-gradient(90deg, transparent calc(50% - calc(46 * var(--u))), var(--xmas-ribbon, #e8192c) calc(50% - calc(46 * var(--u))) calc(50% + calc(46 * var(--u))), transparent 0),
+    linear-gradient(180deg, var(--accent-hot), var(--accent));
+  box-shadow: 0 calc(10 * var(--u)) calc(24 * var(--u)) rgba(0,0,0,.45);
+}
+.question-bumper[data-xmas="gift"] .bumper-title::after {
+  content: ""; position: absolute; left: calc(50% - calc(130 * var(--u))); top: calc(-150 * var(--u)); width: calc(260 * var(--u)); height: calc(100 * var(--u));
+  background:
+    radial-gradient(ellipse calc(62 * var(--u)) calc(40 * var(--u)) at 28% 60%, transparent 52%, var(--xmas-ribbon, #e8192c) 54% 92%, transparent 94%),
+    radial-gradient(ellipse calc(62 * var(--u)) calc(40 * var(--u)) at 72% 60%, transparent 52%, var(--xmas-ribbon, #e8192c) 54% 92%, transparent 94%),
+    radial-gradient(circle calc(22 * var(--u)) at 50% 68%, var(--xmas-ribbon, #e8192c) 96%, transparent 100%);
+}
+.question-bumper[data-xmas="gift"].is-showing .bumper-title::before,
+.question-bumper[data-xmas="gift"].is-showing .bumper-title::after { animation: lidPop 2.8s ease both; }
+@keyframes lidPop {
+  0%, 22% { transform: none; opacity: 1; }
+  27% { transform: translateY(calc(-30 * var(--u))) rotate(-3deg); }
+  42% { transform: translate(calc(520 * var(--u)), -80vh) rotate(32deg); opacity: 1; }
+  43%, 100% { transform: translate(calc(520 * var(--u)), -80vh) rotate(32deg); opacity: 0; }
+}
+
+/* 4. Candy cane: striped red-and-white band. */
+.question-bumper[data-xmas="candycane"] .bumper-title {
+  color: #c4122a;
+  background:
+    linear-gradient(#fff, #fff) center / 100% calc(100% - calc(56 * var(--u))) no-repeat,
+    repeating-linear-gradient(-45deg, #e8192c 0 calc(28 * var(--u)), #fff calc(28 * var(--u)) calc(56 * var(--u)));
+  background-size: 100% calc(100% - calc(56 * var(--u))), calc(79.2 * var(--u)) calc(79.2 * var(--u));
+  box-shadow: 0 0 calc(90 * var(--u)) rgba(255, 59, 82, .45);
+}
+.question-bumper[data-xmas="candycane"].is-showing .bumper-title { animation: bandWipe 2.8s cubic-bezier(.2, .9, .25, 1) both, caneBand 1.2s linear infinite; }
+@keyframes caneBand { to { background-position: center, calc(79.2 * var(--u)) 0; } }
+
+/* 5. Marquee: a dark sign framed in chasing bulbs. */
+.question-bumper[data-xmas="marquee"] .bumper-title {
+  position: relative; color: var(--accent-hot); background: #140c08;
+  text-shadow: 0 0 calc(24 * var(--u)) rgb(var(--accent-rgb) / .9), 0 0 calc(60 * var(--u)) rgb(var(--accent-rgb) / .6);
+  box-shadow: inset 0 0 calc(60 * var(--u)) rgba(0,0,0,.8);
+  padding-block: calc(60 * var(--u)) calc(48 * var(--u));
+}
+.question-bumper[data-xmas="marquee"] .bumper-title::before,
+.question-bumper[data-xmas="marquee"] .bumper-title::after {
+  content: ""; position: absolute; left: 0; right: 0; height: calc(26 * var(--u));
+  background:
+    radial-gradient(circle, #fff3c4 0 calc(8 * var(--u)), #ffc94a calc(9 * var(--u)), transparent calc(12 * var(--u))) 0 50% / calc(64 * var(--u)) 100% repeat-x,
+    radial-gradient(circle, #ff8a98 0 calc(7 * var(--u)), #ff3b52 calc(8 * var(--u)), transparent calc(11 * var(--u))) calc(32 * var(--u)) 50% / calc(64 * var(--u)) 100% repeat-x;
+  animation: marqueeChase .5s steps(2) infinite;
+}
+.question-bumper[data-xmas="marquee"] .bumper-title::before { top: calc(10 * var(--u)); }
+.question-bumper[data-xmas="marquee"] .bumper-title::after { bottom: calc(10 * var(--u)); animation-direction: reverse; }
+@keyframes marqueeChase { to { background-position: calc(64 * var(--u)) 50%, calc(96 * var(--u)) 50%; } }
+.question-bumper[data-xmas="marquee"].is-showing .bumper-title { animation: marqueeOn 2.8s linear both; }
+@keyframes marqueeOn {
+  0%, 5% { opacity: 0; } 8% { opacity: 1; } 10% { opacity: .2; } 13% { opacity: 1; } 15% { opacity: .5; } 18%, 88% { opacity: 1; } 100% { opacity: 0; }
+}
+
+/* ---------- Snow burst on the correct answer ---------------------------- */
+.xmas-burst { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+.xmas-burst i {
+  position: absolute; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(255,255,255,.9);
+  animation: snowBurst 1.9s cubic-bezier(.12, .75, .3, 1) both;
+}
+.xmas-burst i.star { border-radius: 0; background: #ffd45e; box-shadow: none; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); width: calc(var(--s) * 1.8); height: calc(var(--s) * 1.8); }
+@keyframes snowBurst {
+  0% { transform: translate(0, 0) scale(.2); opacity: 1; }
+  55% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + 140px)) scale(.8); opacity: 0; }
+}
+
+/* ---------- Winner podium: stars and snow, Top of the Nice List -------- */
+.podium-nice { display: none; }
+body.theme-christmas .podium-nice {
+  display: block; margin-bottom: calc(10 * var(--u)); padding: calc(8 * var(--u)) calc(22 * var(--u));
+  border-radius: 999px; background: linear-gradient(90deg, #c4122a, #ff3b52, #c4122a); color: #ffe8a8;
+  font-size: calc(24 * var(--u)); font-weight: 950; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+  box-shadow: 0 0 calc(30 * var(--u)) rgba(255, 59, 82, .55);
+  opacity: 0; transform: scale(.6);
+}
+body.theme-christmas .podium-col.place-1.is-up .podium-nice { animation: niceIn .9s cubic-bezier(.2, 1.5, .4, 1) .5s both; }
+@keyframes niceIn { to { opacity: 1; transform: none; } }
+body.theme-christmas .final-confetti span { background: #fff; border-radius: 50%; width: calc(14 * var(--u)); height: calc(14 * var(--u)); box-shadow: 0 0 8px rgba(255,255,255,.8); }
+body.theme-christmas .final-confetti span:nth-child(3n) {
+  background: #ffd45e; border-radius: 0; box-shadow: none; width: calc(30 * var(--u)); height: calc(30 * var(--u));
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+body.theme-christmas .final-confetti span:nth-child(7n) { background: #ff3b52; }
+
+/* ---------- Phones: Nice! and Coal -------------------------------------- */
+body.theme-christmas .pv-result.miss .pv-result-icon,
+body.theme-christmas .pv-result.none .pv-result-icon { width: 66px; height: 66px; background: radial-gradient(circle, #ffc27a 0%, #ff7a2e 70%, #e0531a 100%); box-shadow: 0 0 22px rgba(255, 122, 46, .55); }
+body.theme-christmas .pv-result-icon svg.coal { width: 52px; height: 52px; fill: initial; stroke: initial; stroke-width: initial; }
+
+/* ---------- Stats page theme card --------------------------------------- */
+.christmas-swatch { background: radial-gradient(circle at 0 0, #1d6b41, #06140d 75%); }
+.christmas-swatch .swatch-brand { color: #ffd45e; }
+.christmas-swatch .swatch-answers i { border-color: #ff3b5288; }
+.christmas-swatch .swatch-lights { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-around; }
+.christmas-swatch .swatch-lights b { width: 12px; height: 18px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; margin-top: 6px; box-shadow: 0 0 10px currentColor; background: currentColor; }
+
+@media (prefers-reduced-motion: reduce) {
+  .xmas-bulb .glow, .xmas-bulb .glass, body.theme-christmas #tvPointsFill::before, body.theme-christmas #pointsFill::before { animation: none; }
+}
+
+
+/* ---------- Background: deep pine and cranberry, the round color as a soft glow ---------- */
+body.theme-christmas .aurora i:nth-child(1),
+body.theme-christmas .pv-atmosphere i:nth-child(1) { background: radial-gradient(closest-side, rgba(24, 128, 72, .36), rgba(24, 128, 72, 0)) !important; }
+body.theme-christmas .aurora i:nth-child(2),
+body.theme-christmas .pv-atmosphere i:nth-child(2) { background: radial-gradient(closest-side, rgba(190, 26, 48, .26), rgba(190, 26, 48, 0)) !important; }
+body.theme-christmas .aurora i:nth-child(3) { background: radial-gradient(closest-side, rgb(var(--accent-rgb) / .1), rgb(var(--accent-rgb) / 0)) !important; }
+body.theme-christmas .light-beam { opacity: .03; }
+
+/* ---------- 6. Santa's sleigh pulls the question across the screen ------ */
+.question-bumper[data-xmas="sleigh"] .bumper-title {
+  width: calc(1200 * var(--u)); font-size: calc(170 * var(--u)); white-space: nowrap;
+  border-radius: calc(16 * var(--u));
+  background: linear-gradient(180deg, #fff8ea, #f0dfba); color: #b5122a; box-shadow: 0 calc(16 * var(--u)) calc(40 * var(--u)) rgba(0,0,0,.45);
+}
+.question-bumper[data-xmas="sleigh"] .bumper-kicker { order: 3; }
+.question-bumper[data-xmas="sleigh"] .bumper-sub { order: 2; }
+.question-bumper[data-xmas="sleigh"].is-showing .bumper-title { animation: sleighFlyBanner 2.8s cubic-bezier(.25, .8, .35, 1) both; }
+.question-bumper[data-xmas="sleigh"] .xmas-bumper-art .sleigh {
+  display: block; left: 50%; top: calc(50% - calc(440 * var(--u))); width: calc(900 * var(--u)); height: calc(300 * var(--u));
+  margin-left: calc(-450 * var(--u)); animation: sleighFly 2.8s cubic-bezier(.25, .8, .35, 1) both;
+}
+.sleigh-art { width: 100%; height: 100%; overflow: visible; }
+.sleigh-art .deer { animation: deerGallop .45s ease-in-out infinite alternate; transform-origin: 70px 70px; }
+.sleigh-art .deer2 { animation-delay: -.22s; }
+.sleigh-art .trail circle { animation: trailTwinkle .6s ease-in-out infinite alternate; }
+.sleigh-art .trail circle:nth-child(2n) { animation-delay: -.3s; }
+@keyframes deerGallop { from { transform: rotate(-4deg) translateY(-3px); } to { transform: rotate(3deg) translateY(3px); } }
+@keyframes trailTwinkle { from { opacity: .2; } to { opacity: 1; } }
+@keyframes sleighFly {
+  0%, 3% { transform: translate(-150vw, calc(-60 * var(--u))); }
+  24% { transform: translate(0, 0); }
+  40% { transform: translate(0, calc(-10 * var(--u))); }
+  56% { transform: translate(0, calc(8 * var(--u))); }
+  72%, 80% { transform: translate(0, 0); }
+  100% { transform: translate(150vw, calc(-120 * var(--u))); }
+}
+@keyframes sleighFlyBanner {
+  0%, 3% { transform: translate(-150vw, calc(0 * var(--u))); }
+  24% { transform: translate(0, calc(60 * var(--u))); }
+  40% { transform: translate(0, calc(50 * var(--u))); }
+  56% { transform: translate(0, calc(68 * var(--u))); }
+  72%, 80% { transform: translate(0, calc(60 * var(--u))); }
+  100% { transform: translate(150vw, calc(-60 * var(--u))); }
+}
+.question-bumper[data-xmas="sleigh"] .bumper-sub { margin-top: calc(60 * var(--u)); }

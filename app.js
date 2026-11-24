@@ -89,9 +89,13 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+let lastRoundThemeKey = null;
 function applyRoundTheme(roundKey) {
+  lastRoundThemeKey = roundKey;
   applyTheme(window.pickGrumpysRoundTheme(roundKey));
 }
+// christmas.js calls this when the theme switches, so the round picks up the right colors.
+window.grumpysReapplyRoundTheme = () => applyRoundTheme(lastRoundThemeKey);
 
 function applyTheme(theme) {
   const rootStyle = document.documentElement.style;
@@ -122,17 +126,11 @@ function setSeasonalBranding(date = new Date()) {
   const month = date.getMonth();
   const day = date.getDate();
 
-  const isChristmasSeason = month === 11 || (month === 0 && day === 1);
+  // The Christmas logo is handled by christmas.js, together with the Christmas theme.
   const isJulyFourthWeek = month === 6 && day >= 1 && day <= 7;
   const isMemorialDayWeek = month === 4 && day >= 23;
   const isVeteransDayWeek = month === 10 && day >= 8 && day <= 12;
   const isPatrioticSeason = isJulyFourthWeek || isMemorialDayWeek || isVeteransDayWeek;
-
-  if (isChristmasSeason) {
-    brandLogoEl.src = "assets/grumpys-logo-christmas.png";
-    brandLogoEl.alt = "Grumpy's Christmas logo";
-    return;
-  }
 
   if (isPatrioticSeason) {
     brandLogoEl.src = "assets/grumpys-logo-usa.png";
@@ -812,6 +810,7 @@ function renderRevealFinish(index, previousStandings, afterPlayers) {
       answer.classList.add(i === correctAnswerIndex ? "correct" : "dim");
     });
     backgroundBurst("70 229 138");
+    window.GrumpysChristmas?.snowBurst(document.querySelector(".answer.correct"));
   }, 1200));
 
   revealTimeouts.push(setTimeout(() => revealStatsEl.classList.add("is-in"), 1900));
@@ -1010,7 +1009,7 @@ function makePodiumColumn(player, place) {
 
   return `
     <div class="podium-col place-${place}" data-place="${place}">
-      ${place === 1 ? '<div class="podium-trophy" aria-hidden="true">🏆</div><div class="podium-wait" aria-hidden="true">?</div>' : ""}
+      ${place === 1 ? '<div class="podium-trophy" aria-hidden="true">🏆</div><div class="podium-wait" aria-hidden="true">?</div><div class="podium-nice">Top of the Nice List</div>' : ""}
       <div class="podium-name">${escapeHtml(player.name || "Player")}</div>
       <div class="podium-score">${(player.score || 0).toLocaleString()} PTS</div>
       <div class="podium-block">${place}</div>
@@ -1080,7 +1079,9 @@ function showPodium(allRoundPlayers, allTimeLeaders) {
     raise(1);
     backgroundBurst("255 196 64");
     answersEl.querySelector(".final-confetti")?.classList.add("is-live");
-    messageEl.textContent = `Congratulations, ${first?.name || "Player"}!`;
+    messageEl.textContent = window.GrumpysChristmas?.isActive()
+      ? `${first?.name || "Player"} is at the top of the Nice List!`
+      : `Congratulations, ${first?.name || "Player"}!`;
   }, at));
 
   const activateFinalStage = stageName => {
@@ -1164,11 +1165,15 @@ function getSportsQuestions() {
 }
 
 async function loadQuestions() {
-  const general = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("General Knowledge"), 2);
-  const history = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("US History"), 2);
+  // During the Christmas theme, two of the six questions are Christmas questions.
+  const christmasPool = window.GrumpysChristmas?.isActive() ? getQuestionsByCategory("Christmas") : [];
+  const christmas = christmasPool.length >= 2 ? pickRandomQuestionsAvoidingRecent(christmasPool, 2) : [];
+  const general = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("General Knowledge"), christmas.length ? 1 : 2);
+  const history = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("US History"), christmas.length ? 1 : 2);
   const sports = pickRandomQuestionsAvoidingRecent(getSportsQuestions(), 2);
 
   questions = shuffle([
+    ...christmas,
     ...general,
     ...history,
     ...sports
@@ -1188,6 +1193,8 @@ function playBumper(category, index, total) {
   document.getElementById("bumperKicker").textContent = category || "Trivia";
   document.getElementById("bumperTitle").textContent = `Question ${index + 1}`;
   document.getElementById("bumperSub").textContent = index === total - 1 ? "LAST ONE!" : `OF ${total}`;
+  // Christmas: one of several pop-up styles, picked the same way on the TV and the second screen.
+  bumperEl.dataset.xmas = window.GrumpysChristmas ? window.GrumpysChristmas.bumperStyle(`${lastRoundThemeKey}-${index}`) : "";
 
   bumperEl.classList.remove("is-showing");
   void bumperEl.offsetWidth;

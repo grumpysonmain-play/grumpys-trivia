@@ -5,7 +5,10 @@ const ICONS={"pumpkin": "<svg viewBox=\"0 0 120 104\" aria-hidden=\"true\"><path
  const key=preview?'grumpys-appearance-preview':'grumpys-appearance';
  const listeners=new Set();
  let current='regular', ref=null, readError=null;
- const valid=v=>v==='halloween'?'halloween':'regular';
+ const valid=v=>v==='halloween'||v==='christmas'?v:'regular';
+ // "Regular" turns into Christmas by itself from the day after Thanksgiving through Dec 26 (christmas.js).
+ const effective=mode=>mode==='regular'&&window.GrumpysHoliday&&window.GrumpysHoliday.isChristmasSeason()?'christmas':mode;
+ const themeTitle=mode=>mode==='halloween'?'Halloween':mode==='christmas'?'Christmas':'Regular';
  try { const saved=localStorage.getItem(key); if(saved)current=valid(saved); } catch {}
  if(preview&&new URLSearchParams(location.search).get('theme')==='original')current='regular';
  function decorate(){
@@ -17,31 +20,35 @@ const ICONS={"pumpkin": "<svg viewBox=\"0 0 120 104\" aria-hidden=\"true\"><path
   });
  }
  function apply(mode){
-  current=valid(mode);if(current==='halloween')decorate();
-  document.body.classList.toggle('theme-halloween',current==='halloween');
-  if(preview){const sheet=document.querySelector('link[href="halloween.css"]');if(sheet)sheet.disabled=current!=='halloween';}
-  document.querySelectorAll('.halloween-corners,.halloween-mark').forEach(e=>e.style.display=current==='halloween'?'':'none');
+  current=valid(mode);const shown=effective(current);if(shown==='halloween')decorate();
+  document.body.classList.toggle('theme-halloween',shown==='halloween');
+  document.body.classList.toggle('theme-christmas',shown==='christmas');
+  if(preview){const sheet=document.querySelector('link[href="halloween.css"]');if(sheet)sheet.disabled=shown!=='halloween';}
+  document.querySelectorAll('.halloween-corners,.halloween-mark').forEach(e=>e.style.display=shown==='halloween'?'':'none');
   try{if(!preview||new URLSearchParams(location.search).get('theme')!=='original')localStorage.setItem(key,current);}catch{}
   listeners.forEach(fn=>fn(current));
  }
  async function save(mode){
-  if(!['regular','halloween'].includes(mode))throw new Error('Choose Regular or Halloween.');
+  if(!['regular','halloween','christmas'].includes(mode))throw new Error('Choose Regular, Halloween or Christmas.');
   if(preview){localStorage.setItem(key,mode);apply(mode);return;}
   if(!ref)throw new Error('Theme service is unavailable. Try again.');
   await ref.set({theme:mode,updatedAt:firebase.database.ServerValue.TIMESTAMP});
   apply(mode);
  }
- window.GrumpysAppearance={get:()=>current,save,subscribe(fn){listeners.add(fn);fn(current);return()=>listeners.delete(fn);},isPreview:preview};
+ window.GrumpysAppearance={get:()=>current,shown:()=>effective(current),save,subscribe(fn){listeners.add(fn);fn(current);return()=>listeners.delete(fn);},isPreview:preview};
  apply(current);
+ // Check the calendar every few minutes so Christmas starts and ends on its own at midnight.
+ setInterval(()=>{if(effective(current)!==(document.body.classList.contains('theme-christmas')?'christmas':document.body.classList.contains('theme-halloween')?'halloween':'regular'))apply(current);},5*60*1000);
  addEventListener('storage',e=>{if(e.key===key)apply(e.newValue||'regular');});
  if(!preview&&typeof db!=='undefined'){
   ref=db.ref('settings/appearance');
   ref.on('value',snap=>{readError=null;apply(snap.val()?.theme||'regular');},error=>{readError=error;const help=document.getElementById('appearanceHelp');if(help){help.textContent='The shared theme could not be loaded. Check the theme setting permission and try again.';help.classList.add('theme-save-error');}});
  }
  const button=document.getElementById('applyThemeBtn');if(!button)return;
+ const themeName=themeTitle;
  const choices=[...document.querySelectorAll('.appearance-choice')],label=document.getElementById('currentThemeLabel'),status=document.getElementById('themeSaveStatus'),help=document.getElementById('appearanceHelp');
  let draft=current,busy=false;
- function render(){choices.forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.theme===draft)));label.textContent=current==='halloween'?'Halloween':'Regular';button.disabled=busy||draft===current;}
+ function render(){choices.forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.theme===draft)));label.textContent=effective(current)!==current?`${themeName(current)} (Christmas is on for the holidays)`:themeName(current);button.disabled=busy||draft===current;}
  choices.forEach(el=>el.addEventListener('click',()=>{if(busy)return;draft=el.dataset.theme;status.textContent=draft===current?'Not changed':'Unsaved selection';help.textContent='Choose a theme, then apply it.';help.className='appearance-help';render();}));
  window.GrumpysAppearance.subscribe(mode=>{draft=mode;render();});
  button.addEventListener('click',async()=>{
