@@ -14,6 +14,9 @@ const RECENT_QUESTION_STORAGE_KEY = "grumpysRecentlyUsedQuestions";
 const RECENT_QUESTION_LIMIT = 60;
 
 const GAME_ID = "main";
+
+// view.html sets this: the second screen follows the game instead of running it.
+const IS_VIEWER = window.GRUMPYS_VIEWER === true;
 const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
 const savedRoundsRef = db.ref("savedRounds");
@@ -33,6 +36,7 @@ const joinTickerTrackEl = document.getElementById("joinTickerTrack");
 const joinPlayerCountEl = document.getElementById("joinPlayerCount");
 
 let questions = [];
+let roundQuestionCount = 6;
 let currentQuestionIndex = 0;
 let correctAnswerIndex = 0;
 let roundId = Date.now().toString();
@@ -675,61 +679,87 @@ function showJoinScreen() {
   renderJoinTicker({});
 }
 
-async function showQuestion(questionData, index) {
+// Draws a question. Used by the main TV and, from Firebase, by the second screen.
+function renderQuestion(category, question, choices, index, startedAt) {
   setPhase("question");
   questionEl.classList.remove("join-phrase");
   questionEl.removeAttribute("aria-label");
 
   phaseLabel.textContent = "Question";
   currentQuestionIndex = index;
-  currentQuestionStartedAt = Date.now();
+  currentQuestionStartedAt = startedAt;
 
-  const decodedCategory = decodeHtml(questionData.category);
-  const decodedQuestion = decodeHtml(questionData.question);
-
-  categoryEl.textContent = decodedCategory;
-  questionCounterEl.textContent = `QUESTION ${index + 1} / ${questions.length}`;
-  setTvQuestionText(decodedQuestion);
+  categoryEl.textContent = category;
+  questionCounterEl.textContent = `QUESTION ${index + 1} / ${roundQuestionCount}`;
+  setTvQuestionText(question);
 
   messageEl.textContent = "Answer fast — your point value is dropping.";
-  roundProgressEl.textContent = `Question ${index + 1} of ${questions.length}`;
+  roundProgressEl.textContent = `Question ${index + 1} of ${roundQuestionCount}`;
 
+  answersEl.innerHTML = choices
+    .map((choice, i) => `<div class="answer" data-index="${i}"><span class="answer-letter">${String.fromCharCode(65 + i)}</span><span class="answer-copy">${escapeHtml(choice)}</span></div>`)
+    .join("");
+
+  startTvPointsBar();
+  updateAnsweredCount();
+}
+
+async function showQuestion(questionData, index) {
+  const decodedCategory = decodeHtml(questionData.category);
+  const decodedQuestion = decodeHtml(questionData.question);
   const choices = shuffle([
     ...questionData.incorrect_answers,
     questionData.correct_answer
   ]).map(decodeHtml);
 
   correctAnswerIndex = choices.indexOf(decodeHtml(questionData.correct_answer));
+  const startedAt = Date.now();
 
-  answersEl.innerHTML = choices
-    .map((choice, i) => `<div class="answer" data-index="${i}"><span class="answer-letter">${String.fromCharCode(65 + i)}</span><span class="answer-copy">${escapeHtml(choice)}</span></div>`)
-    .join("");
+  renderQuestion(decodedCategory, decodedQuestion, choices, index, startedAt);
 
   await gameRef.update({
     roundId,
     phase: "question",
     questionIndex: index,
+    questionCount: roundQuestionCount,
     category: decodedCategory,
     question: decodedQuestion,
     choices,
     correctAnswerIndex: null,
     timer: QUESTION_SECONDS,
-    questionStartedAt: currentQuestionStartedAt,
+    questionStartedAt: startedAt,
     questionSeconds: QUESTION_SECONDS,
     maxPoints: MAX_POINTS,
     fullPointsGraceSeconds: FULL_POINTS_GRACE_SECONDS,
     finalSaved: false
   });
-
-  startTvPointsBar();
-  updateAnsweredCount();
 }
 
 async function showAnswerReveal(index) {
   const beforeSnap = await gameRef.child("players").once("value");
   const beforePlayers = beforeSnap.val() || {};
   const previousStandings = getSortedPlayers(beforePlayers);
-  const stats = getAnswerStats(beforePlayers, index);
+
+  renderRevealStart(index, beforePlayers, previousStandings);
+
+  await scoreQuestion();
+
+  const afterSnap = await gameRef.child("players").once("value");
+  const afterPlayers = afterSnap.val() || {};
+
+  await gameRef.update({
+    roundId,
+    phase: "reveal",
+    correctAnswerIndex,
+    timer: REVEAL_SECONDS
+  });
+
+  renderRevealFinish(index, previousStandings, afterPlayers);
+}
+
+// First half of the reveal: votes, stats and the standings from before this question.
+function renderRevealStart(index, votePlayers, previousStandings) {
+  const stats = getAnswerStats(votePlayers, index);
 
   setPhase("reveal");
   stopTvPointsBar();
@@ -737,8 +767,8 @@ async function showAnswerReveal(index) {
   revealBoardActive = true;
 
   phaseLabel.textContent = "Answer";
-  timerCaptionEl.textContent = index === questions.length - 1 ? "RESULTS IN" : "NEXT QUESTION";
-  questionCounterEl.textContent = `ANSWER ${index + 1} / ${questions.length}`;
+  timerCaptionEl.textContent = index === roundQuestionCount - 1 ? "RESULTS IN" : "NEXT QUESTION";
+  questionCounterEl.textContent = `ANSWER ${index + 1} / ${roundQuestionCount}`;
   messageEl.textContent = "Correct answer revealed • Leaderboard updated";
   roundProgressEl.textContent = `Leaderboard after Question ${index + 1}`;
 
@@ -758,21 +788,12 @@ async function showAnswerReveal(index) {
   } else {
     renderRevealBoard(previousStandings);
   }
+}
 
-  await scoreQuestion();
-
-  const afterSnap = await gameRef.child("players").once("value");
-  const afterPlayers = afterSnap.val() || {};
+// Second half: the answer pops, stats slide in, and the leaderboard reshuffles.
+function renderRevealFinish(index, previousStandings, afterPlayers) {
   const newStandings = getSortedPlayers(afterPlayers);
 
-  await gameRef.update({
-    roundId,
-    phase: "reveal",
-    correctAnswerIndex,
-    timer: REVEAL_SECONDS
-  });
-
-  // The reveal plays in stages: votes, then the answer, then stats, then the shuffle.
   requestAnimationFrame(() => answersEl.classList.add("reveal-votes"));
 
   revealTimeouts.push(setTimeout(() => {
@@ -1147,19 +1168,28 @@ async function loadQuestions() {
   }
 
   markQuestionsUsed(questions);
+  roundQuestionCount = questions.length;
 }
 
 // "QUESTION 3" flashes across the screen so the room looks up.
 // It plays before the question's timer starts, so nobody loses answer time.
-async function showQuestionBumper(questionData, index) {
-  document.getElementById("bumperKicker").textContent = decodeHtml(questionData.category || "Trivia");
+function playBumper(category, index, total) {
+  document.getElementById("bumperKicker").textContent = category || "Trivia";
   document.getElementById("bumperTitle").textContent = `Question ${index + 1}`;
-  document.getElementById("bumperSub").textContent = index === questions.length - 1 ? "LAST ONE!" : `OF ${questions.length}`;
+  document.getElementById("bumperSub").textContent = index === total - 1 ? "LAST ONE!" : `OF ${total}`;
 
   bumperEl.classList.remove("is-showing");
   void bumperEl.offsetWidth;
   bumperEl.classList.add("is-showing");
   setTimeout(() => bumperEl.classList.remove("is-showing"), 2900);
+}
+
+async function showQuestionBumper(questionData, index) {
+  const category = decodeHtml(questionData.category || "Trivia");
+  playBumper(category, index, roundQuestionCount);
+
+  // Lets the second screen play the same bumper at the same moment.
+  gameRef.update({ bumperIndex: index, bumperCategory: category, bumperAt: Date.now(), questionCount: roundQuestionCount });
 
   await wait(2450);
 }
@@ -1286,9 +1316,110 @@ gameRef.child("players").on("value", snap => {
   updateAnsweredCount(players);
 });
 
+// ---------- Second screen (view.html) -------------------------------------
+// Follows the main TV through Firebase and draws the same screens. Never writes.
+const viewerState = { key: null, roundId: null, bumperKey: null, standingsAtQuestion: [], waitingInterval: null };
+
+function stopViewerWaitingCountdown() {
+  if (viewerState.waitingInterval) clearInterval(viewerState.waitingInterval);
+  viewerState.waitingInterval = null;
+}
+
+function startViewer() {
+  gameRef.on("value", snap => onViewerGame(snap.val() || {}));
+}
+
+function onViewerGame(game) {
+  if (game.roundId && game.roundId !== viewerState.roundId) {
+    viewerState.roundId = game.roundId;
+    roundId = game.roundId;
+    applyRoundTheme(game.roundId);
+  }
+
+  if (game.questionCount) roundQuestionCount = game.questionCount;
+
+  const bumperKey = game.bumperIndex !== undefined && game.bumperIndex !== null ? `${game.roundId}:${game.bumperIndex}` : null;
+  if (bumperKey && bumperKey !== viewerState.bumperKey) {
+    viewerState.bumperKey = bumperKey;
+    if (Date.now() - (game.bumperAt || 0) < 2500) playBumper(game.bumperCategory, game.bumperIndex, roundQuestionCount);
+  }
+
+  const key = `${game.roundId}:${game.phase}:${game.questionIndex ?? ""}`;
+  if (key !== viewerState.key) {
+    viewerState.key = key;
+    renderViewerPhase(game);
+  }
+
+  if (game.phase !== "waiting" && typeof game.timer === "number") {
+    timerEl.textContent = formatTime(Math.max(0, game.timer));
+    timerEl.classList.toggle("is-urgent", game.timer <= 5);
+    updateFinalSeconds(game.timer);
+  }
+}
+
+async function renderViewerPhase(game) {
+  const players = game.players || {};
+  stopViewerWaitingCountdown();
+
+  if (game.phase === "join") {
+    showJoinScreen();
+    return;
+  }
+
+  if (game.phase === "question") {
+    viewerState.standingsAtQuestion = getSortedPlayers(players);
+    correctAnswerIndex = -1;
+    renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], game.questionIndex || 0, game.questionStartedAt || Date.now());
+    return;
+  }
+
+  if (game.phase === "reveal") {
+    const index = game.questionIndex || 0;
+    if (currentPhase !== "question" || currentQuestionIndex !== index) {
+      renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], index, game.questionStartedAt || Date.now());
+    }
+    correctAnswerIndex = game.correctAnswerIndex;
+    const previous = viewerState.standingsAtQuestion.length ? viewerState.standingsAtQuestion : getSortedPlayers(players);
+    renderRevealStart(index, players, previous);
+    renderRevealFinish(index, previous, players);
+    return;
+  }
+
+  if (game.phase === "final") {
+    setPhase("final");
+    hideTvPointsBar();
+    const roundPlayers = getSortedPlayers(players);
+    const leaders = await getAllTimeLeaders();
+    if (roundPlayers.length) showPodium(roundPlayers, leaders);
+    else showHallOfFame(leaders);
+    return;
+  }
+
+  if (game.phase === "waiting") {
+    if (currentPhase !== "final") {
+      setPhase("final");
+      hideTvPointsBar();
+      showHallOfFame(await getAllTimeLeaders());
+    }
+    phaseLabel.textContent = "Next Round";
+    timerCaptionEl.textContent = "NEXT ROUND IN";
+    const tick = () => {
+      const seconds = game.nextRoundExpectedAt ? Math.max(0, Math.ceil((game.nextRoundExpectedAt - Date.now()) / 1000)) : 0;
+      timerEl.textContent = formatTime(seconds);
+    };
+    tick();
+    viewerState.waitingInterval = setInterval(tick, 1000);
+  }
+}
+
 async function init() {
   hideTvPointsBar();
   setQrCode();
+
+  if (IS_VIEWER) {
+    startViewer();
+    return;
+  }
 
   if (typeof CUSTOM_QUESTIONS === "undefined") {
     console.error("questions.js did not load. Make sure questions.js is included before app.js in index.html.");

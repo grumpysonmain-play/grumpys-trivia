@@ -1,45 +1,53 @@
+// Promo screen for the smaller TV in another room.
+// It follows the main TV's game and shows one message at a time:
+//   starting  (join phase)            -> big countdown, players in
+//   live      (question / reveal)     -> question number, who's leading
+//   between   (final / waiting / off) -> countdown to the next round, last champion
+// It never shows the questions and never writes to Firebase.
+
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
+const savedRoundsRef = db.ref("savedRounds");
 
-const promoQrCode = document.getElementById("promoQrCode");
-const promoTimer = document.getElementById("promoTimer");
-const promoStatus = document.getElementById("promoStatus");
-const promoTop5 = document.getElementById("promoTop5");
-const liveBadge = document.getElementById("liveBadge");
 const promoBrandLogo = document.getElementById("promoBrandLogo");
-const promoHeadline = document.getElementById("promoHeadline");
+const stageEls = [...document.querySelectorAll(".stage")];
+const startTimerEl = document.getElementById("startTimer");
+const startLineEl = document.getElementById("startLine");
+const liveQuestionEl = document.getElementById("liveQuestion");
+const liveSegmentsEl = document.getElementById("liveSegments");
+const liveLineEl = document.getElementById("liveLine");
+const betweenTimerEl = document.getElementById("betweenTimer");
+const champCardEl = document.getElementById("champCard");
+const champNameEl = document.getElementById("champName");
+const champScoreEl = document.getElementById("champScore");
+const qrTitleEl = document.getElementById("qrTitle");
+const qrSubEl = document.getElementById("qrSub");
+const qrFootEl = document.getElementById("qrFoot");
 
-// Shared with the TV and phones (round-themes.js) so the colors always match.
-const PROMO_ROUND_THEMES = window.GRUMPYS_ROUND_THEMES.map(({ accent, hot, rgb }) => ({ accent, hot, rgb }));
+let currentThemeKey = null;
+let currentStage = null;
+let betweenInterval = null;
+let championRoundId = null;
+let championTimer = null;
+let championPendingFor = null;
+// The main TV takes about 7 seconds to reveal the podium; don't spoil it here.
+const CHAMPION_DELAY_MS = 8000;
 
-let currentGame = {};
-let promoCountdownInterval = null;
-let promoCountdownTarget = null;
-let currentPromoThemeKey = null;
-
-function replayPromoHeadline() {
-  promoHeadline.classList.remove("promo-animate");
-  void promoHeadline.offsetWidth;
-  promoHeadline.classList.add("promo-animate");
-}
-
-function applyPromoRoundTheme(roundKey) {
+// Round colors are shared with the TV and phones (round-themes.js).
+function applyRoundTheme(roundKey) {
   const key = String(roundKey || "grumpys");
+  if (key === currentThemeKey) return;
+  currentThemeKey = key;
 
-  if (key === currentPromoThemeKey) return;
-
-  currentPromoThemeKey = key;
-
-  const index = [...key].reduce((total, character) => total + character.charCodeAt(0), 0) % PROMO_ROUND_THEMES.length;
-  const theme = PROMO_ROUND_THEMES[index];
+  const theme = window.pickGrumpysRoundTheme(key);
   const rootStyle = document.documentElement.style;
-
   rootStyle.setProperty("--accent", theme.accent);
   rootStyle.setProperty("--accent-hot", theme.hot);
   rootStyle.setProperty("--accent-rgb", theme.rgb);
+  rootStyle.setProperty("--accent2-rgb", theme.rgb2);
 }
 
-function setPromoSeasonalBranding(date = new Date()) {
+function setSeasonalBranding(date = new Date()) {
   const month = date.getMonth();
   const day = date.getDate();
   const isChristmasSeason = month === 11 || (month === 0 && day === 1);
@@ -62,205 +70,160 @@ function setPromoSeasonalBranding(date = new Date()) {
 }
 
 function formatTime(seconds) {
-  const safeSeconds = Math.max(0, Number(seconds) || 0);
-  const mins = Math.floor(safeSeconds / 60);
-  const secs = safeSeconds % 60;
-
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
-function formatCountdownFromMs(ms) {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
-function getPlayUrl() {
-  return `${window.location.origin}${window.location.pathname.replace("promo.html", "")}play.html`;
-}
-
-// Grumpy's tracked QR code (https://grumpysonmain.com/qr/trivia), so scans are counted.
-function setQrCode() {
-  promoQrCode.innerHTML = `<img alt="Scan to play Grumpy's Trivia" src="assets/trivia-qr.png">`;
+  const safe = Math.max(0, Math.floor(Number(seconds) || 0));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
 }
 
 function getSortedPlayers(playersObj = {}) {
-  return Object.values(playersObj)
-    .sort((a, b) => {
-      if ((b.score || 0) !== (a.score || 0)) {
-        return (b.score || 0) - (a.score || 0);
-      }
-
-      return (a.name || "").localeCompare(b.name || "");
-    });
-}
-
-function showTop5() {
-  const top5Box = document.querySelector(".top5");
-
-  if (top5Box) {
-    top5Box.classList.remove("hidden");
-  }
-}
-
-function hideTop5() {
-  const top5Box = document.querySelector(".top5");
-
-  if (top5Box) {
-    top5Box.classList.add("hidden");
-  }
-}
-
-function setCountdownMode(isOn) {
-  const liveCard = document.querySelector(".live-card");
-
-  if (!liveCard) return;
-
-  if (isOn) {
-    liveCard.classList.add("countdown-mode");
-  } else {
-    liveCard.classList.remove("countdown-mode");
-  }
-}
-
-function renderTop5(playersObj = {}) {
-  const players = getSortedPlayers(playersObj).slice(0, 5);
-
-  promoTop5.replaceChildren();
-
-  if (players.length === 0) {
-    const waiting = document.createElement("li");
-    waiting.innerHTML = '<span class="medal">●</span><span class="player-name">Waiting...</span><strong>0</strong>';
-    promoTop5.appendChild(waiting);
-    return;
-  }
-
-  const medals = ["🥇", "🥈", "🥉", "4", "5"];
-
-  players.forEach((player, index) => {
-    const row = document.createElement("li");
-    const medal = document.createElement("span");
-    const name = document.createElement("span");
-    const score = document.createElement("strong");
-
-    medal.className = "medal";
-    medal.textContent = medals[index];
-    name.className = "player-name";
-    name.textContent = player.name || "Player";
-    score.textContent = (player.score || 0).toLocaleString();
-
-    row.append(medal, name, score);
-    promoTop5.appendChild(row);
+  return Object.values(playersObj).sort((a, b) => {
+    if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+    return (a.name || "").localeCompare(b.name || "");
   });
 }
 
-function stopPromoCountdown() {
-  if (promoCountdownInterval) {
-    clearInterval(promoCountdownInterval);
-    promoCountdownInterval = null;
-  }
+function showStage(name) {
+  if (name === currentStage) return;
+  currentStage = name;
+  stageEls.forEach(stage => stage.classList.toggle("is-active", stage.dataset.stage === name));
 
-  promoCountdownTarget = null;
-  setCountdownMode(false);
+  if (name !== "between") stopBetweenCountdown();
+
+  const qrCopy = {
+    starting: ["Scan to play", "", "No app needed"],
+    live: ["Scan to jump in", "", "No app needed"],
+    between: ["Scan to play", "in the next round", "Arcade games are open now"]
+  }[name];
+
+  qrTitleEl.textContent = qrCopy[0];
+  qrSubEl.textContent = qrCopy[1];
+  qrSubEl.hidden = !qrCopy[1];
+  qrFootEl.textContent = qrCopy[2];
 }
 
-function startPromoCountdown(targetTime) {
-  if (!targetTime) {
-    stopPromoCountdown();
-    return;
+function stopBetweenCountdown() {
+  if (betweenInterval) clearInterval(betweenInterval);
+  betweenInterval = null;
+}
+
+function renderStarting(game) {
+  showStage("starting");
+  const seconds = Number(game.timer) || 0;
+  const players = Object.keys(game.players || {}).length;
+
+  startTimerEl.textContent = formatTime(seconds);
+  startTimerEl.classList.toggle("hurry", seconds > 0 && seconds <= 10);
+  startLineEl.innerHTML = "";
+
+  if (players > 0) {
+    const count = document.createElement("b");
+    count.style.color = "#ffffff";
+    count.textContent = `${players} ${players === 1 ? "player" : "players"} in. `;
+    const rest = document.createElement("span");
+    rest.textContent = "Grab your phone and join.";
+    startLineEl.append(count, rest);
+  } else {
+    startLineEl.textContent = "Be the first to join. Grab your phone.";
   }
+}
 
-  setCountdownMode(true);
-  hideTop5();
+function renderLive(game) {
+  showStage("live");
+  const total = Number(game.questionCount) || 6;
+  const current = (Number.isInteger(game.questionIndex) ? game.questionIndex : 0) + 1;
 
-  function render() {
-    const remainingMs = targetTime - Date.now();
-    const remainingText = formatCountdownFromMs(remainingMs);
+  liveQuestionEl.textContent = `Question ${current} of ${total}`;
 
-    promoTimer.textContent = remainingText;
+  if (liveSegmentsEl.children.length !== total) {
+    liveSegmentsEl.style.setProperty("--count", total);
+    liveSegmentsEl.replaceChildren(...Array.from({ length: total }, () => document.createElement("i")));
+  }
+  [...liveSegmentsEl.children].forEach((segment, i) => {
+    segment.classList.toggle("done", i < current - 1);
+    segment.classList.toggle("now", i === current - 1);
+  });
 
-    if (remainingMs <= 0) {
-      liveBadge.textContent = "Soon";
-      promoStatus.textContent = "Trivia should be returning soon. Scan now and watch the main screen.";
+  const leader = getSortedPlayers(game.players || {})[0];
+  liveLineEl.textContent = "";
+  const lead = document.createElement("span");
+  lead.style.color = "#ffffff";
+  lead.textContent = "You can still jump in. ";
+  liveLineEl.appendChild(lead);
+
+  if (leader && (leader.score || 0) > 0) {
+    const label = document.createElement("span");
+    label.textContent = "Leading now: ";
+    const name = document.createElement("b");
+    name.textContent = leader.name || "Player";
+    liveLineEl.append(label, name);
+  }
+}
+
+function renderBetween(game) {
+  showStage("between");
+
+  const target = Number(game.nextRoundExpectedAt) || 0;
+  const tick = () => {
+    if (!target) {
+      betweenTimerEl.textContent = "Soon";
       return;
     }
+    const seconds = Math.ceil((target - Date.now()) / 1000);
+    betweenTimerEl.textContent = seconds > 0 ? formatTime(seconds) : "Soon";
+  };
 
-    liveBadge.textContent = "Next Round";
-    promoStatus.textContent = "Scan now and keep your phone ready.";
+  tick();
+  stopBetweenCountdown();
+  betweenInterval = setInterval(tick, 1000);
+
+  if (game.phase === "final" && game.lastCompletedRoundId !== championRoundId) {
+    // Schedule once per round; the TV's timer ticks would otherwise keep resetting it.
+    if (championPendingFor !== game.lastCompletedRoundId) {
+      championPendingFor = game.lastCompletedRoundId;
+      champCardEl.classList.add("hidden");
+      clearTimeout(championTimer);
+      championTimer = setTimeout(() => loadChampion(championPendingFor), CHAMPION_DELAY_MS);
+    }
+  } else if (game.phase !== "final") {
+    loadChampion(game.lastCompletedRoundId);
   }
-
-  render();
-
-  if (promoCountdownTarget === targetTime && promoCountdownInterval) {
-    return;
-  }
-
-  stopPromoCountdown();
-  setCountdownMode(true);
-  hideTop5();
-
-  promoCountdownTarget = targetTime;
-  promoCountdownInterval = setInterval(render, 1000);
 }
 
-function setStatus(game = {}) {
-  const phase = game.phase || "waiting";
-  const timer = game.timer || 0;
-  const questionIndex = Number.isInteger(game.questionIndex) ? game.questionIndex + 1 : null;
-
-  if ((phase === "waiting" || phase === "final") && game.nextRoundExpectedAt) {
-    startPromoCountdown(game.nextRoundExpectedAt);
+// The last round's winner comes from the saved round record, so it is right
+// even if this screen was just turned on.
+async function loadChampion(roundId) {
+  if (!roundId) {
+    champCardEl.classList.add("hidden");
     return;
   }
+  if (roundId === championRoundId) return;
+  championRoundId = roundId;
 
-  stopPromoCountdown();
-  showTop5();
-  promoTimer.textContent = formatTime(timer);
-
-  if (phase === "join") {
-    liveBadge.textContent = "Join Now";
-    promoStatus.textContent = "A new round is starting soon. Scan the QR code to play.";
-    return;
+  try {
+    const snap = await savedRoundsRef.child(roundId).once("value");
+    const round = snap.val();
+    if (!round || !round.winnerName || !(round.winnerScore > 0)) {
+      champCardEl.classList.add("hidden");
+      return;
+    }
+    champNameEl.textContent = round.winnerName;
+    champScoreEl.textContent = `· ${Number(round.winnerScore).toLocaleString()}`;
+    champCardEl.classList.remove("hidden");
+  } catch (error) {
+    console.warn("Could not load the last champion:", error);
+    champCardEl.classList.add("hidden");
   }
-
-  if (phase === "question") {
-    liveBadge.textContent = "Question";
-    promoStatus.textContent = questionIndex
-      ? `Question ${questionIndex} of 6 is live now. Watch the main trivia screen in the backroom.`
-      : "A question is live now. Watch the main trivia screen in the backroom.";
-    return;
-  }
-
-  if (phase === "reveal") {
-    liveBadge.textContent = "Answer";
-    promoStatus.textContent = questionIndex
-      ? `Answer reveal after Question ${questionIndex}. Current scores are updating.`
-      : "Answer reveal is live. Current scores are updating.";
-    return;
-  }
-
-  liveBadge.textContent = "Trivia";
-  promoStatus.textContent = "Waiting for the next trivia round...";
 }
 
 function renderPromo(game = {}) {
-  currentGame = game;
-  applyPromoRoundTheme(currentGame.roundId);
-  document.body.dataset.phase = currentGame.phase || "waiting";
-  setStatus(currentGame);
-  renderTop5(currentGame.players || {});
+  applyRoundTheme(game.roundId);
+  document.body.dataset.phase = game.phase || "waiting";
+
+  if (game.phase === "join") renderStarting(game);
+  else if (game.phase === "question" || game.phase === "reveal") renderLive(game);
+  else renderBetween(game);
 }
 
-setPromoSeasonalBranding();
-applyPromoRoundTheme("grumpys");
-setQrCode();
+setSeasonalBranding();
+applyRoundTheme("grumpys");
 
-if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  setInterval(replayPromoHeadline, 10000);
-}
-
-gameRef.on("value", snap => {
-  renderPromo(snap.val() || {});
-});
+gameRef.on("value", snap => renderPromo(snap.val() || {}));
