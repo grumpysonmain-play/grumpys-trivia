@@ -1,62 +1,124 @@
+// Grumpy's Trivia: phone page (play.html)
+// Sign in, the game menu, and the live trivia screens on each player's phone.
+// The main TV (app.js) runs the game; this page follows it through Firebase.
+
 const GAME_ID = "main";
 const gameRef = db.ref(`games/${GAME_ID}`);
 const claimedNamesRef = db.ref("claimedNames");
+const savedRoundsRef = db.ref("savedRounds");
 const gatewayOrderRef = db.ref("settings/gatewayOrder");
 const higherLowerPlayersRef = db.ref("higherLower/players");
 const stackerPlayersRef = db.ref("stacker/players");
 const emojiDecoderPlayersRef = db.ref("emojiDecoder/players");
 const DEFAULT_GATEWAY_ORDER = ["trivia", "higher-lower", "stacker", "emoji-decoder"];
 
-const joinView = document.getElementById("joinView");
-const menuView = document.getElementById("menuView");
-const gameView = document.getElementById("gameView");
-const nameInput = document.getElementById("nameInput");
-const pinInput = document.getElementById("pinInput");
-const joinBtn = document.getElementById("joinBtn");
-const guestBtn = document.getElementById("guestBtn");
-const joinError = document.getElementById("joinError");
+const $ = id => document.getElementById(id);
 
-const scoreText = document.getElementById("scoreText");
-const timerText = document.getElementById("timerText");
-const statusText = document.getElementById("statusText");
-const categoryText = document.getElementById("categoryText");
-const questionText = document.getElementById("questionText");
-const choicesEl = document.getElementById("choices");
+// Views
+const joinView = $("joinView");
+const menuView = $("menuView");
+const gameView = $("gameView");
 
-const allTimeScoreText = document.getElementById("allTimeScoreText");
-const rankText = document.getElementById("rankText");
-const winsText = document.getElementById("winsText");
-const gamesText = document.getElementById("gamesText");
+// Sign in
+const nameInput = $("nameInput");
+const pinInput = $("pinInput");
+const joinBtn = $("joinBtn");
+const guestBtn = $("guestBtn");
+const joinError = $("joinError");
+const signInLive = $("signInLive");
+const signInLiveText = $("signInLiveText");
+const signInLiveCount = $("signInLiveCount");
 
-const playerStats = document.getElementById("playerStats");
-const pointsBox = document.getElementById("pointsBox");
-const pointsLabel = document.getElementById("pointsLabel");
-const pointsText = document.getElementById("pointsText");
-const pointsFill = document.getElementById("pointsFill");
-const playerNameText = document.getElementById("playerNameText");
-const questionProgressText = document.getElementById("questionProgressText");
+// Menu
+const menuPlayerName = $("menuPlayerName");
+const profileBtn = $("profileBtn");
+const triviaLiveBadge = $("triviaLiveBadge");
+const triviaPlayersText = $("triviaPlayersText");
+const triviaMenuStatus = $("triviaMenuStatus");
+const triviaPhaseText = $("triviaPhaseText");
+const triviaTimerText = $("triviaTimerText");
+const triviaActionText = $("triviaActionText");
+const gameTilesEl = $("gameTiles");
+
+// Live trivia: header
+const playerNameText = $("playerNameText");
+const scoreText = $("scoreText");
+
+// Waiting for the round
+const joinHeadline = $("joinHeadline");
+const joinSubline = $("joinSubline");
+const joinCountdown = $("joinCountdown");
+const joinPlayerCount = $("joinPlayerCount");
+const joinPlayerLabel = $("joinPlayerLabel");
+const joinPlayerChips = $("joinPlayerChips");
+const joinStats = $("joinStats");
+const joinGuestNote = $("joinGuestNote");
+const allTimeScoreText = $("allTimeScoreText");
+const rankText = $("rankText");
+const winsText = $("winsText");
+
+// Question
+const categoryText = $("categoryText");
+const questionProgressText = $("questionProgressText");
+const timerText = $("timerText");
+const pointsBox = $("pointsBox");
+const pointsLabel = $("pointsLabel");
+const pointsText = $("pointsText");
+const pointsFill = $("pointsFill");
+const lockedPoints = $("lockedPoints");
+const questionText = $("questionText");
+const choicesEl = $("choices");
+const statusText = $("statusText");
+const answeredText = $("answeredText");
+const answeredFill = $("answeredFill");
+
+// Reveal
+const resultCard = $("resultCard");
+const resultIcon = $("resultIcon");
+const resultTitle = $("resultTitle");
+const resultPoints = $("resultPoints");
+const resultAnswer = $("resultAnswer");
+const resultRank = $("resultRank");
+const voteList = $("voteList");
+const revealRightText = $("revealRightText");
+const revealFastestText = $("revealFastestText");
+const revealEncourage = $("revealEncourage");
+const revealNextLabel = $("revealNextLabel");
+const revealNextTimer = $("revealNextTimer");
+
+// Round over
+const placeMedal = $("placeMedal");
+const placeNumber = $("placeNumber");
+const placeHeadline = $("placeHeadline");
+const placeSubline = $("placeSubline");
+const podiumList = $("podiumList");
+const savedTitle = $("savedTitle");
+const savedStats = $("savedStats");
+const savedAllTime = $("savedAllTime");
+const savedRank = $("savedRank");
+const savedGames = $("savedGames");
+const finalNextTimer = $("finalNextTimer");
+
+// Between rounds
+const betweenCountdown = $("betweenCountdown");
+const lastRoundLine = $("lastRoundLine");
+const betweenArcade = $("betweenArcade");
+
+// Your stats
+const profileModal = $("profileModal");
+const profileBackdrop = $("profileBackdrop");
+const closeProfileBtn = $("closeProfileBtn");
+const profilePlayerName = $("profilePlayerName");
+const profileTriviaRank = $("profileTriviaRank");
+const profileLoading = $("profileLoading");
+const profileContent = $("profileContent");
+const profileLeaderboard = $("profileLeaderboard");
+const profileAvatar = $("profileAvatar");
+
 const seasonalPhoneLogos = document.querySelectorAll(".seasonal-phone-logo");
-const menuPlayerName = document.getElementById("menuPlayerName");
-const triviaLiveBadge = document.getElementById("triviaLiveBadge");
-const triviaPhaseText = document.getElementById("triviaPhaseText");
-const triviaMenuStatus = document.getElementById("triviaMenuStatus");
-const triviaActionText = document.getElementById("triviaActionText");
-const gameTilesEl = document.getElementById("gameTiles");
-const profileBtn = document.getElementById("profileBtn");
-const profileModal = document.getElementById("profileModal");
-const profileBackdrop = document.getElementById("profileBackdrop");
-const closeProfileBtn = document.getElementById("closeProfileBtn");
-const profilePlayerName = document.getElementById("profilePlayerName");
-const profileTriviaRank = document.getElementById("profileTriviaRank");
-const profileLoading = document.getElementById("profileLoading");
-const profileContent = document.getElementById("profileContent");
-const profileLeaderboard = document.getElementById("profileLeaderboard");
 const routeParams = new URLSearchParams(window.location.search);
 const isTriviaRoute = routeParams.get("game") === "trivia";
 const isPlayerPreview = routeParams.get("preview") === "1";
-
-// Shared with the TV and promo screen (round-themes.js) so the colors always match.
-const PHONE_ROUND_THEMES = window.GRUMPYS_ROUND_THEMES.map(({ accent, hot, rgb }) => ({ accent, hot, rgb }));
 
 // Clear old guest data from the older version that used localStorage.
 // Guests should only live for the current browser session.
@@ -109,26 +171,930 @@ let lastFireworkQuestion = null;
 let pointsInterval = null;
 let isSubmittingAnswer = false;
 let localLockedAnswers = {};
-let nextRoundCountdownInterval = null;
-let nextRoundCountdownTarget = null;
 let currentPhoneThemeKey = null;
 
 const LAST_COMPLETED_ROUND_KEY = "grumpysTriviaLastCompletedRoundId";
 
+
+// ---------- Round colors (shared with the TV and promo screen) ----------
+
 function applyPhoneRoundTheme(roundKey) {
   const key = String(roundKey || "grumpys");
-
   if (key === currentPhoneThemeKey) return;
-
   currentPhoneThemeKey = key;
 
-  const index = [...key].reduce((total, character) => total + character.charCodeAt(0), 0) % PHONE_ROUND_THEMES.length;
-  const theme = PHONE_ROUND_THEMES[index];
+  const theme = window.pickGrumpysRoundTheme(key);
   const rootStyle = document.documentElement.style;
-
   rootStyle.setProperty("--phone-accent", theme.accent);
   rootStyle.setProperty("--phone-accent-hot", theme.hot);
   rootStyle.setProperty("--phone-accent-rgb", theme.rgb);
+  rootStyle.setProperty("--phone-accent2-rgb", theme.rgb2);
+}
+
+// ---------- Small helpers ----------
+
+let renderToken = 0;
+let statsCache = null;
+let statsRoundKey = null;
+let arcadeBests = null;
+let arcadeBestsAt = 0;
+let choicesKey = null;
+let revealKey = null;
+let finalKey = null;
+let pointsKey = null;
+let chipsKey = null;
+let nextRoundTarget = 0;
+let lastRoundKey = null;
+const drumrollUntil = {};
+const savedRoundCache = {};
+const LAST_PLACE_KEY = "grumpysTriviaLastPlace";
+
+const ICONS = {
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>',
+  cross: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg>',
+  clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>',
+  up: '<svg viewBox="0 0 12 12" aria-hidden="true" class="up"><path d="M6 2l5 8H1z"></path></svg>',
+  down: '<svg viewBox="0 0 12 12" aria-hidden="true" class="down"><path d="M6 2l5 8H1z"></path></svg>',
+  saved: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>'
+};
+
+function ordinal(n) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  return `${n}${({ 1: "st", 2: "nd", 3: "rd" })[n % 10] || "th"}`;
+}
+
+function getLetter(index) {
+  return String.fromCharCode(65 + index);
+}
+
+function plural(count, word) {
+  return `${count} ${word}${count === 1 ? "" : "s"}`;
+}
+
+// Text with one bold part, built without innerHTML so names can't inject markup.
+function setRich(el, before, bold, after = "", boldClass = "") {
+  el.replaceChildren();
+  if (before) el.append(before);
+  if (bold !== undefined && bold !== null && bold !== "") {
+    const b = document.createElement("b");
+    if (boldClass) b.className = boldClass;
+    b.textContent = bold;
+    el.append(b);
+  }
+  if (after) el.append(after);
+}
+
+function setWash(kind) {
+  if (kind) document.body.dataset.wash = kind;
+  else delete document.body.dataset.wash;
+}
+
+function setScreen(name) {
+  gameView.dataset.screen = name;
+  document.body.dataset.phonePhase = name;
+}
+
+function getQuestionCount(game) {
+  return Number(game?.questionCount) || 6;
+}
+
+function getRankIn(sortedPlayers, id) {
+  const index = sortedPlayers.findIndex(player => player.id === id);
+  return index === -1 ? 0 : index + 1;
+}
+
+// Standings before question `qi` was scored: everyone's score minus what they just earned.
+function getRankBefore(playersObj, id, qi) {
+  const before = Object.values(playersObj).map(player => ({
+    ...player,
+    score: (player.score || 0) - (Number(player.answers?.[qi]?.pointsEarned) || 0)
+  }));
+  return getRankIn(getSortedPlayers(Object.fromEntries(before.map(p => [p.id, p]))), id);
+}
+
+function getMyAnswer(game) {
+  const qi = game.questionIndex;
+  return currentPlayer?.answers?.[qi] || localLockedAnswers[qi] || null;
+}
+
+// ---------- Views ----------
+
+function setJoinError(message) {
+  joinError.textContent = message;
+}
+
+function showJoinView() {
+  joinView.classList.remove("hidden");
+  menuView.classList.add("hidden");
+  gameView.classList.add("hidden");
+  document.body.dataset.phonePhase = "join";
+}
+
+function showMenuView() {
+  const wasHidden = menuView.classList.contains("hidden");
+  joinView.classList.add("hidden");
+  gameView.classList.add("hidden");
+  menuView.classList.remove("hidden");
+  document.body.dataset.phonePhase = "menu";
+  setWash("");
+  paintMenuChip();
+
+  if (wasHidden) {
+    loadPlayerStats().then(paintMenuChip);
+    loadArcadeBests();
+  }
+}
+
+function showGameView() {
+  joinView.classList.add("hidden");
+  menuView.classList.add("hidden");
+  gameView.classList.remove("hidden");
+}
+
+function paintMenuChip() {
+  const rank = statsCache?.rank;
+  menuPlayerName.textContent = isGuest || !rank ? (playerName || "Player") : `${playerName} · #${rank}`;
+}
+
+// ---------- Next-round countdown (menu, sign in, round over, between rounds) ----------
+
+function getNextRoundText() {
+  if (!nextRoundTarget) return "Soon";
+  const seconds = Math.ceil((nextRoundTarget - Date.now()) / 1000);
+  return seconds > 0 ? formatTime(seconds) : "Soon";
+}
+
+function paintNextRound() {
+  const text = getNextRoundText();
+  finalNextTimer.textContent = text;
+  betweenCountdown.textContent = text;
+
+  const phase = currentGame?.phase;
+  if (!["join", "question", "reveal"].includes(phase)) {
+    triviaTimerText.textContent = text;
+    if (!signInLive.classList.contains("hidden")) setRich(signInLiveText, "Next trivia round in ", text);
+  }
+}
+
+setInterval(paintNextRound, 1000);
+
+// ---------- Sign-in live strip ----------
+
+function renderSignInStrip(game = {}) {
+  const players = Object.keys(game.players || {}).length;
+  const phase = game.phase;
+  signInLive.classList.remove("hidden");
+
+  if (phase === "join") {
+    setRich(signInLiveText, "Live trivia starts in ", formatTime(game.timer));
+    signInLiveCount.textContent = players ? `${players} playing` : "";
+    return;
+  }
+
+  if (phase === "question" || phase === "reveal") {
+    const current = (Number.isInteger(game.questionIndex) ? game.questionIndex : 0) + 1;
+    setRich(signInLiveText, "Trivia is live · ", `Q${current} of ${getQuestionCount(game)}`);
+    signInLiveCount.textContent = players ? `${players} playing` : "";
+    return;
+  }
+
+  if (nextRoundTarget && nextRoundTarget > Date.now()) {
+    setRich(signInLiveText, "Next trivia round in ", getNextRoundText());
+    signInLiveCount.textContent = "";
+    return;
+  }
+
+  signInLive.classList.add("hidden");
+}
+
+// ---------- Game menu: the Live Trivia tile ----------
+
+function updateGameMenu(game = {}) {
+  const phase = game.phase || "waiting";
+  const players = Object.keys(game.players || {}).length;
+  const live = ["join", "question", "reveal"].includes(phase);
+
+  triviaLiveBadge.classList.toggle("is-live", live);
+
+  if (phase === "join") {
+    triviaLiveBadge.textContent = "LIVE NOW";
+    triviaPlayersText.textContent = players ? `${players} ${players === 1 ? "player" : "players"} in` : "Be the first in";
+    triviaMenuStatus.textContent = "On the big screen. 6 questions, up to 1,000 points each.";
+    triviaPhaseText.textContent = "ROUND STARTS IN";
+    triviaTimerText.textContent = formatTime(game.timer);
+    triviaActionText.textContent = "Join this round";
+    return;
+  }
+
+  if (phase === "question" || phase === "reveal") {
+    const current = (Number.isInteger(game.questionIndex) ? game.questionIndex : 0) + 1;
+    triviaLiveBadge.textContent = "LIVE NOW";
+    triviaPlayersText.textContent = players ? `${players} playing` : "";
+    triviaMenuStatus.textContent = "A round is on now. Jump in for the questions that are left.";
+    triviaPhaseText.textContent = `QUESTION ${current} OF ${getQuestionCount(game)}`;
+    triviaTimerText.textContent = formatTime(game.timer);
+    triviaActionText.textContent = "Jump in";
+    return;
+  }
+
+  triviaLiveBadge.textContent = "BETWEEN ROUNDS";
+  triviaPlayersText.textContent = "";
+  triviaMenuStatus.textContent = "Trivia runs on the big screen. Keep your phone handy for the next round.";
+  triviaPhaseText.textContent = "NEXT ROUND IN";
+  triviaTimerText.textContent = getNextRoundText();
+  triviaActionText.textContent = "Open trivia";
+}
+
+// ---------- Stats and arcade bests ----------
+
+async function loadPlayerStats(force = false) {
+  if (isGuest || !playerNameKey) {
+    statsCache = null;
+    return null;
+  }
+  if (statsCache && !force) return statsCache;
+
+  try {
+    const snap = await claimedNamesRef.once("value");
+    const profiles = Object.entries(snap.val() || {})
+      .map(([key, profile]) => ({ key, ...profile }))
+      .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+
+    const index = profiles.findIndex(profile => profile.key === playerNameKey);
+    const profile = index >= 0 ? profiles[index] : null;
+    const rank = index >= 0 && (profile?.totalScore || 0) > 0 ? index + 1 : null;
+
+    statsCache = { profile, rank };
+  } catch (error) {
+    console.warn("Your stats could not be loaded:", error);
+  }
+
+  return statsCache;
+}
+
+function paintJoinStats() {
+  const profile = statsCache?.profile;
+  allTimeScoreText.textContent = (profile?.totalScore || 0).toLocaleString();
+  rankText.textContent = statsCache?.rank ? `#${statsCache.rank}` : "—";
+  winsText.textContent = (profile?.wins || 0).toLocaleString();
+}
+
+async function loadArcadeBests() {
+  if (arcadeBests && Date.now() - arcadeBestsAt < 60000) {
+    paintArcadeBests();
+    return;
+  }
+
+  try {
+    if (isGuest || !playerId) {
+      arcadeBests = {
+        higher: getLocalArcadeScore("higherLowerBest"),
+        stacker: getLocalArcadeScore("stackerBest"),
+        emoji: getLocalArcadeScore("emojiDecoderBest")
+      };
+    } else {
+      const [higher, stacker, emoji] = await Promise.all([
+        higherLowerPlayersRef.child(playerId).once("value"),
+        stackerPlayersRef.child(playerId).once("value"),
+        emojiDecoderPlayersRef.child(playerId).once("value")
+      ]);
+      arcadeBests = {
+        higher: Number(higher.val()?.bestStreak) || getLocalArcadeScore("higherLowerBest"),
+        stacker: Number(stacker.val()?.bestLevel) || getLocalArcadeScore("stackerBest"),
+        emoji: Number(emoji.val()?.bestScore) || getLocalArcadeScore("emojiDecoderBest")
+      };
+    }
+    arcadeBestsAt = Date.now();
+  } catch (error) {
+    console.warn("Arcade bests could not be loaded:", error);
+  }
+
+  paintArcadeBests();
+}
+
+function paintArcadeBests() {
+  if (!arcadeBests) return;
+  const copy = {
+    higher: ["Your best streak: ", arcadeBests.higher, "Build the longest streak"],
+    stacker: ["Your best: ", arcadeBests.stacker ? `level ${arcadeBests.stacker}` : 0, "Stop the blocks, build high"],
+    emoji: ["Your best: ", arcadeBests.emoji ? arcadeBests.emoji.toLocaleString() : 0, "Name the movie, show or song"]
+  };
+
+  document.querySelectorAll("[data-best]").forEach(el => {
+    const [label, value, fallback] = copy[el.dataset.best] || [];
+    if (!label) return;
+    if (value) setRich(el, label, String(value));
+    else el.textContent = fallback;
+  });
+}
+
+// ---------- Live trivia: header ----------
+
+function updateHeaderChip(game, playersObj) {
+  const sorted = getSortedPlayers(playersObj);
+  const rank = getRankIn(sorted, playerId);
+  const anyPoints = sorted.some(player => (player.score || 0) > 0);
+  const name = (playerName || "Player").toUpperCase();
+
+  playerNameText.textContent = rank && anyPoints && game.phase !== "join" ? `${name} · #${rank} OF ${sorted.length}` : name;
+
+  // Between rounds there is no round score, so show the all-time rank instead.
+  if (!currentPlayer && !["join", "question", "reveal", "final"].includes(game.phase)) {
+    scoreText.textContent = statsCache?.rank ? `#${statsCache.rank} all-time` : "Ready";
+    if (!isGuest && !statsCache) loadPlayerStats().then(() => { if (!currentPlayer) scoreText.textContent = statsCache?.rank ? `#${statsCache.rank} all-time` : "Ready"; });
+    return;
+  }
+  scoreText.textContent = `${(currentPlayer?.score || 0).toLocaleString()} pts`;
+}
+
+// ---------- Waiting for the round to start ----------
+
+function renderJoinScreen(game, playersObj) {
+  setScreen("join");
+  setWash("");
+  stopLivePoints();
+
+  const name = playerName || "Player";
+  joinHeadline.textContent = currentPlayer ? `You're in, ${name}${/[.!?]$/.test(name) ? "" : "!"}` : "Joining the round…";
+  joinSubline.textContent = "Watch the TV. The questions show up right here too.";
+
+  const seconds = Number(game.timer) || 0;
+  joinCountdown.textContent = formatTime(seconds);
+  joinCountdown.classList.toggle("hurry", seconds > 0 && seconds <= 10);
+
+  const players = Object.values(playersObj);
+  joinPlayerCount.textContent = players.length;
+  joinPlayerLabel.textContent = players.length === 1 ? "player in so far" : "players in so far";
+
+  // You first, then everyone else, newest first. At most 10 chips.
+  const others = players
+    .filter(player => player.id !== playerId)
+    .sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0));
+  const shown = [...(currentPlayer ? [currentPlayer] : []), ...others].slice(0, 10);
+  const key = shown.map(player => player.id).join("|") + `:${players.length}`;
+
+  if (key !== chipsKey) {
+    chipsKey = key;
+    joinPlayerChips.replaceChildren(...shown.map(player => {
+      const chip = document.createElement("span");
+      chip.textContent = player.id === playerId ? `You · ${player.name || "Player"}` : (player.name || "Player");
+      if (player.id === playerId) chip.className = "is-you";
+      return chip;
+    }));
+
+    if (players.length > shown.length) {
+      const more = document.createElement("span");
+      more.className = "is-more";
+      more.textContent = `+${players.length - shown.length} more`;
+      joinPlayerChips.appendChild(more);
+    }
+  }
+
+  joinStats.classList.toggle("hidden", isGuest);
+  joinGuestNote.classList.toggle("hidden", !isGuest);
+
+  if (!isGuest && statsRoundKey !== game.roundId) {
+    statsRoundKey = game.roundId;
+    loadPlayerStats(true).then(paintJoinStats);
+  }
+}
+
+// ---------- Question / answer locked in ----------
+
+function setPhoneQuestionText(text) {
+  const clean = text || "";
+  questionText.textContent = clean;
+  questionText.classList.toggle("long", clean.length > 70);
+  questionText.classList.toggle("longer", clean.length > 105);
+  questionText.classList.toggle("longest", clean.length > 145);
+}
+
+function updatePointsDisplay(points, maxPoints = 1000) {
+  const safe = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
+  const percent = maxPoints > 0 ? (safe / maxPoints) * 100 : 0;
+
+  pointsText.textContent = safe.toLocaleString();
+  pointsFill.style.width = `${percent}%`;
+
+  let color = "#46e58a";
+  let line = "rgba(70,229,138,.5)";
+  if (percent <= 25) { color = "#ff5b69"; line = "rgba(255,91,105,.55)"; }
+  else if (percent <= 55) { color = "#ff8a35"; line = "rgba(255,138,53,.5)"; }
+  else if (percent <= 78) { color = "#f3d04f"; line = "rgba(243,208,79,.5)"; }
+
+  pointsBox.style.setProperty("--meter", color);
+  pointsBox.style.setProperty("--meter-line", line);
+}
+
+function startLivePoints(game) {
+  const key = `${game.roundId}:${game.questionIndex}`;
+  if (key === pointsKey && pointsInterval) return;
+
+  stopLivePoints();
+  pointsKey = key;
+  pointsLabel.textContent = "POINTS IF YOU'RE RIGHT";
+  const maxPoints = game.maxPoints || 1000;
+  updatePointsDisplay(calculateLivePoints(game), maxPoints);
+  pointsInterval = setInterval(() => updatePointsDisplay(calculateLivePoints(game), maxPoints), 50);
+}
+
+function stopLivePoints() {
+  if (pointsInterval) clearInterval(pointsInterval);
+  pointsInterval = null;
+  pointsKey = null;
+}
+
+function renderChoices(game, myAnswer) {
+  const picked = myAnswer ? myAnswer.choiceIndex : null;
+  const key = `${game.roundId}:${game.questionIndex}:${picked}`;
+  if (key === choicesKey) return;
+  choicesKey = key;
+
+  choicesEl.replaceChildren(...(game.choices || []).map((choice, index) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pv-choice";
+
+    const letter = document.createElement("span");
+    letter.className = "pv-choice-letter";
+    letter.textContent = getLetter(index);
+
+    const copy = document.createElement("span");
+    copy.className = "pv-choice-copy";
+    copy.textContent = choice;
+
+    btn.append(letter, copy);
+
+    if (picked !== null) {
+      btn.disabled = true;
+      if (index === picked) {
+        btn.classList.add("is-pick");
+        const tag = document.createElement("span");
+        tag.className = "pv-choice-tag";
+        tag.textContent = "YOUR PICK";
+        btn.appendChild(tag);
+      } else {
+        btn.classList.add("is-other");
+      }
+    } else {
+      // pointerdown answers on the first touch, without waiting for the finger to lift.
+      btn.addEventListener("pointerdown", event => {
+        event.preventDefault();
+        if (!btn.disabled) submitAnswer(index);
+      }, { once: true });
+    }
+
+    return btn;
+  }));
+}
+
+function renderQuestionScreen(game, playersObj) {
+  const myAnswer = getMyAnswer(game);
+  setScreen(myAnswer ? "locked" : "question");
+  setWash("");
+
+  categoryText.textContent = game.category || "Trivia";
+  questionProgressText.textContent = `QUESTION ${(game.questionIndex || 0) + 1} OF ${getQuestionCount(game)}`;
+
+  const seconds = Number(game.timer) || 0;
+  timerText.textContent = formatTime(seconds);
+  timerText.classList.toggle("urgent", seconds > 0 && seconds <= 5);
+
+  setPhoneQuestionText(game.question || "Question loading…");
+  renderChoices(game, myAnswer);
+
+  if (myAnswer) {
+    stopLivePoints();
+    lockedPoints.textContent = (myAnswer.pointsPossible || 0).toLocaleString();
+  } else {
+    startLivePoints(game);
+    statusText.textContent = "Tap fast: your points drop every second.";
+  }
+
+  const players = Object.values(playersObj);
+  const answered = players.filter(player => player.answers?.[game.questionIndex]).length;
+  answeredText.textContent = `${answered} of ${players.length} answered`;
+  answeredFill.style.width = players.length ? `${Math.round((answered / players.length) * 100)}%` : "0%";
+}
+
+// ---------- Answer reveal ----------
+
+function renderRevealScreen(game, playersObj) {
+  setScreen("reveal");
+  stopLivePoints();
+
+  const qi = game.questionIndex || 0;
+  const total = getQuestionCount(game);
+  const isLast = qi >= total - 1;
+  revealNextLabel.textContent = isLast ? "Results in" : "Next question in";
+  revealNextTimer.textContent = formatTime(game.timer);
+
+  const key = `${game.roundId}:${qi}`;
+  if (key === revealKey) return;
+  revealKey = key;
+
+  const choices = game.choices || [];
+  const right = game.correctAnswerIndex;
+  const answer = getMyAnswer(game);
+  const players = Object.values(playersObj);
+  const sorted = getSortedPlayers(playersObj);
+  const rankNow = getRankIn(sorted, playerId);
+  const rankBefore = qi > 0 ? getRankBefore(playersObj, playerId, qi) : 0;
+  const rightText = typeof right === "number" && choices[right] !== undefined ? `${getLetter(right)} · ${choices[right]}` : "";
+
+  resultCard.classList.remove("good", "miss", "none", "pv-pop");
+  void resultCard.offsetWidth;
+  resultCard.classList.add("pv-pop");
+
+  const isRight = answer && answer.choiceIndex === right;
+
+  if (isRight) {
+    const earned = Number(answer.pointsEarned ?? answer.pointsPossible) || 0;
+    resultCard.classList.add("good");
+    resultIcon.innerHTML = ICONS.check;
+    resultTitle.textContent = "Correct!";
+    resultPoints.textContent = `+${earned.toLocaleString()}`;
+    resultAnswer.textContent = "";
+    setWash("good");
+
+    if (lastFireworkQuestion !== key) {
+      lastFireworkQuestion = key;
+      launchFireworks();
+    }
+  } else {
+    resultCard.classList.add(answer ? "miss" : "none");
+    resultIcon.innerHTML = answer ? ICONS.cross : ICONS.clock;
+    resultTitle.textContent = answer ? "Not this time" : "Time's up";
+    resultPoints.textContent = "";
+    setRich(resultAnswer, "The answer was ", rightText);
+    setWash("miss");
+  }
+
+  // Rank change since the last question.
+  resultRank.replaceChildren();
+  if (rankNow) {
+    const prefix = isRight ? "" : "+0 · ";
+    if (!rankBefore) {
+      resultRank.append(`${prefix}You're `);
+      const b = document.createElement("b");
+      b.textContent = `#${rankNow}`;
+      resultRank.append(b, ` of ${sorted.length}`);
+    } else if (rankNow < rankBefore) {
+      resultRank.insertAdjacentHTML("afterbegin", ICONS.up);
+      resultRank.append(`${prefix}You moved up to `);
+      const b = document.createElement("b");
+      b.className = "up-text";
+      b.textContent = `#${rankNow}`;
+      resultRank.append(b);
+    } else if (rankNow > rankBefore) {
+      resultRank.insertAdjacentHTML("afterbegin", ICONS.down);
+      resultRank.append(`${prefix}You're now `);
+      const b = document.createElement("b");
+      b.className = "down-text";
+      b.textContent = `#${rankNow}`;
+      resultRank.append(b);
+    } else {
+      resultRank.append(`${prefix}You're still `);
+      const b = document.createElement("b");
+      b.textContent = `#${rankNow}`;
+      resultRank.append(b);
+    }
+  }
+
+  // How the room voted.
+  const votes = new Array(choices.length).fill(0);
+  let answered = 0;
+  let correct = 0;
+  let fastest = null;
+
+  players.forEach(player => {
+    const a = player.answers?.[qi];
+    if (!a || typeof a.choiceIndex !== "number") return;
+    answered++;
+    if (a.choiceIndex >= 0 && a.choiceIndex < votes.length) votes[a.choiceIndex]++;
+    if (a.choiceIndex === right) {
+      correct++;
+      const seconds = Math.max(0, ((a.answeredAt || 0) - (game.questionStartedAt || 0)) / 1000);
+      if (!fastest || seconds < fastest.seconds) fastest = { name: player.name || "Player", seconds };
+    }
+  });
+
+  voteList.replaceChildren(...choices.map((choice, index) => {
+    const pct = answered ? Math.round((votes[index] / answered) * 100) : 0;
+    const row = document.createElement("div");
+    row.className = "pv-vote";
+    if (index === right) row.classList.add("is-right");
+    else if (answer && answer.choiceIndex === index) row.classList.add("is-mine");
+
+    const fill = document.createElement("span");
+    fill.className = "pv-vote-fill";
+    fill.dataset.pct = pct;
+
+    const letter = document.createElement("span");
+    letter.className = "pv-vote-letter";
+    letter.textContent = getLetter(index);
+
+    const text = document.createElement("span");
+    text.className = "pv-vote-text";
+    text.textContent = choice;
+
+    row.append(fill, letter, text);
+
+    if (answer && answer.choiceIndex === index) {
+      const you = document.createElement("span");
+      you.className = "pv-vote-you";
+      you.textContent = "YOU";
+      row.appendChild(you);
+    }
+
+    const pctEl = document.createElement("span");
+    pctEl.className = "pv-vote-pct";
+    pctEl.textContent = `${pct}%`;
+    row.appendChild(pctEl);
+    return row;
+  }));
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    voteList.querySelectorAll(".pv-vote-fill").forEach(fill => { fill.style.width = `${fill.dataset.pct}%`; });
+  }));
+
+  revealRightText.replaceChildren(`${correct} of ${players.length}`);
+  if (fastest) setRich(revealFastestText, `${fastest.name} · `, `${fastest.seconds.toFixed(1)} s`);
+  else revealFastestText.textContent = "Nobody";
+  revealFastestText.querySelector("b")?.style.setProperty("color", "var(--green)");
+
+  const remaining = total - (qi + 1);
+  const showEncourage = !isRight && remaining > 0;
+  revealEncourage.classList.toggle("hidden", !showEncourage);
+  if (showEncourage) {
+    revealEncourage.textContent = `${plural(remaining, "question")} left. Plenty of time to catch up.`;
+  }
+}
+
+// ---------- Round over ----------
+
+function rememberLastPlace(roundId, place, total) {
+  try {
+    const store = isGuest ? sessionStorage : localStorage;
+    store.setItem(LAST_PLACE_KEY, JSON.stringify({ roundId, place, total }));
+  } catch {}
+}
+
+function getLastPlace(roundId) {
+  try {
+    const store = isGuest ? sessionStorage : localStorage;
+    const saved = JSON.parse(store.getItem(LAST_PLACE_KEY) || "null");
+    return saved && saved.roundId === roundId ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderFinalScreen(game, playersObj) {
+  stopLivePoints();
+  const roundId = game.roundId;
+
+  // The TV takes a few seconds to reveal the podium; keep the phone in suspense too.
+  if (!drumrollUntil[roundId]) drumrollUntil[roundId] = Date.now() + 5500;
+  const wait = drumrollUntil[roundId] - Date.now();
+  if (wait > 0) {
+    setScreen("drumroll");
+    setWash("gold");
+    setTimeout(() => renderGame(currentGame), wait + 50);
+    return;
+  }
+
+  setScreen("final");
+  setWash("gold");
+
+  if (finalKey === roundId) return;
+  finalKey = roundId;
+
+  const sorted = getSortedPlayers(playersObj);
+  const place = getRankIn(sorted, playerId);
+  const total = sorted.length;
+  const myScore = currentPlayer?.score || 0;
+
+  placeMedal.className = "pv-medal " + (["", "gold", "silver", "bronze"][place] || "plain");
+  placeNumber.textContent = place || "–";
+
+  if (!place) {
+    placeHeadline.textContent = "Round complete!";
+    placeSubline.textContent = "Keep this page open for the next round.";
+  } else if (place === 1) {
+    placeHeadline.textContent = total > 1 ? `You won the round!` : "You finished 1st!";
+    placeSubline.textContent = `${myScore.toLocaleString()} points this round`;
+    if (lastFireworkQuestion !== `final:${roundId}`) {
+      lastFireworkQuestion = `final:${roundId}`;
+      launchFireworks();
+    }
+  } else {
+    placeHeadline.textContent = `You finished ${ordinal(place)} of ${total}!`;
+    placeSubline.textContent = `${myScore.toLocaleString()} points this round`;
+  }
+
+  if (place) rememberLastPlace(roundId, place, total);
+
+  // Top 3, plus your own row if you're further down.
+  const rows = sorted.slice(0, 3).map((player, i) => ({ player, rank: i + 1 }));
+  if (place > 3) rows.push({ gap: true }, { player: sorted[place - 1], rank: place });
+
+  podiumList.replaceChildren(...rows.map(row => {
+    if (row.gap) {
+      const gap = document.createElement("div");
+      gap.className = "pv-podium-gap";
+      gap.textContent = "···";
+      return gap;
+    }
+    const el = document.createElement("div");
+    el.className = `pv-podium-row r${row.rank}`;
+    if (row.player.id === playerId) el.classList.add("is-you");
+
+    const rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = row.rank;
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = row.player.id === playerId ? `You · ${row.player.name || "Player"}` : (row.player.name || "Player");
+    const score = document.createElement("span");
+    score.className = "score";
+    score.textContent = (row.player.score || 0).toLocaleString();
+
+    el.append(rank, name, score);
+    return el;
+  }));
+
+  if (isGuest) {
+    savedTitle.className = "pv-saved-title guest";
+    savedTitle.textContent = "Guest scores aren't saved. Use a nickname + PIN next time to keep them.";
+    savedStats.classList.add("hidden");
+  } else {
+    savedTitle.className = "pv-saved-title";
+    savedTitle.innerHTML = ICONS.saved;
+    savedTitle.append("Saved to your all-time score");
+    savedStats.classList.remove("hidden");
+    savedAllTime.textContent = "…";
+    savedRank.textContent = "…";
+    savedGames.textContent = "…";
+
+    loadPlayerStats(true).then(stats => {
+      const profile = stats?.profile;
+      savedAllTime.textContent = (profile?.totalScore || 0).toLocaleString();
+      savedRank.textContent = stats?.rank ? `#${stats.rank}` : "—";
+      savedGames.textContent = (profile?.gamesPlayed || 0).toLocaleString();
+    });
+  }
+}
+
+// ---------- Between rounds ----------
+
+function ensureBetweenArcade() {
+  if (betweenArcade.children.length) return;
+  [...gameTilesEl.children].forEach(tile => betweenArcade.appendChild(tile.cloneNode(true)));
+}
+
+async function renderLastRound(roundId) {
+  if (!roundId) {
+    lastRoundLine.classList.add("hidden");
+    return;
+  }
+  if (lastRoundKey === roundId) return;
+  lastRoundKey = roundId;
+
+  try {
+    if (!(roundId in savedRoundCache)) {
+      const snap = await savedRoundsRef.child(roundId).once("value");
+      savedRoundCache[roundId] = snap.val();
+    }
+  } catch (error) {
+    console.warn("Last round could not be loaded:", error);
+    savedRoundCache[roundId] = null;
+  }
+
+  const round = savedRoundCache[roundId];
+  const mine = getLastPlace(roundId);
+
+  if (!round?.winnerName || !(round.winnerScore > 0)) {
+    lastRoundLine.classList.add("hidden");
+    return;
+  }
+
+  lastRoundLine.replaceChildren();
+  const trophy = document.createElement("span");
+  trophy.setAttribute("aria-hidden", "true");
+  trophy.textContent = "🏆";
+  const text = document.createElement("span");
+
+  if (mine && mine.place === 1) {
+    text.append("Last round: ");
+    const b = document.createElement("b");
+    b.className = "gold";
+    b.textContent = "you won!";
+    text.append(b);
+  } else {
+    text.append("Last round: ");
+    const winner = document.createElement("b");
+    winner.className = "gold";
+    winner.textContent = round.winnerName;
+    text.append(winner, " won");
+    if (mine) {
+      text.append(" · you were ");
+      const you = document.createElement("b");
+      you.textContent = ordinal(mine.place);
+      text.append(you);
+    }
+  }
+
+  lastRoundLine.append(trophy, text);
+  lastRoundLine.classList.remove("hidden");
+}
+
+function renderWaitingScreen(game = {}) {
+  setScreen("waiting");
+  setWash("");
+  stopLivePoints();
+  ensureBetweenArcade();
+  loadArcadeBests();
+  renderLastRound(game.lastCompletedRoundId);
+}
+
+// ---------- Your stats ----------
+
+function closePlayerProfile() {
+  profileModal.classList.add("hidden");
+  document.body.classList.remove("profile-open");
+  profileBtn?.focus();
+}
+
+function getLocalArcadeScore(prefix, fallbackId = "guest") {
+  return Number(localStorage.getItem(`${prefix}_${playerId || fallbackId}`)) || 0;
+}
+
+async function openPlayerProfile() {
+  profilePlayerName.textContent = playerName || "Player";
+  profileAvatar.textContent = (playerName || "P").trim().charAt(0).toUpperCase() || "P";
+  profileTriviaRank.textContent = "Loading trivia rank…";
+  profileLoading.textContent = "Loading your records…";
+  profileLoading.classList.remove("hidden");
+  profileContent.classList.add("hidden");
+  profileModal.classList.remove("hidden");
+  document.body.classList.add("profile-open");
+  closeProfileBtn.focus();
+
+  try {
+    const [allTriviaSnap] = await Promise.all([claimedNamesRef.once("value"), loadArcadeBests()]);
+
+    const allTriviaProfiles = allTriviaSnap.val() || {};
+    const rankedTrivia = Object.entries(allTriviaProfiles).map(([nameKey, profile]) => ({
+      nameKey,
+      name: profile.displayName || nameKey,
+      totalScore: Number(profile.totalScore) || 0,
+      wins: Number(profile.wins) || 0,
+      gamesPlayed: Number(profile.gamesPlayed) || 0
+    })).sort((a, b) => b.totalScore - a.totalScore || b.wins - a.wins || a.name.localeCompare(b.name));
+
+    const mine = !isGuest && playerNameKey ? rankedTrivia.find(profile => profile.nameKey === playerNameKey) : null;
+    const triviaRank = mine && mine.totalScore > 0 ? rankedTrivia.indexOf(mine) + 1 : 0;
+    const games = mine?.gamesPlayed || 0;
+    const average = games ? Math.round((mine.totalScore || 0) / games) : 0;
+
+    $("profileTriviaScore").textContent = formatProfileNumber(mine?.totalScore);
+    $("profileTriviaGames").textContent = `${plural(games, "game")} · ${plural(mine?.wins || 0, "win")}${games ? ` · ${average.toLocaleString()} per game` : ""}`;
+    $("profileHigherScore").textContent = formatProfileNumber(arcadeBests?.higher);
+    $("profileStackerScore").textContent = formatProfileNumber(arcadeBests?.stacker);
+    $("profileEmojiScore").textContent = formatProfileNumber(arcadeBests?.emoji);
+    profileTriviaRank.textContent = triviaRank > 0 ? `All-time trivia rank #${triviaRank}` : isGuest ? "Guest scores stay on this phone" : "No trivia rank yet";
+
+    const top = rankedTrivia.filter(profile => profile.totalScore > 0).slice(0, 10);
+    if (top.length) {
+      profileLeaderboard.replaceChildren(...top.map((profile, index) => {
+        const row = document.createElement("div");
+        row.className = `pv-hof-row r${index + 1}`;
+        const isMe = !isGuest && profile.nameKey === playerNameKey;
+        if (isMe) row.classList.add("is-you");
+        const rank = document.createElement("span");
+        rank.className = "rank";
+        rank.textContent = index + 1;
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = isMe ? `You · ${profile.name}` : profile.name;
+        const score = document.createElement("span");
+        score.className = "score";
+        score.textContent = formatProfileNumber(profile.totalScore);
+        row.append(rank, name, score);
+        return row;
+      }));
+    } else {
+      profileLeaderboard.innerHTML = '<div class="pv-note">No all-time scores yet.</div>';
+    }
+
+    profileLoading.classList.add("hidden");
+    profileContent.classList.remove("hidden");
+  } catch (error) {
+    console.error("Player profile could not be loaded:", error);
+    profileLoading.textContent = "Your stats could not be loaded. Try again in a moment.";
+  }
 }
 
 function setPhoneSeasonalBranding(date = new Date()) {
@@ -187,86 +1153,6 @@ gatewayOrderRef.on(
 
 function formatProfileNumber(value) {
   return Number(value || 0).toLocaleString();
-}
-
-function escapeProfileHtml(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function getProfileMedal(rank) {
-  if (rank === 1) return "🥇";
-  if (rank === 2) return "🥈";
-  if (rank === 3) return "🥉";
-  return `#${rank}`;
-}
-
-function closePlayerProfile() {
-  profileModal.classList.add("hidden");
-  document.body.classList.remove("profile-open");
-  profileBtn?.focus();
-}
-
-function getLocalArcadeScore(prefix, fallbackId = "guest") {
-  return Number(localStorage.getItem(`${prefix}_${playerId || fallbackId}`)) || 0;
-}
-
-async function openPlayerProfile() {
-  profilePlayerName.textContent = playerName || "Player";
-  profileTriviaRank.textContent = "Loading trivia rank…";
-  profileLoading.textContent = "Loading your records…";
-  profileLoading.classList.remove("hidden");
-  profileContent.classList.add("hidden");
-  profileModal.classList.remove("hidden");
-  document.body.classList.add("profile-open");
-  closeProfileBtn.focus();
-
-  try {
-    const [allTriviaSnap, higherSnap, stackerSnap, emojiSnap] = await Promise.all([
-      claimedNamesRef.once("value"),
-      playerId && !isGuest ? higherLowerPlayersRef.child(playerId).once("value") : Promise.resolve(null),
-      playerId && !isGuest ? stackerPlayersRef.child(playerId).once("value") : Promise.resolve(null),
-      playerId && !isGuest ? emojiDecoderPlayersRef.child(playerId).once("value") : Promise.resolve(null)
-    ]);
-
-    const allTriviaProfiles = allTriviaSnap.val() || {};
-    const rankedTrivia = Object.entries(allTriviaProfiles).map(([nameKey, profile]) => ({
-      nameKey,
-      name: profile.displayName || nameKey,
-      totalScore: Number(profile.totalScore) || 0,
-      wins: Number(profile.wins) || 0,
-      gamesPlayed: Number(profile.gamesPlayed) || 0
-    })).sort((a, b) => b.totalScore - a.totalScore || b.wins - a.wins || a.name.localeCompare(b.name));
-
-    const triviaProfile = !isGuest && playerNameKey ? allTriviaProfiles[playerNameKey] || {} : {};
-    const triviaRank = !isGuest && playerNameKey ? rankedTrivia.findIndex(profile => profile.nameKey === playerNameKey) + 1 : 0;
-    const higherProfile = higherSnap?.val?.() || {};
-    const stackerProfile = stackerSnap?.val?.() || {};
-    const emojiProfile = emojiSnap?.val?.() || {};
-
-    document.getElementById("profileTriviaScore").textContent = formatProfileNumber(triviaProfile.totalScore);
-    document.getElementById("profileTriviaGames").textContent = `${formatProfileNumber(triviaProfile.gamesPlayed)} games · ${formatProfileNumber(triviaProfile.wins)} wins`;
-    document.getElementById("profileHigherScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("higherLowerBest") : higherProfile.bestStreak);
-    document.getElementById("profileStackerScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("stackerBest") : stackerProfile.bestLevel);
-    document.getElementById("profileEmojiScore").textContent = formatProfileNumber(isGuest ? getLocalArcadeScore("emojiDecoderBest") : emojiProfile.bestScore);
-    profileTriviaRank.textContent = triviaRank > 0 ? `All-time Trivia rank #${triviaRank}` : isGuest ? "Guest scores stay on this device" : "No Trivia rank yet";
-
-    profileLeaderboard.innerHTML = rankedTrivia.length ? rankedTrivia.slice(0, 10).map((profile, index) => {
-      const rank = index + 1;
-      const isCurrentPlayer = !isGuest && profile.nameKey === playerNameKey;
-      return `<div class="profile-rank-row${isCurrentPlayer ? " is-player" : ""}"><span class="profile-rank${rank <= 3 ? " medal" : ""}">${getProfileMedal(rank)}</span><span class="profile-rank-name">${escapeProfileHtml(profile.name)}</span><strong class="profile-rank-score">${formatProfileNumber(profile.totalScore)}</strong></div>`;
-    }).join("") : '<div class="profile-empty">No all-time scores yet.</div>';
-
-    profileLoading.classList.add("hidden");
-    profileContent.classList.remove("hidden");
-  } catch (error) {
-    console.error("Player profile could not be loaded:", error);
-    profileLoading.textContent = "Your stats could not be loaded. Try again in a moment.";
-  }
 }
 
 const BLOCKED_WORDS = [
@@ -438,14 +1324,6 @@ function formatTime(seconds) {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-function formatCountdownFromMs(ms) {
-  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
-
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
-
 function cleanName(name) {
   return String(name || "")
     .trim()
@@ -559,149 +1437,6 @@ function isPinValid(pin) {
   return /^[0-9]{4}$/.test(pin);
 }
 
-function setJoinError(message) {
-  joinError.textContent = message;
-  joinError.classList.toggle("has-error", Boolean(message));
-}
-
-function showGameView() {
-  joinView.classList.add("hidden");
-  menuView.classList.add("hidden");
-  gameView.classList.remove("hidden");
-  playerNameText.textContent = playerName || "Player";
-}
-
-function showJoinView() {
-  joinView.classList.remove("hidden");
-  menuView.classList.add("hidden");
-  gameView.classList.add("hidden");
-}
-
-function showMenuView() {
-  joinView.classList.add("hidden");
-  gameView.classList.add("hidden");
-  menuView.classList.remove("hidden");
-  menuPlayerName.textContent = playerName || "Player";
-  document.body.dataset.phonePhase = "menu";
-}
-
-function updateGameMenu(game = {}) {
-  const phase = game.phase || "waiting";
-  const timer = formatTime(game.timer || 0);
-  const questionNumber = Number.isInteger(game.questionIndex) ? game.questionIndex + 1 : null;
-  const isLive = ["join", "question", "reveal"].includes(phase);
-
-  triviaLiveBadge.classList.toggle("is-live", isLive);
-
-  if (phase === "join") {
-    triviaLiveBadge.textContent = "JOIN NOW";
-    triviaPhaseText.textContent = `${timer} LEFT`;
-    triviaMenuStatus.textContent = "A new trivia round is starting. Join from your phone now.";
-    triviaActionText.innerHTML = "Join Live Trivia <span>›</span>";
-    return;
-  }
-
-  if (phase === "question") {
-    triviaLiveBadge.textContent = "LIVE";
-    triviaPhaseText.textContent = questionNumber ? `QUESTION ${questionNumber} OF 6` : "QUESTION LIVE";
-    triviaMenuStatus.textContent = "Trivia is in progress. You can still open the live game screen.";
-    triviaActionText.innerHTML = "Open Live Trivia <span>›</span>";
-    return;
-  }
-
-  if (phase === "reveal") {
-    triviaLiveBadge.textContent = "LIVE";
-    triviaPhaseText.textContent = "ANSWER REVEAL";
-    triviaMenuStatus.textContent = "Scores are updating before the next question.";
-    triviaActionText.innerHTML = "Return to Trivia <span>›</span>";
-    return;
-  }
-
-  triviaLiveBadge.textContent = "TRIVIA";
-  triviaPhaseText.textContent = phase === "final" ? "ROUND COMPLETE" : "BETWEEN ROUNDS";
-  triviaMenuStatus.textContent = "The next trivia round has not started yet. You can keep this page open.";
-  triviaActionText.innerHTML = "Open Trivia Screen <span>›</span>";
-}
-
-function setPhonePhase(phase) {
-  gameView.dataset.phase = phase || "waiting";
-  document.body.dataset.phonePhase = phase || "waiting";
-}
-
-function setNextRoundLayout(isOn) {
-  if (isOn) {
-    gameView.classList.add("next-round-mode");
-  } else {
-    gameView.classList.remove("next-round-mode");
-  }
-}
-
-function showPlayerStats() {
-  if (isGuest) {
-    hidePlayerStats();
-    return;
-  }
-
-  playerStats.classList.remove("hidden");
-}
-
-function hidePlayerStats() {
-  playerStats.classList.add("hidden");
-}
-
-function setPhoneQuestionText(text) {
-  const cleanText = text || "";
-
-  questionText.textContent = cleanText;
-  questionText.classList.remove(
-    "phone-long-question",
-    "phone-extra-long-question",
-    "phone-super-long-question"
-  );
-
-  if (cleanText.length > 70) {
-    questionText.classList.add("phone-long-question");
-  }
-
-  if (cleanText.length > 105) {
-    questionText.classList.add("phone-extra-long-question");
-  }
-
-  if (cleanText.length > 145) {
-    questionText.classList.add("phone-super-long-question");
-  }
-}
-
-function updatePlayerStats(profile, rank) {
-  allTimeScoreText.textContent = (profile?.totalScore || 0).toLocaleString();
-  rankText.textContent = rank ? `#${rank}` : "—";
-  winsText.textContent = profile?.wins || 0;
-  gamesText.textContent = profile?.gamesPlayed || 0;
-}
-
-async function loadPlayerStats() {
-  if (isGuest || !playerNameKey) {
-    updatePlayerStats(null, null);
-    return;
-  }
-
-  const snap = await claimedNamesRef.once("value");
-  const profilesObj = snap.val() || {};
-
-  const profiles = Object.entries(profilesObj)
-    .map(([key, profile]) => ({
-      key,
-      ...profile
-    }))
-    .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
-
-  const index = profiles.findIndex(profile => profile.key === playerNameKey);
-  const profile = index >= 0 ? profiles[index] : null;
-  const rank = index >= 0 && (profile?.totalScore || 0) > 0 ? index + 1 : null;
-
-  updatePlayerStats(profile, rank);
-}
-
 function calculateLivePoints(game) {
   if (!game || !game.questionStartedAt) return 0;
 
@@ -721,77 +1456,6 @@ function calculateLivePoints(game) {
   const remainingRatio = Math.max(0, Math.min(1, 1 - scoringElapsedMs / scoringMs));
 
   return Math.ceil(maxPoints * remainingRatio);
-}
-
-function updatePointsDisplay(points, maxPoints = 1000, label = "Points Available") {
-  const safePoints = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
-  const percent = maxPoints > 0 ? (safePoints / maxPoints) * 100 : 0;
-
-  pointsLabel.textContent = label;
-  pointsText.textContent = safePoints.toLocaleString();
-  pointsFill.style.width = `${percent}%`;
-
-  let meterColor = "#46e58a";
-  let meterDark = "#168b4d";
-  let meterGlow = "rgba(70,229,138,.42)";
-
-  if (percent <= 25) {
-    meterColor = "#ff5b69";
-    meterDark = "#8d1723";
-    meterGlow = "rgba(255,91,105,.43)";
-  } else if (percent <= 55) {
-    meterColor = "#ff8a35";
-    meterDark = "#a84313";
-    meterGlow = "rgba(255,138,53,.4)";
-  } else if (percent <= 78) {
-    meterColor = "#f3d04f";
-    meterDark = "#9b7411";
-    meterGlow = "rgba(243,208,79,.38)";
-  }
-
-  pointsBox.style.setProperty("--meter-color", meterColor);
-  pointsBox.style.setProperty("--meter-dark", meterDark);
-  pointsBox.style.setProperty("--meter-glow", meterGlow);
-
-  pointsBox.classList.remove("points-low", "points-locked");
-
-  if (safePoints <= maxPoints * 0.25) {
-    pointsBox.classList.add("points-low");
-  }
-}
-
-function startLivePoints(game) {
-  stopLivePoints();
-
-  pointsBox.classList.remove("hidden");
-
-  const maxPoints = game.maxPoints || 1000;
-  updatePointsDisplay(calculateLivePoints(game), maxPoints, "Points Available");
-
-  pointsInterval = setInterval(() => {
-    updatePointsDisplay(calculateLivePoints(game), maxPoints, "Points Available");
-  }, 50);
-}
-
-function stopLivePoints() {
-  if (pointsInterval) {
-    clearInterval(pointsInterval);
-    pointsInterval = null;
-  }
-}
-
-function lockPoints(points, maxPoints = 1000) {
-  stopLivePoints();
-
-  const lockedPoints = Math.max(0, Math.min(maxPoints, Math.round(points || 0)));
-
-  updatePointsDisplay(lockedPoints, maxPoints, "Locked In");
-  pointsBox.classList.add("points-locked");
-}
-
-function hidePointsBox() {
-  stopLivePoints();
-  pointsBox.classList.add("hidden");
 }
 
 function launchFireworks() {
@@ -887,127 +1551,6 @@ function getSortedPlayers(playersObj = {}) {
     });
 }
 
-function getCurrentRankText(playersObj = {}, id = playerId) {
-  const sortedPlayers = getSortedPlayers(playersObj);
-  const index = sortedPlayers.findIndex(player => player.id === id);
-
-  if (index === -1 || sortedPlayers.length === 0) {
-    return "";
-  }
-
-  return `You are currently #${index + 1} of ${sortedPlayers.length}`;
-}
-
-function renderMiniLeaderboard(playersObj = {}) {
-  const players = getSortedPlayers(playersObj).slice(0, 3);
-
-  if (players.length === 0) {
-    return "";
-  }
-
-  return `
-    <div class="mini-leaderboard">
-      <div class="mini-title">Current Top 3</div>
-      ${players
-        .map((player, index) => `
-          <div class="mini-row ${player.id === playerId ? "mini-you" : ""}">
-            <span class="mini-name"><span class="mini-medal" aria-label="${index + 1 === 1 ? "First" : index + 1 === 2 ? "Second" : "Third"} place">${["🥇", "🥈", "🥉"][index]}</span><span>${escapeProfileHtml(player.name || "Player")}</span>${player.id === playerId ? '<span class="you-pill">YOU</span>' : ""}</span>
-            <strong>${(player.score || 0).toLocaleString()}</strong>
-          </div>
-        `)
-        .join("")}
-    </div>
-  `;
-}
-
-function updateMiniLeaderboard(playersObj = {}) {
-  let mini = document.getElementById("miniLeaderboardBox");
-
-  if (!mini) {
-    mini = document.createElement("div");
-    mini.id = "miniLeaderboardBox";
-    choicesEl.insertAdjacentElement("afterend", mini);
-  }
-
-  mini.innerHTML = renderMiniLeaderboard(playersObj);
-}
-
-function hideMiniLeaderboard() {
-  const mini = document.getElementById("miniLeaderboardBox");
-
-  if (mini) {
-    mini.innerHTML = "";
-  }
-}
-
-function getNextRoundBox() {
-  let box = document.getElementById("nextRoundBox");
-
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "nextRoundBox";
-    box.className = "next-round-box";
-    statusText.insertAdjacentElement("afterend", box);
-  }
-
-  return box;
-}
-
-function hideNextRoundCountdown() {
-  if (nextRoundCountdownInterval) {
-    clearInterval(nextRoundCountdownInterval);
-    nextRoundCountdownInterval = null;
-  }
-
-  nextRoundCountdownTarget = null;
-
-  const box = document.getElementById("nextRoundBox");
-
-  if (box) {
-    box.classList.add("hidden");
-    box.innerHTML = "";
-  }
-
-  setNextRoundLayout(false);
-}
-
-function showNextRoundCountdown(targetTime) {
-  const box = getNextRoundBox();
-
-  if (!targetTime) {
-    hideNextRoundCountdown();
-    return;
-  }
-
-  box.classList.remove("hidden");
-  setNextRoundLayout(true);
-
-  function render() {
-    const remainingMs = targetTime - Date.now();
-
-    box.innerHTML = `
-      <div class="next-round-label">Next Round Expected In</div>
-      <div class="next-round-time">${formatCountdownFromMs(remainingMs)}</div>
-      <div class="next-round-note">
-        Keep this page open. You’ll auto-join when trivia returns.
-      </div>
-    `;
-  }
-
-  render();
-
-  if (nextRoundCountdownTarget === targetTime && nextRoundCountdownInterval) {
-    return;
-  }
-
-  if (nextRoundCountdownInterval) {
-    clearInterval(nextRoundCountdownInterval);
-  }
-
-  nextRoundCountdownTarget = targetTime;
-  nextRoundCountdownInterval = setInterval(render, 1000);
-}
-
 function rememberCompletedRoundIfNeeded(game, player) {
   if (!game) return;
 
@@ -1022,22 +1565,6 @@ function rememberCompletedRoundIfNeeded(game, player) {
       localStorage.setItem(LAST_COMPLETED_ROUND_KEY, completedRoundId);
     }
   }
-}
-
-function shouldShowNextRoundCountdown(game, player) {
-  if (!game || !["final", "waiting"].includes(game.phase)) return false;
-  if (!game.nextRoundExpectedAt) return false;
-
-  const completedRoundId = game.lastCompletedRoundId || game.roundId;
-  if (!completedRoundId) return false;
-
-  const locallyCompletedRound = isGuest
-    ? sessionStorage.getItem(LAST_COMPLETED_ROUND_KEY)
-    : localStorage.getItem(LAST_COMPLETED_ROUND_KEY);
-
-  const playerJoinedCompletedRound = player?.joinedRoundId === completedRoundId;
-
-  return playerJoinedCompletedRound || locallyCompletedRound === completedRoundId;
 }
 
 async function addPlayerToCurrentRound(game) {
@@ -1147,38 +1674,21 @@ async function joinGame() {
   const gameSnap = await gameRef.once("value");
   const game = gameSnap.val() || {};
 
-  if (isTriviaRoute) {
-    await addPlayerToCurrentRound(game);
-    await loadPlayerStats();
-    showGameView();
-  } else {
-    showMenuView();
-  }
+  statsCache = null;
+  if (isTriviaRoute) await addPlayerToCurrentRound(game);
+  renderGame((await gameRef.once("value")).val() || game);
 }
 
 async function joinAsGuest() {
   setJoinError("");
 
-  const guestName = makeGuestName();
-  const guestId = makeGuestId();
-
-  saveGuestLocally(guestId, guestName);
+  saveGuestLocally(makeGuestId(), makeGuestName());
 
   const gameSnap = await gameRef.once("value");
   const game = gameSnap.val() || {};
 
-  if (isTriviaRoute) {
-    await addPlayerToCurrentRound(game);
-    hidePlayerStats();
-    hideMiniLeaderboard();
-    hideNextRoundCountdown();
-    showGameView();
-    statusText.textContent = `Playing as ${guestName}. Guest scores do not save all-time.`;
-    categoryText.textContent = "Guest Mode";
-    setPhoneQuestionText("Watch the TV for the next question.");
-  } else {
-    showMenuView();
-  }
+  if (isTriviaRoute) await addPlayerToCurrentRound(game);
+  renderGame((await gameRef.once("value")).val() || game);
 }
 
 async function submitAnswer(choiceIndex) {
@@ -1186,377 +1696,82 @@ async function submitAnswer(choiceIndex) {
   if (!currentGame || currentGame.phase !== "question" || !playerId) return;
 
   const questionIndex = currentGame.questionIndex;
-  const existingAnswer = currentPlayer?.answers?.[questionIndex] || localLockedAnswers[questionIndex];
-
-  if (existingAnswer) {
-    statusText.textContent = "Answer already submitted. You cannot change it.";
-    return;
-  }
+  if (getMyAnswer(currentGame)) return;
 
   isSubmittingAnswer = true;
 
-  const pointsPossible = calculateLivePoints(currentGame);
   const answerData = {
     choiceIndex,
     answeredAt: Date.now(),
-    pointsPossible,
+    pointsPossible: calculateLivePoints(currentGame),
     scored: false
   };
 
+  // Lock it in on screen right away, then save it.
   localLockedAnswers[questionIndex] = answerData;
-
-  lockPoints(pointsPossible, currentGame.maxPoints || 1000);
-
-  document.querySelectorAll(".choice").forEach((btn, index) => {
-    btn.disabled = true;
-    btn.classList.add("choice-disabled");
-
-    if (index === choiceIndex) {
-      btn.classList.add("selected");
-    }
-  });
-
-  statusText.textContent = `Answer locked in for ${pointsPossible.toLocaleString()} possible points.`;
+  if (navigator.vibrate) navigator.vibrate(30);
+  renderQuestionScreen(currentGame, currentGame.players || {});
 
   try {
     await gameRef.child(`players/${playerId}/answers/${questionIndex}`).set(answerData);
   } catch (error) {
     console.error("Answer submit failed:", error);
-
-    statusText.textContent = "There was a problem submitting your answer. Try again.";
-
     delete localLockedAnswers[questionIndex];
-
-    document.querySelectorAll(".choice").forEach(btn => {
-      btn.disabled = false;
-      btn.classList.remove("choice-disabled", "selected");
-    });
+    choicesKey = null;
+    renderQuestionScreen(currentGame, currentGame.players || {});
+    statusText.textContent = "That answer didn't go through. Tap again.";
   }
 
   isSubmittingAnswer = false;
 }
 
-function getLetter(index) {
-  return String.fromCharCode(65 + index);
-}
-
-function renderChoices(game) {
-  choicesEl.innerHTML = "";
-
-  if (!game.choices) return;
-
-  const questionIndex = game.questionIndex;
-  const existingAnswer = currentPlayer?.answers?.[questionIndex] || localLockedAnswers[questionIndex];
-  const selectedIndex = existingAnswer?.choiceIndex;
-
-  game.choices.forEach((choice, index) => {
-    const btn = document.createElement("button");
-    const letter = document.createElement("span");
-    const copy = document.createElement("span");
-
-    btn.className = "choice";
-    btn.type = "button";
-    letter.className = "choice-letter";
-    letter.textContent = getLetter(index);
-    copy.className = "choice-copy";
-    copy.textContent = choice;
-    btn.append(letter, copy);
-
-    if (selectedIndex === index) {
-      btn.classList.add("selected");
-    }
-
-    if (existingAnswer || game.phase !== "question") {
-      btn.disabled = true;
-    }
-
-    if (game.phase === "reveal") {
-      if (index === game.correctAnswerIndex) {
-        btn.classList.add("correct");
-      } else if (selectedIndex === index && selectedIndex !== game.correctAnswerIndex) {
-        btn.classList.add("wrong");
-      }
-    }
-
-    btn.addEventListener("pointerdown", event => {
-      event.preventDefault();
-
-      if (btn.disabled) return;
-
-      submitAnswer(index);
-    }, { once: true });
-
-    choicesEl.appendChild(btn);
-  });
-}
-
-function getAnswerFeedback(game, player) {
-  const answer = player?.answers?.[game.questionIndex] || localLockedAnswers[game.questionIndex];
-
-  if (!answer) {
-    return "Time's up — no answer submitted.";
-  }
-
-  if (game.correctAnswerIndex === null || game.correctAnswerIndex === undefined) {
-    return "Answer submitted. Waiting for reveal...";
-  }
-
-  if (answer.choiceIndex === game.correctAnswerIndex) {
-    const points = answer.pointsEarned ?? answer.pointsPossible ?? 0;
-
-    return `Correct! +${points.toLocaleString()} points`;
-  }
-
-  return `Wrong — correct answer was ${getLetter(game.correctAnswerIndex)}.`;
-}
-
-function getJoinStatusMessage(game, player) {
-  if (!game || !game.phase) {
-    return "Waiting for the trivia screen to come back on the TV.";
-  }
-
-  if (!player) {
-    return "Joining game...";
-  }
-
-  if (game.phase === "join") {
-    return isGuest
-      ? `You are in as ${playerName}. Guest scores do not save all-time.`
-      : "You are in. Get ready — the round is about to start.";
-  }
-
-  if (game.phase === "question") {
-    return "Answer fast — your point value is dropping!";
-  }
-
-  if (game.phase === "reveal") {
-    return getAnswerFeedback(game, player);
-  }
-
-  if (game.phase === "final") {
-    return isGuest
-      ? "Round complete! Guest scores do not save all-time. Keep this page open for the next round."
-      : "Round complete! Your all-time score was saved. Keep this page open for the next round.";
-  }
-
-  if (game.phase === "waiting") {
-    return "Waiting for trivia to return on the TV.";
-  }
-
-  return "Waiting for the next question...";
-}
+// ---------- Draw whatever the TV is doing ----------
 
 async function renderGame(game) {
+  const token = ++renderToken;
   currentGame = game || {};
+
   applyPhoneRoundTheme(currentGame.roundId);
+  nextRoundTarget = Number(currentGame.nextRoundExpectedAt) || 0;
   updateGameMenu(currentGame);
-  setPhonePhase(currentGame.phase || "waiting");
-  timerText.textContent = formatTime(currentGame.timer || 0);
-  playerNameText.textContent = playerName || "Player";
+  renderSignInStrip(currentGame);
+  paintNextRound();
 
-  if (!playerId || !playerName) {
-    document.body.dataset.phonePhase = "join";
-    hidePointsBox();
-    hideMiniLeaderboard();
-    hideNextRoundCountdown();
-    showJoinView();
-    return;
-  }
+  const signedIn = playerId && playerName && (isGuest || (playerNameKey && savedPin));
 
-  if (!isGuest && (!playerNameKey || !savedPin)) {
-    document.body.dataset.phonePhase = "join";
-    hidePointsBox();
-    hideMiniLeaderboard();
-    hideNextRoundCountdown();
+  if (!signedIn) {
+    setWash("");
+    stopLivePoints();
     showJoinView();
     return;
   }
 
   if (!isTriviaRoute) {
-    hidePointsBox();
-    hideMiniLeaderboard();
-    hideNextRoundCountdown();
+    stopLivePoints();
     showMenuView();
     return;
   }
 
   showGameView();
 
-  if (currentGame.roundId) {
+  // Join this round automatically (only reads from Firebase when not in it yet).
+  const inRound = currentGame.players?.[playerId]?.joinedRoundId === currentGame.roundId;
+  if (currentGame.roundId && !inRound) {
     await addPlayerToCurrentRound(currentGame);
+    if (token !== renderToken) return;
   }
 
-  const playerSnap = await gameRef.child(`players/${playerId}`).once("value");
-  currentPlayer = playerSnap.val();
-
-  const playersSnap = await gameRef.child("players").once("value");
-  const playersObj = playersSnap.val() || {};
-  const currentRankText = getCurrentRankText(playersObj);
-
+  const playersObj = currentGame.players || {};
+  currentPlayer = playersObj[playerId] || null;
   rememberCompletedRoundIfNeeded(currentGame, currentPlayer);
+  updateHeaderChip(currentGame, playersObj);
 
-  scoreText.textContent = (currentPlayer?.score || 0).toLocaleString();
-
-  if (currentGame.phase === "waiting") {
-    hidePointsBox();
-    hideMiniLeaderboard();
-
-    if (shouldShowNextRoundCountdown(currentGame, currentPlayer)) {
-      if (isGuest) {
-        hidePlayerStats();
-      } else {
-        showPlayerStats();
-        await loadPlayerStats();
-      }
-
-      showNextRoundCountdown(currentGame.nextRoundExpectedAt);
-
-      statusText.className = "status";
-      statusText.textContent = "Round complete. Waiting for trivia to return on the TV.";
-
-      categoryText.textContent = "Next Round";
-      questionProgressText.textContent = "ROUND COMPLETE";
-      setPhoneQuestionText("Keep this page open. You’ll automatically join when the next trivia round starts.");
-
-      choicesEl.innerHTML = "";
-      return;
-    }
-
-    hideNextRoundCountdown();
-
-    statusText.className = "status";
-    statusText.textContent = "Waiting for trivia to return on the TV.";
-
-    categoryText.textContent = "Waiting";
-    questionProgressText.textContent = "STAY READY";
-    setPhoneQuestionText("Scan the QR code when the next round starts, or keep this page open.");
-
-    choicesEl.innerHTML = "";
-    return;
-  }
-
-  if (!currentGame.phase || currentGame.phase === "join") {
-    hideNextRoundCountdown();
-
-    if (isGuest) {
-      hidePlayerStats();
-    } else {
-      showPlayerStats();
-      await loadPlayerStats();
-    }
-
-    hidePointsBox();
-    hideMiniLeaderboard();
-
-    statusText.className = "status";
-    statusText.textContent = getJoinStatusMessage(currentGame, currentPlayer);
-
-    categoryText.textContent = isGuest ? "Guest Mode" : "Get Ready";
-    questionProgressText.textContent = "GET READY";
-    setPhoneQuestionText(
-      isGuest
-        ? "You can play this round, but your score will not save to the all-time leaderboard."
-        : "Watch the TV for the round countdown."
-    );
-
-    choicesEl.innerHTML = "";
-    return;
-  }
-
-  if (currentGame.phase === "question") {
-    hideNextRoundCountdown();
-    hidePlayerStats();
-    hideMiniLeaderboard();
-
-    statusText.className = "status";
-
-    const existingAnswer = currentPlayer?.answers?.[currentGame.questionIndex] || localLockedAnswers[currentGame.questionIndex];
-
-    if (existingAnswer) {
-      lockPoints(existingAnswer.pointsPossible || 0, currentGame.maxPoints || 1000);
-    } else {
-      startLivePoints(currentGame);
-    }
-
-    statusText.textContent = existingAnswer
-      ? `${currentRankText ? `${currentRankText}. ` : ""}Answer locked in for ${(existingAnswer.pointsPossible || 0).toLocaleString()} possible points.`
-      : `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
-
-    categoryText.textContent = currentGame.category || "Trivia";
-    questionProgressText.textContent = `QUESTION ${(currentGame.questionIndex || 0) + 1} / 6`;
-    setPhoneQuestionText(currentGame.question || "Question loading...");
-
-    renderChoices(currentGame);
-    return;
-  }
-
-  if (currentGame.phase === "reveal") {
-    hideNextRoundCountdown();
-    hidePlayerStats();
-    stopLivePoints();
-
-    const answer = currentPlayer?.answers?.[currentGame.questionIndex] || localLockedAnswers[currentGame.questionIndex];
-    const isCorrect = answer && answer.choiceIndex === currentGame.correctAnswerIndex;
-
-    if (answer) {
-      const displayPoints = isCorrect ? (answer.pointsEarned ?? answer.pointsPossible ?? 0) : 0;
-
-      updatePointsDisplay(displayPoints, currentGame.maxPoints || 1000, "Points Earned");
-      pointsBox.classList.remove("hidden");
-      pointsBox.classList.add("points-locked");
-    } else {
-      updatePointsDisplay(0, currentGame.maxPoints || 1000, "No Answer");
-      pointsBox.classList.remove("hidden");
-    }
-
-    statusText.className = isCorrect ? "status status-correct" : "status status-wrong";
-    statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
-
-    if (isCorrect && lastFireworkQuestion !== currentGame.questionIndex) {
-      launchFireworks();
-      lastFireworkQuestion = currentGame.questionIndex;
-    }
-
-    categoryText.textContent = currentGame.category || "Trivia";
-    questionProgressText.textContent = `ANSWER ${(currentGame.questionIndex || 0) + 1} / 6`;
-    setPhoneQuestionText(currentGame.question || "Answer revealed.");
-
-    renderChoices(currentGame);
-    updateMiniLeaderboard(playersObj);
-    return;
-  }
-
-  if (currentGame.phase === "final") {
-    if (isGuest) {
-      hidePlayerStats();
-    } else {
-      showPlayerStats();
-      await loadPlayerStats();
-    }
-
-    hidePointsBox();
-    updateMiniLeaderboard(playersObj);
-
-    if (shouldShowNextRoundCountdown(currentGame, currentPlayer)) {
-      showNextRoundCountdown(currentGame.nextRoundExpectedAt);
-    } else {
-      hideNextRoundCountdown();
-    }
-
-    statusText.className = "status";
-    statusText.textContent = `${currentRankText ? `${currentRankText}. ` : ""}${getJoinStatusMessage(currentGame, currentPlayer)}`;
-
-    categoryText.textContent = isGuest ? "Guest Round Complete" : "Round Complete";
-    questionProgressText.textContent = "FINAL SCORE";
-    setPhoneQuestionText(
-      isGuest
-        ? "Keep this page open. You will automatically join the next round as a guest."
-        : "Keep this page open. You will automatically join the next round when trivia comes back on the TV."
-    );
-
-    choicesEl.innerHTML = "";
-    return;
-  }
+  const phase = currentGame.phase;
+  if (phase === "join") return renderJoinScreen(currentGame, playersObj);
+  if (phase === "question") return renderQuestionScreen(currentGame, playersObj);
+  if (phase === "reveal") return renderRevealScreen(currentGame, playersObj);
+  if (phase === "final") return renderFinalScreen(currentGame, playersObj);
+  return renderWaitingScreen(currentGame);
 }
 
 joinBtn.addEventListener("click", joinGame);
@@ -1565,9 +1780,7 @@ profileBtn.addEventListener("click", openPlayerProfile);
 profileBackdrop.addEventListener("click", closePlayerProfile);
 closeProfileBtn.addEventListener("click", closePlayerProfile);
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && !profileModal.classList.contains("hidden")) {
-    closePlayerProfile();
-  }
+  if (event.key === "Escape" && !profileModal.classList.contains("hidden")) closePlayerProfile();
 });
 [nameInput, pinInput].forEach(input => {
   input.addEventListener("keydown", event => {
@@ -1575,38 +1788,20 @@ document.addEventListener("keydown", event => {
   });
 });
 
-if (playerName && !isGuest) {
-  nameInput.value = playerName;
-}
+if (playerName && !isGuest) nameInput.value = playerName;
+if (savedPin && !isGuest) pinInput.value = savedPin;
 
-if (savedPin && !isGuest) {
-  pinInput.value = savedPin;
-}
-
+// Show something right away, before the first update from Firebase arrives.
 if (playerId && playerName && (isGuest || (playerNameKey && savedPin))) {
   if (isTriviaRoute) {
     showGameView();
-    setPhonePhase("waiting");
+    setScreen("waiting");
+    playerNameText.textContent = (playerName || "Player").toUpperCase();
   } else {
     showMenuView();
   }
-
-  if (isTriviaRoute && isGuest) {
-    hidePlayerStats();
-    statusText.textContent = `Waiting as ${playerName}. Guest scores do not save all-time.`;
-    categoryText.textContent = "Guest Mode";
-    setPhoneQuestionText("Keep this page open. You will automatically join the next round as a guest.");
-  } else if (isTriviaRoute) {
-    showPlayerStats();
-    statusText.textContent = "Waiting for the trivia screen to come back on the TV.";
-    categoryText.textContent = "Ready";
-    setPhoneQuestionText("Keep this page open. You will automatically join the next round.");
-    loadPlayerStats();
-  }
-
-  hidePointsBox();
-  hideMiniLeaderboard();
-  hideNextRoundCountdown();
+} else {
+  showJoinView();
 }
 
 gameRef.on("value", snap => {
