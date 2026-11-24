@@ -67,6 +67,7 @@ const pointsText = $("pointsText");
 const pointsFill = $("pointsFill");
 const lockedPoints = $("lockedPoints");
 const questionText = $("questionText");
+const questionPicture = $("questionPicture");
 const choicesEl = $("choices");
 const statusText = $("statusText");
 const answeredText = $("answeredText");
@@ -672,6 +673,12 @@ function renderQuestionScreen(game, playersObj) {
   timerText.classList.toggle("urgent", seconds > 0 && seconds <= 5);
 
   setPhoneQuestionText(game.question || "Question loading…");
+  // Picture questions: the same flag, state or zooming logo as the TV.
+  if (window.GrumpysPictureView) {
+    if (game.picture) window.GrumpysPictureView.render(questionPicture, game.picture, game.questionStartedAt, game.questionSeconds, serverNow);
+    else window.GrumpysPictureView.clear(questionPicture);
+  }
+  questionPicture.closest(".pv-panel")?.classList.toggle("has-picture", !questionPicture.hidden);
   renderChoices(game, myAnswer);
 
   if (myAnswer) {
@@ -693,6 +700,7 @@ function renderQuestionScreen(game, playersObj) {
 function renderRevealScreen(game, playersObj) {
   setScreen("reveal");
   stopLivePoints();
+  window.GrumpysPictureView?.clear(questionPicture);
 
   const qi = game.questionIndex || 0;
   const total = getQuestionCount(game);

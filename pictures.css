@@ -1,0 +1,125 @@
+/* Picture questions: flags, state shapes and zoomed-in logos. */
+
+/* The picture sits on a light card so dark logos and white flag stripes still show. */
+.question-picture,
+.pv-picture {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(120% 90% at 50% 40%, #fffdf7 0%, #fbf3e2 70%, #f1e4c9 100%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.06), 0 14px 40px rgba(0,0,0,.35);
+  isolation: isolate;
+}
+.question-picture[hidden],
+.pv-picture[hidden] { display: none !important; }
+
+.qp-img {
+  display: block;
+  max-width: none;
+  max-height: none;
+  flex: none;
+  transform-origin: 50% 50%;
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+/* Flags get a thin edge so white stripes don't melt into the card. */
+[data-kind="flag"] .qp-img { box-shadow: 0 0 0 1px rgba(20,24,30,.28), 0 6px 18px rgba(0,0,0,.18); border-radius: 3px; }
+[data-kind="state"] .qp-img { filter: drop-shadow(0 6px 10px rgba(0,0,0,.18)); }
+/* The reveal pulls the logo all the way back. */
+.qp-revealed .qp-img { transition: transform .75s cubic-bezier(.2,.8,.2,1); }
+
+/* ---------- Main TV and second screen ---------- */
+.picture-row { display: contents; }
+
+.question-card.has-picture .question {
+  margin-bottom: calc(22 * var(--u, 1px));
+  font-size: calc(54 * var(--u, 1px));
+}
+.question-card.has-picture .picture-row {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: calc(26 * var(--u, 1px));
+}
+.question-card.has-picture .question-picture {
+  min-height: 0;
+  border-radius: calc(26 * var(--u, 1px));
+  padding: calc(30 * var(--u, 1px));
+  animation: qpEnter .6s cubic-bezier(.18,.82,.22,1) both;
+}
+.question-card.has-picture[data-picture-kind="logo"] .question-picture { padding: calc(36 * var(--u, 1px)); }
+.question-card.has-picture[data-picture-kind="flag"] .question-picture { padding: calc(44 * var(--u, 1px)); }
+
+/* Answers stack in one column beside the picture. */
+.question-card.has-picture .answers {
+  flex: none;
+  min-height: 0;
+  margin-top: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: none;
+  grid-auto-rows: minmax(0, 1fr);
+}
+.phase-question .question-card.has-picture .answer {
+  font-size: calc(40 * var(--u, 1px));
+  padding: 0 calc(26 * var(--u, 1px));
+  gap: calc(20 * var(--u, 1px));
+}
+.phase-question .question-card.has-picture .answer-letter {
+  width: calc(66 * var(--u, 1px));
+  font-size: calc(32 * var(--u, 1px));
+}
+
+/* Reveal: the card is narrower, so the picture gets a little less room. */
+.phase-reveal .question-card.has-picture .picture-row { grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: calc(18 * var(--u, 1px)); }
+.phase-reveal .question-card.has-picture .question { font-size: calc(44 * var(--u, 1px)); margin-bottom: calc(14 * var(--u, 1px)); }
+.phase-reveal .question-card.has-picture .question-picture { padding: calc(24 * var(--u, 1px)); }
+.phase-reveal .question-card.has-picture .answer { font-size: calc(32 * var(--u, 1px)); }
+
+/* A soft glow sweeps the logo card while it's still zoomed in. */
+[data-picture-kind="logo"] .question-picture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 calc(4 * var(--u, 1px)) rgb(var(--accent-rgb, 246 201 76) / .55);
+  opacity: .9;
+  transition: opacity .6s ease;
+}
+[data-picture-kind="logo"] .question-picture.qp-revealed::after { opacity: 0; }
+
+@keyframes qpEnter {
+  from { opacity: 0; transform: translateY(18px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- Phones ---------- */
+/* Everything tightens up a little so all four answers still fit without scrolling. */
+.pv-picture {
+  flex: none;
+  height: clamp(104px, 17vh, 168px);
+  border-radius: 16px;
+  padding: 10px;
+}
+.pv-picture[data-kind="flag"] { padding: 14px; }
+.pv-panel.has-picture { gap: 10px; }
+.pv-panel.has-picture .pv-points { gap: 8px; padding: 10px 14px; }
+.pv-panel.has-picture .pv-points-live strong { font-size: 28px; }
+.pv-panel.has-picture .pv-locked { padding: 10px 14px; }
+.pv-panel.has-picture .pv-question { margin: 0; font-size: 22px; }
+.pv-panel.has-picture .pv-choices { gap: 8px; }
+.pv-panel.has-picture .pv-choice { min-height: 52px; padding: 6px 14px; gap: 12px; }
+.pv-panel.has-picture .pv-choice-letter { width: 36px; height: 36px; font-size: 17px; }
+.pv-panel.has-picture .pv-choice-copy { font-size: 18px; }
+@media (max-height: 700px) {
+  .pv-picture { height: clamp(90px, 15vh, 120px); }
+  .pv-panel.has-picture .pv-question { font-size: 20px; }
+  .pv-panel.has-picture .pv-choice { min-height: 48px; }
+}

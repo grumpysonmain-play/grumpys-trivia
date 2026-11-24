@@ -155,6 +155,7 @@ function setPhase(phase) {
   screenEl.classList.remove("final-board-active", "final-seconds", "hof-mode");
   screenEl.classList.remove("phase-enter");
   screenEl.classList.add(`phase-${phase}`);
+  if (phase !== "question" && phase !== "reveal") showQuestionPicture(null);
   void screenEl.offsetWidth;
   screenEl.classList.add("phase-enter");
 
@@ -229,6 +230,7 @@ function shuffle(array) {
 }
 
 function getQuestionKey(question) {
+  if (question.picture?.id) return `picture::${question.picture.id}`.toLowerCase();
   return `${question.category || ""}::${question.question || ""}`
     .toLowerCase()
     .replace(/\s+/g, " ")
@@ -686,7 +688,21 @@ function showJoinScreen() {
 }
 
 // Draws a question. Used by the main TV and, from Firebase, by the second screen.
-function renderQuestion(category, question, choices, index, startedAt) {
+// The picture (flag, state or logo) sits beside the answers. Logos zoom out as the clock runs.
+function showQuestionPicture(picture, startedAt, seconds) {
+  const frame = document.getElementById("questionPicture");
+  const card = document.querySelector(".question-card");
+  if (!frame || !window.GrumpysPictureView) return;
+  if (picture && picture.src) {
+    window.GrumpysPictureView.render(frame, picture, startedAt, seconds || QUESTION_SECONDS, serverNow);
+  } else {
+    window.GrumpysPictureView.clear(frame);
+  }
+  card?.classList.toggle("has-picture", !frame.hidden);
+  if (card) card.dataset.pictureKind = frame.hidden ? "" : (picture.kind || "");
+}
+
+function renderQuestion(category, question, choices, index, startedAt, picture = null, seconds = QUESTION_SECONDS) {
   setPhase("question");
   questionEl.classList.remove("join-phrase");
   questionEl.removeAttribute("aria-label");
@@ -698,6 +714,7 @@ function renderQuestion(category, question, choices, index, startedAt) {
   categoryEl.textContent = category;
   questionCounterEl.textContent = `QUESTION ${index + 1} / ${roundQuestionCount}`;
   setTvQuestionText(question);
+  showQuestionPicture(picture, startedAt, seconds);
 
   messageEl.textContent = "Answer fast — your point value is dropping.";
   roundProgressEl.textContent = `Question ${index + 1} of ${roundQuestionCount}`;
@@ -719,8 +736,9 @@ async function showQuestion(questionData, index) {
   ]).map(decodeHtml);
 
   correctAnswerIndex = choices.indexOf(decodeHtml(questionData.correct_answer));
+  const picture = window.GrumpysPictureQuestions?.gameState(questionData) || null;
   // The real start time is stamped by Firebase's server, the same clock that stamps answers.
-  renderQuestion(decodedCategory, decodedQuestion, choices, index, serverNow());
+  renderQuestion(decodedCategory, decodedQuestion, choices, index, serverNow(), picture);
 
   await gameRef.update({
     roundId,
@@ -731,6 +749,7 @@ async function showQuestion(questionData, index) {
     category: decodedCategory,
     question: decodedQuestion,
     choices,
+    picture,
     correctAnswerIndex: null,
     timer: QUESTION_SECONDS,
     questionStartedAt: firebase.database.ServerValue.TIMESTAMP,
@@ -741,7 +760,10 @@ async function showQuestion(questionData, index) {
   });
 
   const stamped = (await gameRef.child("questionStartedAt").once("value")).val();
-  if (typeof stamped === "number") currentQuestionStartedAt = stamped;
+  if (typeof stamped === "number") {
+    currentQuestionStartedAt = stamped;
+    if (picture) showQuestionPicture(picture, stamped);
+  }
 }
 
 async function showAnswerReveal(index) {
@@ -791,6 +813,8 @@ function renderRevealStart(index, votePlayers, previousStandings) {
   });
 
   renderRevealStats(stats);
+  const pictureFrame = document.getElementById("questionPicture");
+  if (pictureFrame && window.GrumpysPictureView) window.GrumpysPictureView.reveal(pictureFrame);
   // After the first question everyone starts from zero, so the rows simply drop in.
   if (index === 0) {
     document.getElementById("leaderboardList").replaceChildren();
@@ -1168,12 +1192,17 @@ async function loadQuestions() {
   // During the Christmas theme, two of the six questions are Christmas questions.
   const christmasPool = window.GrumpysChristmas?.isActive() ? getQuestionsByCategory("Christmas") : [];
   const christmas = christmasPool.length >= 2 ? pickRandomQuestionsAvoidingRecent(christmasPool, 2) : [];
-  const general = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("General Knowledge"), christmas.length ? 1 : 2);
+  // One picture question a round (a flag, a state shape or a zoomed-in logo), if the pictures loaded.
+  let picture = null;
+  try { picture = window.GrumpysPictureQuestions?.makeQuestion() || null; } catch (error) { console.warn("Picture question skipped:", error); }
+  const pictures = picture ? [picture] : [];
+  const general = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("General Knowledge"), christmas.length || picture ? 1 : 2);
   const history = pickRandomQuestionsAvoidingRecent(getQuestionsByCategory("US History"), christmas.length ? 1 : 2);
-  const sports = pickRandomQuestionsAvoidingRecent(getSportsQuestions(), 2);
+  const sports = pickRandomQuestionsAvoidingRecent(getSportsQuestions(), christmas.length && picture ? 1 : 2);
 
   questions = shuffle([
     ...christmas,
+    ...pictures,
     ...general,
     ...history,
     ...sports
@@ -1395,14 +1424,14 @@ async function renderViewerPhase(game) {
   if (game.phase === "question") {
     viewerState.standingsAtQuestion = getSortedPlayers(players);
     correctAnswerIndex = -1;
-    renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], game.questionIndex || 0, game.questionStartedAt || serverNow());
+    renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], game.questionIndex || 0, game.questionStartedAt || serverNow(), game.picture || null, game.questionSeconds);
     return;
   }
 
   if (game.phase === "reveal") {
     const index = game.questionIndex || 0;
     if (currentPhase !== "question" || currentQuestionIndex !== index) {
-      renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], index, game.questionStartedAt || serverNow());
+      renderQuestion(game.category || "Trivia", game.question || "", game.choices || [], index, game.questionStartedAt || serverNow(), game.picture || null, game.questionSeconds);
     }
     correctAnswerIndex = game.correctAnswerIndex;
     const previous = viewerState.standingsAtQuestion.length ? viewerState.standingsAtQuestion : getSortedPlayers(players);
