@@ -79,6 +79,8 @@ const resultIcon = $("resultIcon");
 const resultTitle = $("resultTitle");
 const resultPoints = $("resultPoints");
 const resultAnswer = $("resultAnswer");
+const resultStreak = $("resultStreak");
+const streakChip = $("streakChip");
 const resultRank = $("resultRank");
 const voteList = $("voteList");
 const revealRightText = $("revealRightText");
@@ -673,6 +675,12 @@ function renderQuestionScreen(game, playersObj) {
   timerText.classList.toggle("urgent", seconds > 0 && seconds <= 5);
 
   setPhoneQuestionText(game.question || "Question loading…");
+  // Your streak, if you're on one.
+  const myStreak = Number(playersObj?.[playerId]?.streak) || 0;
+  const onStreak = window.GrumpysAwards && myStreak >= window.GrumpysAwards.STREAK_START;
+  streakChip.classList.toggle("is-on", Boolean(onStreak));
+  streakChip.textContent = onStreak ? `🔥 ${myStreak} in a row` : "";
+  streakChip.parentElement?.classList.toggle("on-streak", Boolean(onStreak));
   // Picture questions: the same flag, state or zooming logo as the TV.
   if (window.GrumpysPictureView) {
     if (game.picture) window.GrumpysPictureView.render(questionPicture, game.picture, game.questionStartedAt, game.questionSeconds, serverNow);
@@ -726,6 +734,20 @@ function renderRevealScreen(game, playersObj) {
   resultCard.classList.add("pv-pop");
 
   const isRight = answer && answer.choiceIndex === right;
+
+  // Streak news: the bonus you just earned, or the streak that just ended.
+  const streakNow = Number(answer?.streak) || 0;
+  const streakBonus = Number(answer?.streakBonus) || 0;
+  const streakEnded = Number(answer?.streakEnded) || 0;
+  if (isRight && streakBonus > 0) {
+    resultStreak.textContent = `🔥 ${streakNow} in a row · +${streakBonus.toLocaleString()} streak bonus`;
+  } else if (!isRight && streakEnded >= 3) {
+    resultStreak.textContent = `Your ${streakEnded}-answer streak ended`;
+  } else if (isRight && streakNow === 2) {
+    resultStreak.textContent = "2 in a row · one more for a 🔥 streak bonus";
+  } else {
+    resultStreak.textContent = "";
+  }
 
   if (isRight) {
     const earned = Number(answer.pointsEarned ?? answer.pointsPossible) || 0;
@@ -1084,6 +1106,20 @@ async function openPlayerProfile() {
     $("profileStackerScore").textContent = formatProfileNumber(arcadeBests?.stacker);
     $("profileEmojiScore").textContent = formatProfileNumber(arcadeBests?.emoji);
     profileTriviaRank.textContent = triviaRank > 0 ? `All-time trivia rank #${triviaRank}` : isGuest ? "Guest scores stay on this phone" : "No trivia rank yet";
+
+    // Badges: every month or year this player finished on top.
+    const badgesEl = $("profileBadges");
+    const earned = window.GrumpysAwards && !isGuest && playerNameKey
+      ? window.GrumpysAwards.earnedBadges(playerNameKey, allTriviaProfiles, name => isHardBlockedName(name))
+      : [];
+    badgesEl.replaceChildren(...earned.map(badge => {
+      const chip = document.createElement("span");
+      chip.className = "pv-badge";
+      chip.title = badge.label;
+      chip.setAttribute("aria-label", badge.label);
+      chip.innerHTML = window.GrumpysAwards.badgeSvg(badge.kind, badge.key); // drawn by badges.js, no player text inside
+      return chip;
+    }));
 
     const top = rankedTrivia.filter(profile => profile.totalScore > 0).slice(0, 10);
     if (top.length) {

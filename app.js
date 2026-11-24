@@ -50,6 +50,13 @@ let currentPhase = "join";
 let revealBoardActive = false;
 let knownPlayerIds = null;
 let latestPlayers = {};
+// Streaks: the round played just before this one (a streak carries over only from it),
+// guests' streaks (named players keep theirs on their profile), and who was here when each question started.
+let previousRoundId = null;
+const guestStreaks = {};
+let questionPlayerIds = new Set();
+// Player of the Month / Year: the reigning champions get a crown next to their name.
+let awardChamps = { month: null, year: null };
 let toastQueue = [];
 let toastTimer = null;
 
@@ -466,7 +473,7 @@ function renderLeaderboard(playersObj = {}) {
   }
 
   const html = players
-    .map(player => `<li><span>${escapeHtml(player.name)}</span><strong>${(player.score || 0).toLocaleString()}</strong></li>`)
+    .map(player => `<li><span>${escapeHtml(player.name)}${nameFlair(player)}</span><strong>${(player.score || 0).toLocaleString()}</strong></li>`)
     .join("");
 
   // Answers arrive constantly during a question; only redraw when the Top 5 changes.
@@ -513,7 +520,7 @@ function makeBoardList(players) {
       const name = player.name || player.displayName || "Player";
       const score = player.score ?? player.totalScore ?? 0;
 
-      return `<li><span>${escapeHtml(name)}</span><strong>${Number(score || 0).toLocaleString()}</strong></li>`;
+      return `<li><span>${escapeHtml(name)}${nameFlair(player)}</span><strong>${Number(score || 0).toLocaleString()}</strong></li>`;
     })
     .join("");
 }
@@ -540,6 +547,52 @@ async function getAllTimeLeaders() {
     .slice(0, 15);
 }
 
+const Awards = window.GrumpysAwards;
+const nameIsBlockedForBoards = name => Boolean(window.GrumpysNameFilter && window.GrumpysNameFilter.isBlocked(name));
+
+// Last month's and last year's champions (for the 👑 / 🏆 next to their names).
+async function getAwardBoards() {
+  if (!Awards) return null;
+  const profiles = (await claimedNamesRef.once("value")).val() || {};
+  awardChamps = Awards.champions(profiles, nameIsBlockedForBoards);
+  return { champs: awardChamps };
+}
+
+function refreshAwardChamps() {
+  getAwardBoards().catch(error => console.warn("Award boards could not load:", error));
+}
+
+// Player of the Month / Year badge after a champion's name, 🔥 for a streak of 3 or more.
+function nameFlair(player) {
+  const crowns = Awards ? Awards.badges(player?.nameKey, awardChamps) : "";
+  const streak = Number(player?.streak) || 0;
+  const fire = Awards && streak >= Awards.STREAK_START ? `<span class="streak-fire" title="${streak} in a row">🔥${streak}</span>` : "";
+  return `${crowns ? `<span class="champ-crown" title="Player of the Month / Year">${crowns}</span>` : ""}${fire}`;
+}
+
+// ---------- Streaks ----------
+// A streak carries into this round only if the player was in the round just before it.
+async function getCarriedStreak(playerId, player) {
+  if (!previousRoundId) return 0;
+  if (player.nameKey && !player.isGuest) {
+    const saved = (await claimedNamesRef.child(`${player.nameKey}/streak`).once("value")).val();
+    return saved && saved.roundId === previousRoundId ? Number(saved.count) || 0 : 0;
+  }
+  const saved = guestStreaks[playerId];
+  return saved && saved.roundId === previousRoundId ? saved.count : 0;
+}
+
+// When the questions start, everyone who joined gets the streak they brought with them.
+async function seedStreaks() {
+  const players = (await gameRef.child("players").once("value")).val() || {};
+  const updates = {};
+  for (const [playerId, player] of Object.entries(players)) {
+    if (typeof player.streak === "number") continue;
+    updates[`players/${playerId}/streak`] = await getCarriedStreak(playerId, player);
+  }
+  if (Object.keys(updates).length) await gameRef.update(updates);
+}
+
 async function addRoundScoresToAllTime(allRoundPlayers) {
   const savedRoundSnap = await savedRoundsRef.child(roundId).once("value");
 
@@ -562,15 +615,37 @@ async function addRoundScoresToAllTime(allRoundPlayers) {
     if (!profile) continue;
 
     const isWinner = allRoundPlayers[0]?.id === player.id;
-
-    await profileRef.update({
+    const score = player.score || 0;
+    const update = {
       displayName: player.name,
-      totalScore: (profile.totalScore || 0) + (player.score || 0),
+      totalScore: (profile.totalScore || 0) + score,
       gamesPlayed: (profile.gamesPlayed || 0) + 1,
       wins: (profile.wins || 0) + (isWinner ? 1 : 0),
-      lastPlayed: Date.now()
-    });
+      lastPlayed: Date.now(),
+      streak: { count: Number(player.streak) || 0, roundId }
+    };
+
+    // This month's and this year's totals (Central time), for Player of the Month / Year.
+    if (Awards) {
+      const add = (kind, key) => {
+        const before = profile[kind]?.[key] || {};
+        update[`${kind}/${key}`] = {
+          score: (Number(before.score) || 0) + score,
+          games: (Number(before.games) || 0) + 1,
+          wins: (Number(before.wins) || 0) + (isWinner ? 1 : 0)
+        };
+      };
+      add("months", Awards.monthKey());
+      add("years", Awards.yearKey());
+    }
+
+    await profileRef.update(update);
   }
+
+  // Guests keep their streak on this TV until the next round.
+  allRoundPlayers.filter(player => player.isGuest || !player.nameKey).forEach(player => {
+    guestStreaks[player.id] = { count: Number(player.streak) || 0, roundId };
+  });
 
   await savedRoundsRef.child(roundId).set({
     savedAt: Date.now(),
@@ -603,22 +678,40 @@ async function scoreQuestion() {
   const players = snap.val() || {};
   const updates = {};
 
-  Object.entries(players).forEach(([playerId, player]) => {
+  for (const [playerId, player] of Object.entries(players)) {
     const answer = player.answers?.[currentQuestionIndex];
+    if (answer?.scored) continue;
+    const before = typeof player.streak === "number" ? player.streak : await getCarriedStreak(playerId, player);
 
-    if (answer && answer.choiceIndex === correctAnswerIndex && !answer.scored) {
-      const pointsEarned = getPointsFromAnswer(answer);
+    if (answer && answer.choiceIndex === correctAnswerIndex) {
+      // Right: points for speed, plus the streak bonus once you're 3 in a row.
+      const streak = before + 1;
+      const basePoints = getPointsFromAnswer(answer);
+      const streakBonus = Awards ? Awards.streakBonus(streak) : 0;
+      const pointsEarned = basePoints + streakBonus;
 
       updates[`players/${playerId}/score`] = (player.score || 0) + pointsEarned;
+      updates[`players/${playerId}/streak`] = streak;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/scored`] = true;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/pointsEarned`] = pointsEarned;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/basePoints`] = basePoints;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/streakBonus`] = streakBonus;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/streak`] = streak;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/wasCorrect`] = true;
-    } else if (answer && !answer.scored) {
+    } else if (answer) {
+      // Wrong: the streak starts over.
+      updates[`players/${playerId}/streak`] = 0;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/scored`] = true;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/pointsEarned`] = 0;
       updates[`players/${playerId}/answers/${currentQuestionIndex}/wasCorrect`] = false;
+      updates[`players/${playerId}/answers/${currentQuestionIndex}/streakEnded`] = before;
+    } else if (questionPlayerIds.has(playerId)) {
+      // No answer counts as a miss, but only for people who were here when the question started.
+      updates[`players/${playerId}/streak`] = 0;
+    } else if (typeof player.streak !== "number") {
+      updates[`players/${playerId}/streak`] = before;
     }
-  });
+  }
 
   if (Object.keys(updates).length > 0) {
     await gameRef.update(updates);
@@ -736,6 +829,7 @@ async function showQuestion(questionData, index) {
   ]).map(decodeHtml);
 
   correctAnswerIndex = choices.indexOf(decodeHtml(questionData.correct_answer));
+  questionPlayerIds = new Set(Object.keys(latestPlayers || {}));
   const picture = window.GrumpysPictureQuestions?.gameState(questionData) || null;
   // The real start time is stamped by Firebase's server, the same clock that stamps answers.
   renderQuestion(decodedCategory, decodedQuestion, choices, index, serverNow(), picture);
@@ -886,6 +980,7 @@ function makeLeaderboardRow(player, rank) {
   row.innerHTML = '<span class="lb-rank"></span><span class="lb-move"></span><span class="lb-name"></span><span class="lb-gain"></span><strong class="lb-score"></strong>';
   row.querySelector(".lb-rank").textContent = rank;
   row.querySelector(".lb-name").textContent = player.name || "Player";
+  row.querySelector(".lb-name").insertAdjacentHTML("beforeend", nameFlair(player));
   row.querySelector(".lb-score").textContent = (player.score || 0).toLocaleString();
   return row;
 }
@@ -937,6 +1032,10 @@ function shuffleRevealBoard(previousStandings, newStandings, afterPlayers, index
         move.textContent = "–";
       }
     }
+
+    const nameEl = row.querySelector(".lb-name");
+    nameEl.textContent = player.name || "Player";
+    nameEl.insertAdjacentHTML("beforeend", nameFlair(player));
 
     const earned = afterPlayers[player.id]?.answers?.[index]?.pointsEarned || 0;
     const gain = row.querySelector(".lb-gain");
@@ -1009,6 +1108,7 @@ async function showFinalScreen() {
   await addRoundScoresToAllTime(allRoundPlayers);
 
   const allTimeLeaders = await getAllTimeLeaders();
+  await getAwardBoards().catch(() => null);
 
   nextRoundExpectedAt = serverNow() + ((FINAL_SECONDS + NEXT_TRIVIA_WAIT_SECONDS) * 1000);
 
@@ -1034,7 +1134,7 @@ function makePodiumColumn(player, place) {
   return `
     <div class="podium-col place-${place}" data-place="${place}">
       ${place === 1 ? '<div class="podium-trophy" aria-hidden="true">🏆</div><div class="podium-wait" aria-hidden="true">?</div><div class="podium-nice">Top of the Nice List</div>' : ""}
-      <div class="podium-name">${escapeHtml(player.name || "Player")}</div>
+      <div class="podium-name">${escapeHtml(player.name || "Player")}${nameFlair({ nameKey: player.nameKey })}</div>
       <div class="podium-score">${(player.score || 0).toLocaleString()} PTS</div>
       <div class="podium-block">${place}</div>
     </div>
@@ -1246,6 +1346,15 @@ async function runRound() {
   applyRoundTheme(roundId);
   nextRoundExpectedAt = null;
 
+  // The round that finished just before this one; streaks only carry over from it.
+  try {
+    const lastGame = (await gameRef.once("value")).val() || {};
+    previousRoundId = lastGame.lastCompletedRoundId || (lastGame.finalSaved ? lastGame.roundId : null) || previousRoundId;
+  } catch {
+    // Keep whatever this screen remembers.
+  }
+  refreshAwardChamps();
+
   try {
     await gameRef.set({
       roundId,
@@ -1267,6 +1376,7 @@ async function runRound() {
 
   showJoinScreen();
   await startCountdown(JOIN_SECONDS);
+  await seedStreaks().catch(error => console.warn("Streaks could not carry over:", error));
 
   for (let i = 0; i < questions.length; i++) {
     await showQuestionBumper(questions[i], i);
@@ -1381,6 +1491,7 @@ function stopViewerWaitingCountdown() {
 }
 
 function startViewer() {
+  refreshAwardChamps();
   gameRef.on("value", snap => onViewerGame(snap.val() || {}));
 }
 
@@ -1445,6 +1556,7 @@ async function renderViewerPhase(game) {
     hideTvPointsBar();
     const roundPlayers = getSortedPlayers(players);
     const leaders = await getAllTimeLeaders();
+    await getAwardBoards().catch(() => null);
     if (roundPlayers.length) showPodium(roundPlayers, leaders);
     else showHallOfFame(leaders);
     return;

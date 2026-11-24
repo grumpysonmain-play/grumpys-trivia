@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&display=swap" />
   <link rel="stylesheet" href="phone.css?v=2" />
-<link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"><link rel="stylesheet" href="christmas-theme.css?v=1"><link rel="stylesheet" href="pictures.css?v=1"></head>
+<link rel="stylesheet" href="halloween-theme.css"><link rel="stylesheet" href="branding.css"><link rel="stylesheet" href="christmas-theme.css?v=1"><link rel="stylesheet" href="pictures.css?v=1"><link rel="stylesheet" href="awards.css?v=2"></head>
 <body class="pv">
   <div class="pv-atmosphere" aria-hidden="true"><i></i><i></i><i class="pv-wash"></i></div>
 
@@ -166,6 +166,7 @@
         <div class="pv-qmeta">
           <span id="categoryText" class="pv-pill">TRIVIA</span>
           <span id="questionProgressText" class="pv-qcount">QUESTION 1 OF 6</span>
+          <span id="streakChip" class="pv-streak-chip"></span>
           <span id="timerText" class="pv-timer">0:20</span>
         </div>
 
@@ -204,6 +205,7 @@
           <div id="resultTitle" class="pv-result-title">CORRECT!</div>
           <div id="resultPoints" class="pv-result-points"></div>
           <div id="resultAnswer" class="pv-result-answer"></div>
+          <div id="resultStreak" class="pv-streak-line"></div>
           <div id="resultRank" class="pv-result-rank"></div>
         </div>
         <div class="pv-votes">
@@ -274,7 +276,7 @@
 
       <div class="pv-identity">
         <span id="profileAvatar" class="pv-avatar">P</span>
-        <div><strong id="profilePlayerName">Player</strong><small id="profileTriviaRank">Loading…</small></div>
+        <div><strong id="profilePlayerName">Player</strong><small id="profileTriviaRank">Loading…</small><span id="profileBadges" class="pv-badges"></span></div>
       </div>
 
       <div id="profileLoading" class="pv-note">Loading your records…</div>
@@ -305,6 +307,8 @@
   <script src="christmas.js?v=1"></script>
   <script src="name-filter.js?v=1"></script>
   <script src="picture-view.js?v=3"></script>
-  <script src="play.js?v=pics1"></script>
+  <script src="badges.js?v=1"></script>
+  <script src="awards.js?v=3"></script>
+  <script src="play.js?v=awards2"></script>
 <script src="shared-theme.js"></script></body>
 </html>
